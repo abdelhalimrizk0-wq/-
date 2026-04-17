@@ -1,0 +1,560 @@
+[
+  {
+    "id": "adult-nursing-2-theory",
+    "name": "Adult Nursing II (Theory)",
+    "nameAr": "تمريض البالغين II (نظري)",
+    "emoji": "🛏️",
+    "color": "#3b82f6",
+    "department": "adult",
+    "lectures": [
+      {
+        "name": "Lumber Disc Herniation",
+        "file": "quizzes/Lumber Disc Herniation.html",
+        "questions": 0
+      },
+      {
+        "name": "Musculoskeletal Injuries",
+        "file": "quizzes/Musculoskeletal Injuries.html",
+        "questions": 0
+      },
+      {
+        "name": "Dialysis quiz",
+        "file": "quizzes/Dialysis quiz.html",
+        "questions": 0
+      },
+      {
+        "name": "Renal faliure part 1",
+        "file": "quizzes/Renal faliure part 1.html",
+        "questions": 0
+      },
+      {
+        "name": "perioperative part 2 quiz",
+        "file": "quizzes/perioperative part 2 quiz.html",
+        "questions": 0
+      },
+      {
+        "name": "perioperative part 1 quiz",
+        "file": "quizzes/perioperative part 1 quiz.html",
+        "questions": 0
+      }
+    ]
+  },
+  {
+    "id": "pathology-adult",
+    "name": "Pathology",
+    "nameAr": "علم الباثولوجي",
+    "emoji": "🔬",
+    "color": "#ef4444",
+    "department": "adult",
+    "lectures": [
+      { "name": "كويز 1", "file": "#", "questions": 20 }
+    ]
+  },
+  {
+    "id": "nutrition-adult",
+    "name": "Applied Nutrition",
+    "nameAr": "التغذية التطبيقية",
+    "emoji": "🍎",
+    "color": "#10b981",
+    "department": "adult",
+    "lectures": [
+      { "name": "كويز 1", "file": "#", "questions": 20 }
+    ]
+  },
+  {
+    "id": "microbiology-adult",
+    "name": "Microbiology",
+    "nameAr": "الميكروبيولوجي",
+    "emoji": "🦠",
+    "color": "#8b5cf6",
+    "department": "adult",
+    "lectures": [
+      { "name": "كويز 1", "file": "#", "questions": 20 }
+    ]
+  },
+  {
+    "id": "adult-nursing-2-practical",
+    "name": "Adult Nursing II (Practical)",
+    "nameAr": "تمريض البالغين II (عملي)",
+    "emoji": "🩺",
+    "color": "#0ea5e9",
+    "department": "adult",
+    "lectures": [
+      { "name": "كويز 1", "file": "#", "questions": 20 }
+    ]
+  },
+  {
+    "id": "emergency-nursing-theory",
+    "name": "Emergency Nursing (Theory)",
+    "nameAr": "تمريض الطوارئ نظري",
+    "emoji": "🚑",
+    "color": "#ef4444",
+    "department": "emergency",
+    "lectures": [ 
+      {
+        "name": "stroke quiz",
+        "file": "quizzes/stroke quiz.html",
+        "questions": 0
+      },
+      {
+        "name": "triage quiz",
+        "file": "quizzes/triage quiz.html",
+        "questions": 0
+      },
+      {
+        "name": "Diabetic emergency quiz",
+        "file": "quizzes/Diabetic emergency quiz.html",
+        "questions": 0
+      },
+      {
+        "name": "Spinal Cord Injury Quiz.",
+        "file": "quizzes/Spinal Cord Injury Quiz..html",
+        "questions": 0
+      },
+      {
+        "name": "acute git bleeding quiz",
+        "file": "quizzes/acute git bleeding quiz.html",
+        "questions": 0
+      },
+      {
+        "name": "Overdose quiz",
+        "file": "quizzes/Overdose quiz.html",
+        "questions": 0
+      },
+      {
+        "name": "Acute Coronary Syndrome Quiz",
+        "file": "quizzes/Acute Coronary Syndrome Quiz.html",
+        "questions": 0
+      },
+      {
+        "name": "Cardiac Dysrhythmias Exam",
+        "file": "quizzes/Cardiac Dysrhythmias Exam.html",
+        "questions": 0
+      },
+      {
+        "name": "acute git bleeding",
+        "file": "quizzes/acute git bleeding.html",
+        "questions": 0
+      },
+      {
+        "name": "Head Injury quiz",
+        "file": "quizzes/Head Injury quiz.html",
+        "questions": 0
+      },
+      {
+        "name": "Respiratory Emergency quiz",
+        "file": "quizzes/Respiratory Emergency quiz.html",
+        "questions": 0
+      },
+      {
+        "name": "Status Epilepticus quiz",
+        "file": "quizzes/Status Epilepticus quiz.html",
+        "questions": 0
+      },
+      {
+        "name": "فاينال طوارئ نظري 2024",
+        "file": "quizzes/فاينال طوارئ نظري 2024.html",
+        "questions": 0
+      },
+      {
+        "name": "شامل 230 طوارئ نظري",
+        "file": "quizzes/شامل 230 طوارئ نظري.html",
+        "questions": 0
+      }
+    ]
+  },
+  {
+    "id": "critical-care-1-theory",
+    "name": "Critical Care 1 (Theory)",
+    "nameAr": "تمريض العناية الحرجة (1) ن",
+    "emoji": "🫀",
+    "color": "#f43f5e",
+    "department": "emergency",
+    "lectures": [
+      {
+        "name": "Acute Kidney Injury",
+        "file": "quizzes/Acute Kidney Injury.html",
+        "questions": 0
+      },
+      {
+        "name": "Delirium in ICU",
+        "file": "quizzes/Delirium in ICU.html",
+        "questions": 0
+      },
+      {
+        "name": "Acute Respiratory Failure",
+        "file": "quizzes/Acute Respiratory Failure.html",
+        "questions": 0
+      },
+      {
+        "name": "Family's Experience with Critical Illness",
+        "file": "quizzes/Family's Experience with Critical Illness.html",
+        "questions": 0
+      },
+      {
+        "name": "Fluids and Electrolytes Lecture",
+        "file": "quizzes/Fluids and Electrolytes Lecture.html",
+        "questions": 0
+      },
+      {
+        "name": "Intensive Care Unit Acquired Weakness (ICUAW)",
+        "file": "quizzes/Intensive Care Unit Acquired Weakness (ICUAW).html",
+        "questions": 0
+      },
+      {
+        "name": "Mechanical Ventilation & Nursing Care",
+        "file": "quizzes/Mechanical Ventilation & Nursing Care.html",
+        "questions": 0
+      },
+      {
+        "name": "Intra-abdominal compartment syndrome",
+        "file": "quizzes/Intra-abdominal compartment syndrome.html",
+        "questions": 0
+      },
+      {
+        "name": "Pain in Critical Care",
+        "file": "quizzes/Pain in Critical Care.html",
+        "questions": 0
+      },
+      {
+        "name": "Sleep Disorder in ICU",
+        "file": "quizzes/Sleep Disorder in ICU.html",
+        "questions": 0
+      },
+      {
+        "name": "ميد تيرم عناية نظري",
+        "file": "quizzes/ميد تيرم عناية نظري.html",
+        "questions": 0
+      },
+      {
+        "name": "شامل 200 عنايه",
+        "file": "quizzes/شامل 200 عنايه.html",
+        "questions": 0
+      },
+      {
+        "name": "شامل 120 عنايه",
+        "file": "quizzes/شامل 120 عنايه.html",
+        "questions": 0
+      },
+      {
+        "name": "فاينال عناية 2024",
+        "file": "quizzes/فاينال عناية 2024.html",
+        "questions": 0
+      }
+    ]
+  },
+  {
+    "id": "emergency-medicine",
+    "name": "Emergency Medicine",
+    "nameAr": "طب الطوارئ",
+    "emoji": "⚕️",
+    "color": "#10b981",
+    "department": "emergency",
+    "lectures": [
+      {
+        "name": "Abdominal Trauma",
+        "file": "quizzes/Abdominal Trauma.html",
+        "questions": 0
+      },
+      {
+        "name": "Acute Abdomen",
+        "file": "quizzes/Acute Abdomen.html",
+        "questions": 0
+      },
+      {
+        "name": "Chest Trauma",
+        "file": "quizzes/Chest Trauma.html",
+        "questions": 0
+      },
+      {
+        "name": "Hypertensive Crisis",
+        "file": "quizzes/Hypertensive Crisis.html",
+        "questions": 0
+      },
+      {
+        "name": "Principles of Emergency Care",
+        "file": "quizzes/Principles of Emergency Care.html",
+        "questions": 0
+      },
+      {
+        "name": "Shock",
+        "file": "quizzes/Shock.html",
+        "questions": 0
+      },
+      {
+        "name": "شامل طب طوارئ",
+        "file": "quizzes/شامل طب طوارئ.html",
+        "questions": 0
+      }
+    ]
+  },
+  {
+    "id": "critical-medicine",
+    "name": "Critical Medicine",
+    "nameAr": "الطب الحرج",
+    "emoji": "🩺",
+    "color": "#3b82f6",
+    "department": "emergency",
+    "lectures": [
+      {
+        "name": "جميع المحاضرات",
+        "file": "quizzes/جميع المحاضرات.html",
+        "questions": 0
+      },
+      {
+        "name": "ميد طب حرج",
+        "file": "quizzes/ميد طب حرج.html",
+        "questions": 0
+      },
+      {
+        "name": "شامل 200 طب حرج",
+        "file": "quizzes/شامل 200 طب حرج.html",
+        "questions": 0
+      }
+    ]
+  },
+  {
+    "id": "emergency-nursing-practical",
+    "name": "Emergency Nursing (Practical)",
+    "nameAr": "تمريض الطوارئ عملي",
+    "emoji": "🏥",
+    "color": "#f59e0b",
+    "department": "emergency",
+    "lectures": [
+      {
+        "name": "cardic monitoring",
+        "file": "quizzes/cardic monitoring.html",
+        "questions": 0
+      },
+      {
+        "name": "crash cart",
+        "file": "quizzes/crash cart.html",
+        "questions": 0
+      },
+      {
+        "name": "Emergency OSCE",
+        "file": "quizzes/Emergency OSCE.html",
+        "questions": 0
+      },
+      {
+        "name": "ميد طوارئ عملي",
+        "file": "quizzes/ميد طوارئ عملي.html",
+        "questions": 0
+      },
+      {
+        "name": "cervical coller",
+        "file": "quizzes/cervical coller.html",
+        "questions": 0
+      },
+      {
+        "name": "chest tube",
+        "file": "quizzes/chest tube.html",
+        "questions": 0
+      },
+      {
+        "name": "dc",
+        "file": "quizzes/dc.html",
+        "questions": 0
+      },
+      {
+        "name": "ECG",
+        "file": "quizzes/ECG.html",
+        "questions": 0
+      },
+      {
+        "name": "Emergency Drug",
+        "file": "quizzes/Emergency Drug.html",
+        "questions": 0
+      },
+      {
+        "name": "inhalition therapy",
+        "file": "quizzes/inhalition therapy.html",
+        "questions": 0
+      },
+      {
+        "name": "log rolling",
+        "file": "quizzes/log rolling.html",
+        "questions": 0
+      },
+      {
+        "name": "شامل طوارئ عملي 120",
+        "file": "quizzes/شامل طوارئ عملي 120.html",
+        "questions": 0
+      },
+      {
+        "name": "فاينال طوارئ 2024",
+        "file": "quizzes/فاينال طوارئ 2024.html",
+        "questions": 0
+      }
+    ]
+  },
+  {
+    "id": "critical-care-1-practical",
+    "name": "Critical Care 1 (Practical)",
+    "nameAr": "تمريض العناية الحرجة (1) ع",
+    "emoji": "💉",
+    "color": "#8b5cf6",
+    "department": "emergency",
+    "lectures": [
+      {
+        "name": "cvc insertion",
+        "file": "quizzes/cvc insertion.html",
+        "questions": 0
+      },
+      {
+        "name": "Endotracheal Intubation",
+        "file": "quizzes/Endotracheal Intubation.html",
+        "questions": 0
+      },
+      {
+        "name": "cvc Drawing ",
+        "file": "quizzes/cvc Drawing .html",
+        "questions": 0
+      },
+      {
+        "name": "cvc Dressing ",
+        "file": "quizzes/cvc Dressing .html",
+        "questions": 0
+      },
+      {
+        "name": "cvc Removal",
+        "file": "quizzes/cvc Removal.html",
+        "questions": 0
+      },
+      {
+        "name": "o2 therapy",
+        "file": "quizzes/o2 therapy.html",
+        "questions": 0
+      },
+      {
+        "name": "suction",
+        "file": "quizzes/suction.html",
+        "questions": 0
+      },
+      {
+        "name": "cvp measure ",
+        "file": "quizzes/cvp measure .html",
+        "questions": 0
+      },
+      {
+        "name": "NGF",
+        "file": "quizzes/NGF.html",
+        "questions": 0
+      },
+      {
+        "name": "شامل 124 عنايه عملي",
+        "file": "quizzes/شامل 124 عنايه عملي.html",
+        "questions": 0
+      }
+    ]
+  },
+  {
+    "id": "emergency-first-aid",
+    "name": "Emergency First Aid",
+    "nameAr": "اسعاف الطوارئ",
+    "emoji": "🩹",
+    "color": "#ec4899",
+    "department": "emergency",
+    "lectures": [
+      {
+        "name": "Introduction to First Aid",
+        "file": "quizzes/Introduction to First Aid.html",
+        "questions": 0
+      },
+      {
+        "name": "First Aid in Wounds & Bleeding",
+        "file": "quizzes/First Aid in Wounds & Bleeding.html",
+        "questions": 0
+      },
+      {
+        "name": "First Aid in Seizures",
+        "file": "quizzes/First Aid in Seizures.html",
+        "questions": 0
+      },
+      {
+        "name": "First Aid in Poisoning",
+        "file": "quizzes/First Aid in Poisoning.html",
+        "questions": 0
+      },
+      {
+        "name": "First Aid in Fractures",
+        "file": "quizzes/First Aid in Fractures.html",
+        "questions": 0
+      },
+      {
+        "name": "First aid in Eye injury",
+        "file": "quizzes/First aid in Eye injury.html",
+        "questions": 0
+      },
+      {
+        "name": "First Aid in Drowning",
+        "file": "quizzes/First Aid in Drowning.html",
+        "questions": 0
+      },
+      {
+        "name": "First Aid in Breathing Emergencies",
+        "file": "quizzes/First Aid in Breathing Emergencies.html",
+        "questions": 0
+      },
+      {
+        "name": "First Aid in Burns",
+        "file": "quizzes/First Aid in Burns.html",
+        "questions": 0
+      },
+      {
+        "name": "First Aid in Cardiac Emergencies",
+        "file": "quizzes/First Aid in Cardiac Emergencies.html",
+        "questions": 0
+      },
+      {
+        "name": "شامل 120 اسعاف طوارئ",
+        "file": "quizzes/شامل 120 اسعاف طوارئ.html",
+        "questions": 0
+      }
+    ]
+  },
+  {
+    "id": "quality-t2",
+    "name": "Quality & Safety",
+    "nameAr": "أساسيات الجودة والامان في الرعاية الصحية",
+    "emoji": "🛡️",
+    "color": "#f59e0b",
+    "department": "common_t2",
+    "lectures": [
+      { "name": "كويز 1", "file": "#", "questions": 20 }
+    ]
+  },
+  {
+    "id": "it-theory-t2",
+    "name": "IT in Nursing (Theory)",
+    "nameAr": "تكنولوجيا المعلومات في التمريض نظري",
+    "emoji": "💻",
+    "color": "#6366f1",
+    "department": "common_t2",
+    "lectures": [
+      { "name": "كويز 1", "file": "#", "questions": 20 }
+    ]
+  },
+  {
+    "id": "it-practical-t2",
+    "name": "IT in Nursing (Practical)",
+    "nameAr": "تكنولوجيا المعلومات في التمريض عملي",
+    "emoji": "⌨️",
+    "color": "#ec4899",
+    "department": "common_t2",
+    "lectures": [
+      { "name": "كويز 1", "file": "#", "questions": 20 }
+    ]
+  },
+  {
+    "id": "english-4-t2",
+    "name": "English Language 4",
+    "nameAr": "اللغة الانجليزية (4)",
+    "emoji": "🇬🇧",
+    "color": "#14b8a6",
+    "department": "common_t2",
+    "lectures": [
+      { "name": "كويز 1", "file": "#", "questions": 20 }
+    ]
+  }
+]
