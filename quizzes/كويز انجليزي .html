@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Medical Reading Quiz (Passage 1)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        .option.correct {
+            background-color: #10B981; /* bg-green-500 */
+            color: white;
+            border-color: #059669; /* border-green-700 */
+        }
+        .option.incorrect {
+            background-color: #EF4444; /* bg-red-500 */
+            color: white;
+            border-color: #B91C1C; /* border-red-700 */
+        }
+        .option:not(.disabled):hover {
+            background-color: #f0f4f8; /* slightly lighter blue */
+        }
+        .disabled {
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800 flex items-center justify-center min-h-screen p-4">
+
+    <div id="quiz-container" class="w-full max-w-2xl bg-white p-6 sm:p-8 rounded-2xl shadow-xl">
+        
+        <!-- Header -->
+        <div class="mb-6">
+            <h1 class="text-2xl sm:text-3xl font-bold text-center text-blue-800">Medical Reading Quiz</h1>
+            <p class="text-center text-gray-600 mt-1">Passage 1: Ambulance... Walking Hospital</p>
+        </div>
+
+        <!-- Quiz Content -->
+        <div id="quiz-content">
+            <!-- Question Area -->
+            <div id="question-area" class="mb-6">
+                <p class="text-lg font-semibold text-gray-500 mb-2" id="question-counter">Question 1 of 40</p>
+                <h2 class="text-xl sm:text-2xl font-semibold text-gray-900" id="question-text">Loading question...</h2>
+            </div>
+
+            <!-- Options Area -->
+            <div id="options-container" class="grid grid-cols-1 gap-4 mb-6">
+                <!-- Options will be dynamically inserted here -->
+            </div>
+
+            <!-- Feedback Message -->
+            <div id="feedback" class="text-center h-6 mb-4 font-medium"></div>
+
+            <!-- Navigation -->
+            <div class="flex justify-center">
+                <button id="next-button" class="w-full sm:w-1/2 bg-blue-600 text-white font-semibold py-3 px-6 rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition duration-200" style="display: none;">
+                    Next Question
+                </button>
+            </div>
+        </div>
+
+        <!-- Score Screen -->
+        <div id="score-screen" class="text-center" style="display: none;">
+            <h2 class="text-3xl font-bold text-blue-800 mb-4">Quiz Complete!</h2>
+            <p class="text-2xl text-gray-700 mb-2">Your Score:</p>
+            <p class="text-5xl font-extrabold text-blue-600 mb-8" id="score-text">0 / 40</p>
+            <button id="restart-button" class="w-full sm:w-1/2 bg-green-600 text-white font-semibold py-3 px-6 rounded-lg shadow-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50 transition duration-200">
+                Restart Quiz
+            </button>
+        </div>
+
+    </div>
+
+    <script>
+        const quizData = [
+            // --- MCQs from file (Vocab) ---
+            { question: "What is the synonym of the word 'strange' as used in the passage?", options: ["Ordinary", "Unusual", "Common", "Predictable"], answer: 1 },
+            { question: "Which of the following is the best synonym for 'campaigns' in the context of the passage?", options: ["Celebrations", "Military operations", "Sporting events", "Local meetings"], answer: 1 },
+            { question: "What is the synonym for the word 'devise'?", options: ["Destroy", "Invent", "Ignore", "Follow"], answer: 1 },
+            { question: "Which of the following words is closest in meaning to 'aid'?", options: ["Hindrance", "Support", "Obstruction", "Delay"], answer: 1 },
+            { question: "In the passage, what is the synonym for the word 'directly'?", options: ["Indirectly", "Immediately", "Gradually", "Temporarily"], answer: 1 },
+            { question: "What is a synonym for 'injured'?", options: ["Healthy", "Wounded", "Strong", "Unaffected"], answer: 1 },
+            { question: "Which of the following words is closest in meaning to 'evacuate'?", options: ["Protect", "Capture", "Remove", "Provide"], answer: 2 },
+            { question: "What is the synonym of 'corrupted' as used in the passage?", options: ["Preserved", "Improved", "Altered", "Strengthened"], answer: 2 },
+            { question: "What is a synonym for the word 'economized'?", options: ["Wasted", "Saved", "Spent", "Increased"], answer: 1 },
+            { question: "Which of the following is the best synonym for 'embraced'?", options: ["Rejected", "Ignored", "Accepted", "Dismissed"], answer: 2 },
+            
+            // --- MCQs from file (Comprehension) ---
+            { question: "What was the original concept of an 'ambulance'?", options: ["A vehicle to transport injured people", "A mobile hospital for soldiers on the battlefield", "A modern emergency medical service", "A hospital built on wheels for civilians"], answer: 1 },
+            { question: "What does the word 'ambulance' originally mean in French?", options: ["A moving hospital", "A walking hospital", "A mobile clinic", "A field hospital"], answer: 1 },
+            { question: "Who first devised the concept of a 'hôpital ambulant'?", options: ["The French during the French Revolution", "The British during their military campaigns", "Napoleon during his campaigns", "The Egyptians during ancient wars"], answer: 2 },
+            { question: "What was the primary purpose of the original 'hôpital ambulant'?", options: ["To bring medical aid to civilians", "To carry dressings and drugs to wounded soldiers", "To treat soldiers in field hospitals", "To evacuate injured soldiers from battlefields"], answer: 1 }, // Note: Both B and D are correct, but B is listed first in the passage. The file's Q4 combines them. Let's make a new one combining them.
+            { question: "What was the main function of the 'hôpital ambulant' during Napoleon's campaigns?", options: ["To treat civilians during the war", "To transport wounded soldiers to a permanent hospital", "To provide medical aid and evacuate injured soldiers", "To deliver food and supplies to soldiers"], answer: 2 },
+            { question: "What did the British do after seeing the French 'hôpital ambulant'?", options: ["They improved the concept", "They created their own version and called it the ambulance", "They rejected the idea", "They adopted it without any changes"], answer: 1 },
+            { question: "Why did the British drop the word 'hôpital' when adopting the term 'ambulance'?", options: ["To simplify the word (economize)", "To create a new language", "To make it sound more English", "They didn't understand the meaning"], answer: 0 },
+            { question: "How did the French respond to the British use of the word 'ambulance'?", options: ["They adopted it immediately", "They rejected their own term and embraced the English term", "They continued using 'hôpital ambulant'", "They created a new French word"], answer: 1 },
+            { question: "Which of the following statements is true about the 'hôpital ambulant'?", options: ["It was designed for treating civilians", "It was a mobile medical unit for soldiers", "It was a fixed hospital in the field", "It was used only by the French"], answer: 1 },
+            { question: "Why is the term 'ambulance' used worldwide today, even in France?", options: ["It was first invented in England", "It became popular in the United States", "The French embraced the English term over their own", " 'hôpital ambulant' was too complicated"], answer: 2 },
+
+            // --- MCQs from converted Comprehension (Page 2) ---
+            { question: "What is the literal meaning of 'un hôpital ambulant'?", options: ["A large hospital", "A walking hospital", "A French siren", "A mobile doctor"], answer: 1 },
+            { question: "The 'hôpital ambulant' was devised during the campaigns of...", options: ["The British", "The French", "Napoleon", "The Anglo-Saxons"], answer: 2 },
+            { question: "What was the purpose of devising the 'hôpital ambulant'?", options: ["To treat civilians in Paris", "To bring medical aid directly to troops in the field", "To be a permanent hospital", "To study Anglo-Saxon words"], answer: 1 },
+            { question: "The original 'hôpital ambulant' was designed to carry...", options: ["Soldiers and weapons", "Food and water", "Dressings and drugs", "Flashing lights and sirens"], answer: 2 },
+            { question: "Another purpose of the 'hôpital ambulant' was to...", options: ["Evacuate the injured from the line of battle", "Start the battle", "Transport uninjured troops", "Corrupt the French language"], answer: 0 },
+            { question: "According to the passage, who first corrupted 'ambulant' to 'ambulance'?", options: ["The French", "Napoleon", "The British", "The Anglo-Saxons"], answer: 2 },
+            { question: "How have the French historically reacted to the incursion of Anglo-Saxon words?", options: ["They embraced them immediately", "They have railed against them", "They ignored them completely", "They translated them to French"], answer: 1 },
+            { question: "In France today, which term is in evidence?", options: ["'hôpital ambulant'", "'walking hospital'", "'ambulance'", "'ambulant'"], answer: 2 },
+
+            // --- MCQs from converted Vocab Practice (Page 3) ---
+            { question: "Which word from the passage is a synonym for 'acquainted'?", options: ["familiar", "strange", "devised", "corrupted"], answer: 0 },
+            { question: "The French phrase 'un hôpital ambulant' ... means 'a walking hospital'.", options: ["literally", "directly", "strangely", "corrupted"], answer: 0 },
+            { question: "Which word from the passage means 'to invent or create'?", options: ["devise", "embrace", "rail", "evacuate"], answer: 0 },
+            { question: "The 'hôpital ambulant' was devised during the ___ of Napoleon.", options: ["campaigns", "precincts", "incursions", "troops"], answer: 0 },
+            { question: "The British ___ by dropping the 'hôpital'.", options: ["economized", "embraced", "devised", "railed"], answer: 0 },
+            { question: "The British ___ 'ambulant' to 'ambulance'.", options: ["corrupted", "devised", "economized", "embraced"], answer: 0 },
+            { question: "The French have for many years ___ against the incursions of Anglo-Saxon words.", options: ["railed", "embraced", "economized", "evacuated"], answer: 0 },
+            { question: "The French rejected their own term and ___ the English 'ambulance'.", options: ["embraced", "corrupted", "devised", "railed"], answer: 0 },
+
+            // --- New MCQs from passage ---
+            { question: "What two things is the reader assumed to be familiar with regarding an ambulance?", options: ["Its speed and size", "Its sound and lights", "Its crew and patients", "Its history and origin"], answer: 1 },
+            { question: "Which of the following is NOT listed as a synonym for 'strange'?", options: ["odd", "peculiar", "common", "bizarre"], answer: 2 },
+            { question: "Which of the following is listed as a synonym for 'evacuate'?", options: ["assist", "invent", "withdraw", "accept"], answer: 2 },
+            { question: "The original 'hôpital ambulant' was described as a...", options: ["permanent building", "mobile unit", "walking person", "British invention"], answer: 1 }
+        ];
+
+        let shuffledQuestions = [];
+        let currentQuestionIndex = 0;
+        let score = 0;
+
+        const quizContainer = document.getElementById('quiz-container');
+        const quizContent = document.getElementById('quiz-content');
+        const scoreScreen = document.getElementById('score-screen');
+        const questionCounter = document.getElementById('question-counter');
+        const questionText = document.getElementById('question-text');
+        const optionsContainer = document.getElementById('options-container');
+        const feedback = document.getElementById('feedback');
+        const nextButton = document.getElementById('next-button');
+        const scoreText = document.getElementById('score-text');
+        const restartButton = document.getElementById('restart-button');
+
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        function startQuiz() {
+            shuffledQuestions = [...quizData];
+            shuffleArray(shuffledQuestions);
+            currentQuestionIndex = 0;
+            score = 0;
+            quizContent.style.display = 'block';
+            scoreScreen.style.display = 'none';
+            nextButton.style.display = 'none';
+            feedback.textContent = '';
+            showQuestion();
+        }
+
+        function showQuestion() {
+            resetState();
+            const question = shuffledQuestions[currentQuestionIndex];
+            questionCounter.textContent = `Question ${currentQuestionIndex + 1} of ${shuffledQuestions.length}`;
+            questionText.textContent = question.question;
+
+            question.options.forEach((option, index) => {
+                const button = document.createElement('button');
+                button.textContent = option;
+                button.classList.add('option', 'w-full', 'text-left', 'p-4', 'rounded-lg', 'border-2', 'border-gray-300', 'bg-gray-100', 'hover:bg-gray-200', 'transition', 'duration-150');
+                button.dataset.index = index;
+                button.addEventListener('click', selectAnswer);
+                optionsContainer.appendChild(button);
+            });
+        }
+
+        function resetState() {
+            while (optionsContainer.firstChild) {
+                optionsContainer.removeChild(optionsContainer.firstChild);
+            }
+            feedback.textContent = '';
+            nextButton.style.display = 'none';
+        }
+
+        function selectAnswer(e) {
+            const selectedButton = e.target;
+            const selectedAnswerIndex = parseInt(selectedButton.dataset.index);
+            const correctAnwerIndex = shuffledQuestions[currentQuestionIndex].answer;
+
+            // Disable all options
+            Array.from(optionsContainer.children).forEach(button => {
+                button.classList.add('disabled');
+            });
+
+            if (selectedAnswerIndex === correctAnwerIndex) {
+                selectedButton.classList.add('correct');
+                feedback.textContent = 'Correct!';
+                feedback.style.color = '#10B981';
+                score++;
+            } else {
+                selectedButton.classList.add('incorrect');
+                feedback.textContent = 'Incorrect.';
+                feedback.style.color = '#EF4444';
+                // Highlight the correct answer
+                optionsContainer.children[correctAnwerIndex].classList.add('correct');
+            }
+
+            nextButton.style.display = 'block';
+            if (currentQuestionIndex === shuffledQuestions.length - 1) {
+                nextButton.textContent = 'Show Score';
+            }
+        }
+
+        function showNextQuestion() {
+            currentQuestionIndex++;
+            if (currentQuestionIndex < shuffledQuestions.length) {
+                showQuestion();
+            } else {
+                showScore();
+            }
+        }
+
+        function showScore() {
+            quizContent.style.display = 'none';
+            scoreScreen.style.display = 'block';
+            scoreText.textContent = `${score} / ${shuffledQuestions.length}`;
+        }
+
+        nextButton.addEventListener('click', showNextQuestion);
+        restartButton.addEventListener('click', startQuiz);
+
+        // Start the quiz on load
+        startQuiz();
+    </script>
+</body>
+</html>
+

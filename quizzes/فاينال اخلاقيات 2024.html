@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nursing Ethics & Law Quiz</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Noto+Sans:wght@400;600;700&display=swap');
+        body { font-family: 'Noto Sans', 'Cairo', sans-serif; background-color: #f8fafc; }
+        .card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .card:hover { transform: translateY(-4px); box-shadow: 0 12px 20px -5px rgba(0, 0, 0, 0.1); }
+        .correct-answer { background-color: #dcfce7 !important; border-color: #22c55e !important; color: #15803d !important; }
+        .wrong-answer { background-color: #fee2e2 !important; border-color: #ef4444 !important; color: #b91c1c !important; }
+        .hidden-content { display: none; }
+        .option-btn { transition: all 0.2s; }
+        .option-btn:disabled { cursor: default; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
+    </style>
+</head>
+<body class="pb-12 bg-gray-50">
+    <div class="max-w-3xl mx-auto px-4 py-8">
+        <div class="bg-white rounded-2xl shadow-sm p-8 mb-8 text-center border-t-4 border-blue-600 relative overflow-hidden">
+            <div class="absolute top-0 right-0 p-4 opacity-10"><i class="fas fa-user-md text-8xl text-blue-600"></i></div>
+            
+            <h1 class="text-3xl font-bold text-gray-800 mb-2 font-cairo text-center" dir="auto">ETHICS فاينال 24</h1>
+            
+            <div class="flex items-center justify-center gap-2 text-green-600 font-semibold bg-green-50 w-fit mx-auto px-4 py-1 rounded-full text-sm">
+                <i class="fas fa-check-circle"></i> "تم صنع هذا الامتحان بواسطة عبدالحليم رزق"
+            </div>
+        </div>
+        <div id="quiz-container"></div>
+        <div id="result-summary" class="hidden-content bg-white rounded-2xl shadow-lg p-8 text-center mt-8 border border-gray-100">
+            <h2 class="text-2xl font-bold text-gray-800">Exam Completed</h2>
+            <div class="mt-4 text-4xl font-bold text-blue-600 mb-2">
+                <span id="score-display">0</span> <span class="text-xl text-gray-400" id="total-display"></span>
+            </div>
+            <p id="score-message" class="text-gray-500 mb-6"></p>
+            <button onclick="location.reload()" class="bg-blue-600 text-white px-8 py-3 rounded-xl hover:bg-blue-700 transition shadow-lg hover:shadow-blue-200">
+                <i class="fas fa-redo mr-2"></i> Restart Exam
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. QUESTIONS ARRAY ---
+        const rawQuizData = [
+            // MCQs 1-56
+            {
+                id: 1,
+                question: "......ethics is a continuous process; it is a way of reviewing behaviour against always-changing standards.",
+                options: ["Professional", "Performance", "Behavioral", "Nursing"],
+                correct: 0,
+                rationale: "Professional ethics involves the continuous review of behavior against standards."
+            },
+            {
+                id: 2,
+                question: "...... are rules to protect people and keep the society functioning:",
+                options: ["Crimes", "Laws", "Felonies", "Torts"],
+                correct: 1,
+                rationale: "Laws are the rules designed to protect people and keep society functioning."
+            },
+            {
+                id: 3,
+                question: "One of tips for maintaining personal and professional boundaries",
+                options: ["Access to patient's bodies", "Access to patient health information", "Objectivity with clients", "More physical touching"],
+                correct: 2,
+                rationale: "Maintaining objectivity with clients is crucial for maintaining professional boundaries."
+            },
+            {
+                id: 4,
+                question: "Which of the following; is NOT a personal cause of ethical dilemmas.",
+                options: ["Lack of knowledge and experience different situations", "Inability to make decisions", "Ineffective leadership style", "Lack of critical thinking skills"],
+                correct: 2,
+                rationale: "Ineffective leadership style is classified as an administrative cause, whereas lack of knowledge or critical thinking are personal causes."
+            },
+            {
+                id: 5,
+                question: "...... ethics is a field of inquiry that focuses on the moral problems and challenges that nurses face in the course of their work.",
+                options: ["Professional", "Performance", "Behavioral", "Nursing"],
+                correct: 3,
+                rationale: "Nursing ethics specifically focuses on the moral problems and challenges faced by nurses."
+            },
+            {
+                id: 6,
+                question: "Inborn differences that have an impact throughout one's life are considered as:",
+                options: ["Primary diversity dimensions", "Secondary diversity dimensions", "Tertiary diversity dimensions", "Quaternary diversity dimensions"],
+                correct: 0,
+                rationale: "Primary dimensions of diversity (like race, age, gender) are inborn and have an impact throughout one's life."
+            },
+            {
+                id: 7,
+                question: "One of provision in all code of ethics is......",
+                options: ["Justice", "auto atomy", "promote health and well being", "power of others"],
+                correct: 2,
+                rationale: "Promoting health, preventing illness, restoring health, and alleviating suffering are fundamental responsibilities in ethical codes."
+            },
+            {
+                id: 8,
+                question: "What should a nurse do if a patient makes a decision that may result in less optimal outcomes, such as refusing medical advice or not eating?",
+                options: ["Ignore the patient's wishes and proceed", "Force the patient to follow medical advice", "Respect the patient's autonomy while providing information", "Coerce the patient into compliance"],
+                correct: 2,
+                rationale: "Autonomy implies the freedom to make choices about one's own care, even if those decisions do not agree with the health care team."
+            },
+            {
+                id: 9,
+                question: "......are codes of conduct governing behavior. They are values put into practice as actions.",
+                options: ["Ethics", "Professionalism", "Morals", "Value"],
+                correct: 0,
+                rationale: "Ethics refers to systems of valued behaviors and beliefs that govern proper conduct."
+            },
+            {
+                id: 10,
+                question: "The Intentional touching of another person without his consent is:",
+                options: ["Felonies", "Battery", "Negligence", "Assault"],
+                correct: 1,
+                rationale: "Battery is the intentional touching of another person without their consent."
+            },
+            {
+                id: 11,
+                question: "Ethics is said to........",
+                options: ["Give us clear answers as to what is right", "Give us clear answers as to what is wrong", "Encourage us to explore different perspectives", "None of the above"],
+                correct: 2,
+                rationale: "Ethics encourages exploring different perspectives rather than just giving clear answers as to what is right or wrong."
+            },
+            {
+                id: 12,
+                question: "Professional nurse accountable to the following EXCEPT:........",
+                options: ["To the clients", "To code of ethics", "To self", "To the Profession"],
+                correct: 1,
+                rationale: "Nurses are accountable to the clients, the profession, and themselves. The Code of Ethics is a standard they follow, not an entity they are accountable to."
+            },
+            {
+                id: 13,
+                question: "Health........act provides a framework to resolve complaints about health services, investigate and take regulatory action against general health services.",
+                options: ["Ethics", "Professionalism", "Morals", "Legislation"],
+                correct: 3,
+                rationale: "Legislation provides the legal framework to resolve complaints and take regulatory action."
+            },
+            {
+                id: 14,
+                question: "Differences that are acquired or changed throughout one's lifetime are:",
+                options: ["Primary diversity dimensions", "Secondary diversity dimensions", "Tertiary diversity dimensions", "Quaternary diversity dimensions"],
+                correct: 1,
+                rationale: "Secondary dimensions of diversity (like education, income) can be acquired or changed throughout one's lifetime."
+            },
+            {
+                id: 15,
+                question: "An ethical dilemma occur..........",
+                options: ["When the Decision is required but different values seem to conflict and it is not possible to uphold both", "When the required course of action is clear", "When there are similar courses of action to choose from", "Nothing of the above answer"],
+                correct: 0,
+                rationale: "An ethical dilemma occurs when two or more moral principles apply that support mutually inconsistent courses of action."
+            },
+            {
+                id: 16,
+                question: "Nurses should.......",
+                options: ["Ignore their personal values", "Uphold professional values but be aware of personal values", "Act on personal values", "None of the above"],
+                correct: 1,
+                rationale: "Nursing ethics integrates both personal and professional moral values; nurses uphold professional values while being aware of personal ones."
+            },
+            {
+                id: 17,
+                question: "Health issue involving federal, country, or local law, rules or regulations and health care provider issues.",
+                options: ["Professionalism", "Morals", "Legislation", "Law"],
+                correct: 3,
+                rationale: "Issues involving federal, country, or local laws and regulations fall under the definition of Law."
+            },
+            {
+                id: 18,
+                question: "Which ethical principle emphasizes treating others with respect and dignity?",
+                options: ["Integrity", "Accountability", "Respect for persons", "Bene'ience"],
+                correct: 2,
+                rationale: "Respect for persons is the principle that emphasizes treating others with dignity and acknowledging their rights."
+            },
+            {
+                id: 19,
+                question: "When a nurse obtains informed consent... and ensures that the patient has understood... The previous statement refers to Respect for....",
+                options: ["Persons", "Freedom", "Make Choices", "Autonomy"],
+                correct: 3,
+                rationale: "Informed consent is a primary application of the principle of Autonomy, ensuring the patient understands and agrees."
+            },
+            {
+                id: 20,
+                question: "What is the first step in solving an ethical dilemma?",
+                options: ["Gather all information related to ethical dilemma", "Implement the chosen course of action", "Identify the ethical dilemma", "Identify the stakholders"],
+                correct: 2,
+                rationale: "Identifying the ethical dilemma is the first and most critical step in the decision-making process."
+            },
+            {
+                id: 21,
+                question: "Nursing ethics provides professional......for nursing activities, which help to protect not only the nurse but also the patient.",
+                options: ["Morals", "Legislation", "Law", "Standards"],
+                correct: 3,
+                rationale: "Ethical principles, also called standards, provide the framework for professional nursing practice."
+            },
+            {
+                id: 22,
+                question: "It includes violation of a client's rights, causing distress, failure to carry out medical order with failure to meet care standards:",
+                options: ["Malpractice", "Misdemeanor", "Negligence", "Assault"],
+                correct: 2,
+                rationale: "Negligence in health care includes violation of client rights, causing distress, or failure to meet standards of care."
+            },
+            {
+                id: 23,
+                question: "Which of the following is an environmental cause of ethical dilemmas?",
+                options: ["Lack of resources", "Ignorance of ethical principles", "Poor communication", "New techniques involving gene alteration"],
+                correct: 0,
+                rationale: "Lack of resources is considered an environmental cause of ethical dilemmas."
+            },
+            {
+                id: 24,
+                question: "One of ethical roles and responsibilities of nurses",
+                options: ["Expert witness", "reporting responsibilities", "commitment to patient", "being; accountable"],
+                correct: 2,
+                rationale: "The nurse's primary commitment is to the patient."
+            },
+            {
+                id: 25,
+                question: "Which of the following is considered an administrative cause of ethical dilemmas?",
+                options: ["Stressful work conditions", "Lack of critical thinking skills", "Lack of clear policies and guidelines", "Technology"],
+                correct: 2,
+                rationale: "Lack of clear policies and guidelines is an administrative cause of ethical dilemmas."
+            },
+            {
+                id: 26,
+                question: "The giving out of false and injurious information about a client is:",
+                options: ["Defamation of character", "False imprisonment", "Invasion of privacy", "Assault and Battery"],
+                correct: 0,
+                rationale: "Defamation of character is defined as the giving out of false and injurious information about a client."
+            },
+            {
+                id: 27,
+                question: "All of the following roles of the professional nurse EXCEPT one",
+                options: ["Care provider", "Communicator", "Moral ethics", "Educator"],
+                correct: 2,
+                rationale: "The roles of a professional nurse include care provider, communicator, and educator. 'Moral ethics' is a subject, not a role."
+            },
+            {
+                id: 28,
+                question: "Which of the following is NOT a fundamental ethical principle in professional ethics?",
+                options: ["Honesty", "Integrity", "Profit maximization", "Accountability"],
+                correct: 2,
+                rationale: "Profit maximization is not a fundamental ethical principle in professional nursing."
+            },
+            {
+                id: 29,
+                question: "........... help individual decide whether his intentions were good or bad.",
+                options: ["Ethics", "Professionalism", "Morals", "Value"],
+                correct: 2,
+                rationale: "Morals are often the standards that help an individual decide whether their intentions were good or bad."
+            },
+            {
+                id: 30,
+                question: "A civil wrong committed by one person against another is.............",
+                options: ["Misdemeanor", "Battery", "Negligence", "Tort"],
+                correct: 3,
+                rationale: "A tort is defined as a civil wrong committed by one person against another."
+            },
+            {
+                id: 31,
+                question: "We studied three code of ethics EXCEPT............",
+                options: ["American Nurses Association", "Canadian Nurses Association", "Nigerian Nurses Association", "Egyptian Nurses Association"],
+                correct: 2,
+                rationale: "Commonly studied codes include ANA, CNA, etc. The Nigerian Nurses Association is typically not part of the standard curriculum for this context."
+            },
+            {
+                id: 32,
+                question: "Which of the following is a specific cause of ethical dilemmas in healthcare?",
+                options: ["Cultural differences", "New knowledge and techniques involving alteration of genes", "Lack of rules and regulations", "Poor communication"],
+                correct: 1,
+                rationale: "New knowledge and techniques involving alteration of genes are specific causes of ethical dilemmas in healthcare."
+            },
+            {
+                id: 33,
+                question: "Which of the following is a specific cause of ethical dilemmas in healthcare? (Duplicate concept)",
+                options: ["Ethics", "Professionalism", "Morals", "Legislation"],
+                correct: 3,
+                rationale: "Legislation can be a specific cause of dilemmas when the law does not cover certain rights or conflicts with moral agendas."
+            },
+            {
+                id: 34,
+                question: "What does the Patient Self Determination Act provide for patients?",
+                options: ["The right to refuse medical treatment under all circumstances", "The right to allows patients to their treatment preferences (Advance Directives)", "The right to access any medical procedure for free", "The right to challenge institutional policies"],
+                correct: 1,
+                rationale: "The Patient Self Determination Act provides patients the right to state their treatment preferences (Advance Directives)."
+            },
+            {
+                id: 35,
+                question: "What is the final step in solving an ethical dilemma?",
+                options: ["Prepare a report on the ethical dilemma", "Implement the chosen course of action", "Reflect and review the outcomes consequences", "Schedule a follow-up meeting"],
+                correct: 2,
+                rationale: "The final step in the process is to evaluate the outcome (Reflect and review consequences)."
+            },
+            {
+                id: 36,
+                question: "Many hospitals are very authoritative and never allow the patient to choose the treatments. It is considered as:",
+                options: ["Unethical", "Negligence", "Injustice", "Felonies"],
+                correct: 0,
+                rationale: "Denying patient choice violates autonomy and is considered unethical."
+            },
+            {
+                id: 37,
+                question: "......this is done by allowing the patients to make decisions based on the choices available...",
+                options: ["Respect for person", "Respect for autonomy", "Respect for freedom", "Justice in Providing Nursing Care"],
+                correct: 1,
+                rationale: "Respect for autonomy allows patients to make decisions based on the choices available."
+            },
+            {
+                id: 38,
+                question: "Nurses and people are elements for code of ethics and include which of the following:",
+                options: ["the nurse carries personal responsibility for nursing practice", "the nurse maintains the highest standard of nursing care", "the nurse's primary responsibility is those people who require nursing care", "the nurse uses judgment in relation individual competence"],
+                correct: 2,
+                rationale: "The element 'Nurses and People' states the nurse's primary responsibility is to those requiring care."
+            },
+            {
+                id: 39,
+                question: "Veracity means",
+                options: ["Avoiding harm to others", "Doing good to bene fit others", "Telling the truth", "Maintaining promi ses"],
+                correct: 2,
+                rationale: "Veracity is defined as the duty to tell the truth."
+            },
+            {
+                id: 40,
+                question: "All of the following make nurses become involved under criminal law EXCEPT:",
+                options: ["Intentional or unintentional death", "Not renewing the license", "Competent practice", "Illegal diversion of drugs"],
+                correct: 2,
+                rationale: "Deaths, failure to renew license, and illegal diversion of drugs are criminal matters. Competent practice is the standard and does not lead to criminal involvement."
+            },
+            {
+                id: 41,
+                question: "means being fair to all the patients... irrespective of their caste, religion.",
+                options: ["Respect for the Patient as a Person", "Respect for autonomy", "Respect for freedom", "Justice in Providing Nursing Care"],
+                correct: 3,
+                rationale: "Justice is the principle of being fair to all patients irrespective of caste, religion, or other factors."
+            },
+            {
+                id: 42,
+                question: "It must involve a real consent of the parties, a valid consideration, a lawful purpose...",
+                options: ["Collective Bargaining", "Competent Practice", "Documentation", "Contracts"],
+                correct: 3,
+                rationale: "A contract must involve real consent, valid consideration, and a lawful purpose."
+            },
+            {
+                id: 43,
+                question: "mean a nurse must keep all the details of a patient... safe and not reveal anything...",
+                options: ["Fidelity", "Veracity", "Justice", "Confidentiality"],
+                correct: 3,
+                rationale: "Confidentiality means keeping patient details safe and not revealing them without permission."
+            },
+            {
+                id: 44,
+                question: "Is a charge that a person has been held in hospital without sufficient cause.",
+                options: ["Defamation of character", "False imprisonment", "Invasion of privacy", "Assault and Battery"],
+                correct: 1,
+                rationale: "False imprisonment is the charge of holding a person without sufficient cause."
+            },
+            {
+                id: 45,
+                question: "......can be used as a guide for direction when legal action must be taken in a lawsuit",
+                options: ["Ethics", "Professionalism", "Morals", "Legislation"],
+                correct: 3,
+                rationale: "Legislation (policies and regulations) acts as a guide for direction when legal action must be taken."
+            },
+            {
+                id: 46,
+                question: "It increases all other challenges nurses face when providing care... and it must be broken in some way:",
+                options: ["Making assumptions", "Passive listening", "Language barriers", "None of the above"],
+                correct: 2,
+                rationale: "Language barriers exacerbate all other challenges nurses face in providing care."
+            },
+            {
+                id: 47,
+                question: "Respect privacy of information and action.",
+                options: ["Caring", "Confidentiality", "Informed consent", "Paternalism"],
+                correct: 1,
+                rationale: "Confidentiality respects the privacy of patient information and action."
+            },
+            {
+                id: 48,
+                question: "Non-maleficence means.",
+                options: ["Avoiding harm to others", "Doing good to benefit others", "Telling the truth", "Maintaining promises"],
+                correct: 0,
+                rationale: "Non-maleficence is the duty to avoid doing harm."
+            },
+            {
+                id: 49,
+                question: "It relates to legal disputes between private parties. It is concerned with violation of individual's rights:",
+                options: ["Criminal Law", "Civil Law", "Felonies", "Torts"],
+                correct: 1,
+                rationale: "Civil law relates to legal disputes between private parties and violations of individual rights."
+            },
+            {
+                id: 50,
+                question: "Which of the following is NOT considered a characteristic of ethical dilemma?",
+                options: ["Uncertainty", "Consequence Analysis of different actions", "Conflict of Values", "Similarity of alternatives"],
+                correct: 3,
+                rationale: "Similarity of alternatives is not a characteristic of an ethical dilemma; dilemmas involve conflict, uncertainty, and difficult choices."
+            },
+            {
+                id: 51,
+                question: "Fidelity means..........",
+                options: ["Avoiding harm to others", "Doing good to benefit others", "Telling the truth", "Maintaining promises"],
+                correct: 3,
+                rationale: "Fidelity refers to loyalty and the promise to fulfill all commitments."
+            },
+            {
+                id: 52,
+                question: "Touching is considered boundaries are breached EXCEPT in:",
+                options: ["therapist", "assist patient", "perform procedures by health provider", "encouraging"],
+                correct: 2,
+                rationale: "Touching is considered appropriate and necessary when performing procedures by a health provider."
+            },
+            {
+                id: 53,
+                question: "The skill, good judgment, and polite behavior that is expected from a person who is trained to do a job well..........",
+                options: ["Professionalism", "Legislation", "Behavior", "Rules"],
+                correct: 0,
+                rationale: "Professionalism is defined as the skill, good judgment, and polite behavior expected from a trained person."
+            },
+            {
+                id: 54,
+                question: "It refers to differences among people in terms of age, ethnicity, gender, race, or other dimensions:",
+                options: ["Challenges", "Barriers", "Assumptions", "Diversity"],
+                correct: 3,
+                rationale: "Diversity refers to differences among people in terms of age, ethnicity, gender, race, or other dimensions."
+            },
+            {
+                id: 55,
+                question: "When a patient gets admitted... nurse must alleviate suffering... and do only good... This refer to:",
+                options: ["Veracity", "Justice", "Confidentiality", "Beneficence"],
+                correct: 3,
+                rationale: "Beneficence is the duty to alleviate suffering and do good for the patient."
+            },
+            {
+                id: 56,
+                question: "Ethical principles and values in code of ethics includes all EXCEPT one:",
+                options: ["justice", "communication", "beneficence", "fidelity"],
+                correct: 1,
+                rationale: "Communication is a professional skill, whereas Justice, Beneficence, and Fidelity are core ethical principles."
+            },
+            // TRUE / FALSE Questions 57-76
+            {
+                id: 57,
+                question: "Ethics is not a mandatory competency for a professional and a standard of performance and service.",
+                options: ["True", "False"],
+                correct: 1,
+                rationale: "Ethics is a mandatory competency for professional performance and maintaining trust."
+            },
+            {
+                id: 58,
+                question: "In privacy invasion, information given in confidence is released without the consent of the client.",
+                options: ["True", "False"],
+                correct: 0,
+                rationale: "Invasion of privacy involves releasing confidential information without the consent of the client."
+            },
+            {
+                id: 59,
+                question: "Boundaries cannot give each person a sense of legitimate control in a relationship.",
+                options: ["True", "False"],
+                correct: 1,
+                rationale: "Boundaries do give each person a sense of legitimate control and safety in a relationship."
+            },
+            {
+                id: 60,
+                question: "Ethics provide a systematic, rational way to work through dilemmas and to determine the best course of action.",
+                options: ["True", "False"],
+                correct: 0,
+                rationale: "Ethics provides a systematic, rational way to work through dilemmas and determine the best course of action."
+            },
+            {
+                id: 61,
+                question: "For maintaining professional boundaries of nurses' respecting other's boundaries.",
+                options: ["True", "False"],
+                correct: 0,
+                rationale: "Respecting others' boundaries is essential for maintaining professional boundaries."
+            },
+            {
+                id: 62,
+                question: "Personal values systems do not play a role in resolving ethical dilemmas in nursing.",
+                options: ["True", "False"],
+                correct: 1,
+                rationale: "Personal values strongly affect how nurses perceive and resolve ethical dilemmas."
+            },
+            {
+                id: 63,
+                question: "Health legislation are codes of conduct governing behavior. They are values put into practice as actions.",
+                options: ["True", "False"],
+                correct: 1,
+                rationale: "This definition describes Professionalism (values put into practice), not Health Legislation."
+            },
+            {
+                id: 64,
+                question: "Crime is a wrong against a person or his property, but the act is considered to be against the public as well.",
+                options: ["True", "False"],
+                correct: 0,
+                rationale: "A crime is defined as a wrong against a person or property that is also considered to be against the public."
+            },
+            {
+                id: 65,
+                question: "In the continuum of professional nursing behavior is a non-therapeutic relationship.",
+                options: ["True", "False"],
+                correct: 0,
+                rationale: "The continuum includes zones of under-involvement and over-involvement, which are non-therapeutic relationships."
+            },
+            {
+                id: 66,
+                question: "The terms 'legislation' and 'law' are used to refer generically to statutes, regulations, and other legal instruments.",
+                options: ["True", "False"],
+                correct: 0,
+                rationale: "It is true that 'legislation' and 'law' are often used generically to refer to statutes and regulations."
+            },
+            {
+                id: 67,
+                question: "One of the purposes of the code of ethics is to protect all individual's rights.",
+                options: ["True", "False"],
+                correct: 0,
+                rationale: "A key purpose of the code of ethics is to protect the rights of individuals."
+            },
+            {
+                id: 68,
+                question: "Ethical dilemmas arise when there is a harmony between two values.",
+                options: ["True", "False"],
+                correct: 1,
+                rationale: "Ethical dilemmas arise from a conflict of values, not harmony."
+            },
+            {
+                id: 69,
+                question: "A nurse should never lie in any situation and should be honest not only to the institution and patient but also to the profession.",
+                options: ["True", "False"],
+                correct: 0,
+                rationale: "Veracity implies the duty to be honest to the institution, the patient, and the profession in all situations."
+            },
+            {
+                id: 70,
+                question: "Ethical dilemmas often involve situations where there is clear-cut answer or where the right course of action is immediately apparent.",
+                options: ["True", "False"],
+                correct: 1,
+                rationale: "Ethical dilemmas involve uncertainty and conflict; if the answer is clear-cut, it is not a dilemma."
+            },
+            {
+                id: 71,
+                question: "The suggestion or threat of battery is falling under the category of intentional torts.",
+                options: ["True", "False"],
+                correct: 0,
+                rationale: "Assault (the threat of battery) is classified as an intentional tort."
+            },
+            {
+                id: 72,
+                question: "While obtaining informed consent, a nurse should not explain the cons of the procedure to the patient.",
+                options: ["True", "False"],
+                correct: 1,
+                rationale: "Informed consent requires explaining the risks (cons) as well as the benefits of the procedure."
+            },
+            {
+                id: 73,
+                question: "Felonies are punishable by imprisonment for less than 1 year.",
+                options: ["True", "False"],
+                correct: 1,
+                rationale: "Felonies are serious crimes punishable by imprisonment for more than 1 year."
+            },
+            {
+                id: 74,
+                question: "The Fundamental responsibility of nurses are alleviate suffering.",
+                options: ["True", "False"],
+                correct: 0,
+                rationale: "Alleviating suffering is one of the fundamental responsibilities of nurses."
+            },
+            {
+                id: 75,
+                question: "The patient has the freedom to make choices about his treatment.",
+                options: ["True", "False"],
+                correct: 0,
+                rationale: "Autonomy gives the patient the freedom to make choices about their treatment."
+            },
+            {
+                id: 76,
+                question: "Malpractice is a result of lack of skills.",
+                options: ["True", "False"],
+                correct: 0,
+                rationale: "Malpractice is a specific type of negligence often resulting from a lack of skills or failure to meet standards."
+            }
+        ];
+
+        // --- 2. SHUFFLE & RENDER LOGIC ---
+        const quizData = rawQuizData.map(q => {
+            const opts = q.options.map((text, i) => ({ text, isCorrect: i === q.correct }));
+            for (let i = opts.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [opts[i], opts[j]] = [opts[j], opts[i]];
+            }
+            return { ...q, options: opts.map(o => o.text), correct: opts.findIndex(o => o.isCorrect) };
+        });
+
+        const container = document.getElementById('quiz-container');
+        let score = 0; let answeredCount = 0;
+
+        function renderQuiz() {
+            document.getElementById('total-display').innerText = `/ ${quizData.length}`;
+            container.innerHTML = quizData.map((q, index) => {
+                return `
+                <div class="card bg-white rounded-xl p-6 mb-6 border border-gray-100">
+                    <div class="flex justify-between items-center mb-4 border-b border-gray-50 pb-3">
+                        <span class="bg-blue-100 text-blue-800 text-xs font-bold px-3 py-1 rounded-full">Question ${index + 1}</span>
+                         ${q.options.length === 2 ? '<span class="bg-purple-100 text-purple-800 text-xs font-bold px-2 py-1 rounded-md">True/False</span>' : ''}
+                    </div>
+                    <h3 class="text-gray-800 font-bold mb-6 text-lg leading-relaxed font-cairo" style="direction: ltr; text-align: left;">${q.question}</h3>
+                    <div class="grid gap-3 ${q.options.length === 2 ? 'grid-cols-2' : ''}">
+                        ${q.options.map((opt, i) => `<button onclick="checkAnswer(${index}, ${i})" class="option-btn option-btn-${index} w-full text-left px-5 py-4 rounded-xl border border-gray-200 hover:bg-blue-50 hover:border-blue-300 focus:outline-none flex items-center justify-between group bg-white"><span class="font-medium text-gray-700 group-hover:text-blue-700 font-sans">${opt}</span></button>`).join('')}
+                    </div>
+                    <div id="feedback-${index}" class="hidden-content mt-6 bg-blue-50 rounded-xl p-5 border border-blue-100 animate-fade-in text-left">
+                        <p class="text-blue-800 text-sm leading-relaxed"><strong>Rationale:</strong> ${q.rationale}</p>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        window.checkAnswer = function(qIndex, optIndex) {
+            const q = quizData[qIndex];
+            const feedback = document.getElementById(`feedback-${qIndex}`);
+            const btns = document.querySelectorAll(`.option-btn-${qIndex}`);
+            if (!feedback.classList.contains('hidden-content')) return;
+            feedback.classList.remove('hidden-content');
+            btns.forEach((btn, i) => {
+                btn.disabled = true;
+                if (i === q.correct) { btn.classList.add('correct-answer'); btn.innerHTML += '<i class="fas fa-check float-right"></i>'; }
+                else if (i === optIndex) { btn.classList.add('wrong-answer'); btn.innerHTML += '<i class="fas fa-times float-right"></i>'; }
+                else { btn.classList.add('opacity-50'); }
+            });
+            if (optIndex === q.correct) score++;
+            answeredCount++;
+            if (answeredCount === quizData.length) {
+                document.getElementById('result-summary').classList.remove('hidden-content');
+                document.getElementById('score-display').innerText = score;
+                document.getElementById('score-message').innerText = (score/quizData.length*100) >= 50 ? "Good Job!" : "Keep Studying";
+                setTimeout(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }), 500);
+            }
+        };
+        renderQuiz();
+    </script>
+</body>
+</html>

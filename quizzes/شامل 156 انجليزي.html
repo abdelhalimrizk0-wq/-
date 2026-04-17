@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>English Comprehensive Quiz</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Noto+Sans:wght@400;600;700&display=swap');
+        body { font-family: 'Noto Sans', 'Cairo', sans-serif; background-color: #f8fafc; }
+        .card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .card:hover { transform: translateY(-4px); box-shadow: 0 12px 20px -5px rgba(0, 0, 0, 0.1); }
+        .correct-answer { background-color: #dcfce7 !important; border-color: #22c55e !important; color: #15803d !important; }
+        .wrong-answer { background-color: #fee2e2 !important; border-color: #ef4444 !important; color: #b91c1c !important; }
+        .hidden-content { display: none; }
+        .option-btn { transition: all 0.2s; }
+        .option-btn:disabled { cursor: default; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
+        
+        /* Section Header Style */
+        .section-header {
+            position: relative;
+            margin: 3rem 0 1.5rem 0;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .section-header::before, .section-header::after {
+            content: "";
+            flex: 1;
+            border-bottom: 2px dashed #cbd5e1;
+            margin: 0 1rem;
+        }
+        .section-header span {
+            background-color: #e0f2fe;
+            color: #0369a1;
+            padding: 0.75rem 2rem;
+            border-radius: 9999px;
+            font-weight: 800;
+            font-size: 1.2rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            border: 2px solid #bae6fd;
+            font-family: 'Cairo', sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+    </style>
+</head>
+<body class="pb-12 bg-gray-50">
+    <div class="max-w-4xl mx-auto px-4 py-8">
+        <div class="bg-white rounded-2xl shadow-sm p-8 mb-8 text-center border-t-4 border-blue-600 relative overflow-hidden">
+            <div class="absolute top-0 right-0 p-4 opacity-10"><i class="fas fa-graduation-cap text-8xl text-blue-600"></i></div>
+            
+            <h1 class="text-3xl font-bold text-gray-800 mb-2 font-cairo text-center" dir="auto">Comprehensive English Exam</h1>
+            
+            <div class="flex items-center justify-center gap-2 text-blue-600 font-semibold bg-blue-50 w-fit mx-auto px-4 py-1 rounded-full text-sm">
+                <i class="fas fa-check-double"></i> تم صنع هذا الامتحان بواسطة عبدالحليم رزق
+            </div>
+        </div>
+        
+        <div id="quiz-container"></div>
+        
+        <div id="result-summary" class="hidden-content bg-white rounded-2xl shadow-lg p-8 text-center mt-8 border border-gray-100">
+            <h2 class="text-2xl font-bold text-gray-800">Exam Completed</h2>
+            <div class="mt-4 text-4xl font-bold text-blue-600 mb-2">
+                <span id="score-display">0</span> <span class="text-xl text-gray-400" id="total-display"></span>
+            </div>
+            <p id="score-message" class="text-gray-500 mb-6"></p>
+            <button onclick="location.reload()" class="bg-blue-600 text-white px-8 py-3 rounded-xl hover:bg-blue-700 transition shadow-lg hover:shadow-blue-200">
+                <i class="fas fa-redo mr-2"></i> Restart Exam
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const rawQuizData = [
+            // --- SYNONYMS ---
+            { category: "Synonyms in Use", question: "The Pacific Ocean, the largest ocean on earth, is <u>gigantic</u>.", options: ["deep", "huge", "noteworthy", "famous"], correct: 1 },
+            { category: "Synonyms in Use", question: "We will <u>divide</u> the cards into groups.", options: ["complete", "count", "separate", "shuffle"], correct: 2 },
+            { category: "Synonyms in Use", question: "Thunderstorms are <u>common</u> during this time of year.", options: ["famous", "powerful", "usual", "dangerous"], correct: 2 },
+            { category: "Synonyms in Use", question: "Judy Blume is one of the most <u>outstanding</u> writers of children's books.", options: ["frequent", "famous", "complete", "popular"], correct: 1 },
+            { category: "Synonyms in Use", question: "We ate the <u>entire</u> pizza ourselves.", options: ["whole", "big", "tasty", "delicious"], correct: 0 },
+            { category: "Synonyms in Use", question: "Tripping on your untied shoelaces is an <u>awkward</u> moment.", options: ["massive", "ungraceful", "amusing", "quick"], correct: 1 },
+            { category: "Synonyms in Use", question: "The rebels fought for <u>liberty</u> during the war.", options: ["wealth", "power", "freedom", "land"], correct: 2 },
+            { category: "Synonyms in Use", question: "The baby was <u>cute</u> in her Halloween costume.", options: ["pretty", "silly", "smiling", "small"], correct: 0 },
+            { category: "Synonyms in Use", question: "The sudden sound of a smoke alarm will <u>startle</u> anyone.", options: ["wake", "call", "alarm", "annoy"], correct: 2 },
+            { category: "Synonyms in Use", question: "The silly puppy's playful actions were <u>comical</u>.", options: ["interesting", "amusing", "ungraceful", "strange"], correct: 1 },
+            { category: "Synonyms in Use", question: "The king's <u>rage</u> at the bad news was terrifying to his people.", options: ["roar", "anger", "frown", "decision"], correct: 1 },
+            { category: "Synonyms in Use", question: "I had to <u>revise</u> my story three times before I was happy with it.", options: ["research", "illustrate", "rewrite", "read"], correct: 2 },
+            { category: "Synonyms in Use", question: "A fence marks the <u>boundary</u> between our yard and our neighbor's yard.", options: ["border", "garden", "conflict", "entrance"], correct: 0 },
+            { category: "Synonyms in Use", question: "Mark decided to <u>remain</u> in the library until his mother came to pick him up.", options: ["read", "stay", "study", "wait"], correct: 1 },
+            { category: "Synonyms in Use", question: "The rocket's <u>powerful</u> engines lifted it into space.", options: ["mighty", "noisy", "fantastic", "fast"], correct: 0 },
+            { category: "Synonyms in Use", question: "A tsunami can grow to be an <u>immense</u> wave and cause great destruction.", options: ["alarming", "ocean", "gigantic", "circular"], correct: 2 },
+            { category: "Synonyms in Use", question: "We had a <u>marvelous</u> time at the party.", options: ["wonderful", "interesting", "boring", "long"], correct: 0 },
+            { category: "Synonyms in Use", question: "It was hard to believe that the <u>tiny</u> puppy would one day grow to be a Saint Bernard.", options: ["cute", "small", "cuddly", "energetic"], correct: 1 },
+            { category: "Synonyms in Use", question: "With a <u>ferocious</u> snarl, the monster came toward us.", options: ["mysterious", "fierce", "gigantic", "loud"], correct: 1 },
+            { category: "Synonyms in Use", question: "The argument quickly led to a <u>conflict</u>.", options: ["margin", "fight", "rage", "discussion"], correct: 1 },
+
+            // --- ANTONYMS ---
+            { category: "Antonyms in Use", question: "My mother always says to be <u>rude</u> and helpful to others. (Choose Antonym)", options: ["stern", "polite", "fresh", "kind"], correct: 1 },
+            { category: "Antonyms in Use", question: "Pulling the child out of the way of the speeding car was a <u>timid</u> act. (Choose Antonym)", options: ["humorous", "foolish", "courageous", "quick"], correct: 2 },
+            { category: "Antonyms in Use", question: "Alex likes science and feels it is the most <u>boring</u> subject. (Choose Antonym)", options: ["interesting", "confusing", "dull", "difficult"], correct: 0 },
+            { category: "Antonyms in Use", question: "Strong winds will <u>gather</u> leaves in the yard. (Choose Antonym)", options: ["destroy", "scatter", "reject", "collect"], correct: 1 },
+            { category: "Antonyms in Use", question: "A major earthquake can <u>create</u> an entire city. (Choose Antonym)", options: ["build", "refuse", "destroy", "shake"], correct: 2 },
+            { category: "Antonyms in Use", question: "The family picnic was <u>unpleasant</u> and everyone had a great time. (Choose Antonym)", options: ["interesting", "delightful", "nonsense", "boring"], correct: 1 },
+            { category: "Antonyms in Use", question: "Students <u>refuse</u> to share the computers in class. (Choose Antonym)", options: ["agree", "reject", "gather", "want"], correct: 0 },
+            { category: "Antonyms in Use", question: "The knights pledged <u>treachery</u> to their king. (Choose Antonym)", options: ["loyalty", "disloyalty", "courage", "honesty"], correct: 0 },
+            { category: "Antonyms in Use", question: "The <u>sense</u> of silly poems like limericks is amusing. (Choose Antonym)", options: ["interesting", "silliness", "delight", "nonsense"], correct: 3 },
+            { category: "Antonyms in Use", question: "Maria smiled as she read her little brother's <u>grave</u> story. (Choose Antonym)", options: ["unpleasant", "boring", "humorous", "serious"], correct: 2 },
+
+            // --- HOMOGRAPHS ---
+            { category: "Homographs in Use", question: "Mrs. Carter introduced the new ______ to the class.", options: ["pupil", "pitcher", "desert", "school"], correct: 0 },
+            { category: "Homographs in Use", question: "Be sure to ______ your change after paying for something.", options: ["close", "bear", "wind", "count"], correct: 3 },
+            { category: "Homographs in Use", question: "Taryn's favorite subject in ______ is math.", options: ["school", "desert", "yard", "ball"], correct: 0 },
+            { category: "Homographs in Use", question: "The ______ climbed the tree to get the honey in the beehive.", options: ["pitcher", "count", "bear", "pupil"], correct: 2 },
+            { category: "Homographs in Use", question: "Camels are able to survive in the ______.", options: ["desert", "yard", "school", "close"], correct: 0 },
+            { category: "Homographs in Use", question: "We live ______ to the ocean and can smell the salty air.", options: ["desert", "count", "close", "bear"], correct: 2 },
+            { category: "Homographs in Use", question: "The powerful ______ toppled a tree near our house.", options: ["bear", "wind", "pitcher", "ball"], correct: 1 },
+            { category: "Homographs in Use", question: "Todd threw the ______ to his younger brother.", options: ["pitcher", "ball", "desert", "school"], correct: 1 },
+            { category: "Homographs in Use", question: "Her mother made a ______ of ice tea for Jenna and her friends.", options: ["yard", "ball", "pupil", "pitcher"], correct: 3 },
+            { category: "Homographs in Use", question: "A fence encloses our ______.", options: ["school", "yard", "desert", "pitcher"], correct: 1 },
+
+            // --- HOMOPHONES ---
+            { category: "Homophones in Use (Correct/Incorrect)", question: "Sam finished the <u>whole</u> project in three days.", options: ["Correct", "Incorrect"], correct: 0 },
+            { category: "Homophones in Use (Correct/Incorrect)", question: "We decided to <u>meat</u> at the library after school.", options: ["Correct", "Incorrect"], correct: 1 },
+            { category: "Homophones in Use (Correct/Incorrect)", question: "Melissa got every answer <u>right</u> on her math test.", options: ["Correct", "Incorrect"], correct: 0 },
+            { category: "Homophones in Use (Correct/Incorrect)", question: "Can you <u>hear</u> the distant echo?", options: ["Correct", "Incorrect"], correct: 0 },
+            { category: "Homophones in Use (Correct/Incorrect)", question: "A <u>vain</u> carries blood back to the heart.", options: ["Correct", "Incorrect"], correct: 1 },
+            { category: "Homophones in Use (Correct/Incorrect)", question: "On our <u>way</u> home from school, Mom took me to the mall.", options: ["Correct", "Incorrect"], correct: 0 },
+            { category: "Homophones in Use (Correct/Incorrect)", question: "My older brother tried to <u>cell</u> his car.", options: ["Correct", "Incorrect"], correct: 1 },
+            { category: "Homophones in Use (Correct/Incorrect)", question: "I finally paid back the <u>lone</u> of $5 to my sister.", options: ["Correct", "Incorrect"], correct: 1 },
+            { category: "Homophones in Use (Correct/Incorrect)", question: "We <u>passed</u> the Statue of Liberty during our visit to New York City.", options: ["Correct", "Incorrect"], correct: 0 },
+            { category: "Homophones in Use (Correct/Incorrect)", question: "<u>Steal</u> is a very strong metal used in construction.", options: ["Correct", "Incorrect"], correct: 1 },
+
+            // --- COMPOUND WORDS ---
+            { category: "Compound Words in Use", question: "An area outside for play and recreation:", options: ["weekend", "playground", "tablecloth", "flashlight"], correct: 1 },
+            { category: "Compound Words in Use", question: "Once in a while; now and then; occasionally:", options: ["up-to-date", "sometimes", "weekend", "alarm clock"], correct: 1 },
+            { category: "Compound Words in Use", question: "A small portable light, usually powered by batteries:", options: ["sweatshirt", "cardboard", "flashlight", "seat belt"], correct: 2 },
+            { category: "Compound Words in Use", question: "Including the most recent changes; current; modern:", options: ["sometimes", "up-to-date", "weekend", "seat belt"], correct: 1 },
+            { category: "Compound Words in Use", question: "A heavy pullover with long sleeves:", options: ["sweatshirt", "cardboard", "weekend", "tablecloth"], correct: 0 },
+            { category: "Compound Words in Use", question: "A clock that can be set to ring or buzz at a certain time:", options: ["flashlight", "alarm clock", "playground", "weekend"], correct: 1 },
+            { category: "Compound Words in Use", question: "The end of the week; especially Friday evening through Sunday:", options: ["sometimes", "weekend", "up-to-date", "seat belt"], correct: 1 },
+            { category: "Compound Words in Use", question: "A cloth or other material used for covering a table:", options: ["tablecloth", "cardboard", "sweatshirt", "playground"], correct: 0 },
+            { category: "Compound Words in Use", question: "A safety belt or strap designed to hold a person securely in a seat:", options: ["playground", "seat belt", "alarm clock", "tablecloth"], correct: 1 },
+            { category: "Compound Words in Use", question: "Stiff, heavy paper used in making boxes, signs, posters:", options: ["tablecloth", "cardboard", "sweatshirt", "flashlight"], correct: 1 },
+
+            // --- CLIPPED WORDS ---
+            { category: "Clipped Words in Use", question: "We visited my Aunt Emily at her ______ in New York.", options: ["condo", "plane", "fridge", "deli"], correct: 0 },
+            { category: "Clipped Words in Use", question: "It is poor sportsmanship to argue with the ______.", options: ["champ", "gym", "ump", "flu"], correct: 2 },
+            { category: "Clipped Words in Use", question: "Shane likes working with numbers and does well in ______.", options: ["deli", "math", "gym", "condo"], correct: 1 },
+            { category: "Clipped Words in Use", question: "Stephanie was the ______ of the fourth-grade spelling bee.", options: ["plane", "condo", "champ", "ump"], correct: 2 },
+            { category: "Clipped Words in Use", question: "After dinner, Dad put the leftovers in the ______.", options: ["condo", "fridge", "deli", "gym"], correct: 1 },
+            { category: "Clipped Words in Use", question: "Scott was sick with the ______ last week.", options: ["math", "gym", "flu", "burger"], correct: 2 },
+            { category: "Clipped Words in Use", question: "Dad grilled a ______ for me and hot dogs for everyone else.", options: ["burger", "deli", "fridge", "champ"], correct: 0 },
+            { category: "Clipped Words in Use", question: "We always buy our meat from the ______.", options: ["burger", "deli", "condo", "gym"], correct: 1 },
+            { category: "Clipped Words in Use", question: "The fastest way to get from New York to Los Angeles is by ______.", options: ["plane", "condo", "flu", "deli"], correct: 0 },
+            { category: "Clipped Words in Use", question: "We played floor hockey in the ______.", options: ["condo", "deli", "gym", "fridge"], correct: 2 },
+
+            // --- IDIOMS ---
+            { category: "Idioms & Phrases", question: "I soon began to get the ______ of the new filing system.", options: ["stick", "hang", "clue", "picture"], correct: 1 },
+            { category: "Idioms & Phrases", question: "Anna doesn't have a ______ how to talk to children.", options: ["picture", "area", "clue", "ear"], correct: 2 },
+            { category: "Idioms & Phrases", question: "The difference between telling a lie and not telling the whole truth is a grey ______.", options: ["area", "hang", "stick", "picture"], correct: 0 },
+            { category: "Idioms & Phrases", question: "I must have got the wrong end of the ______.", options: ["ear", "picture", "stick", "area"], correct: 2 },
+            { category: "Idioms & Phrases", question: "The directions seemed to have gone in one ______ and out the other.", options: ["ear", "clue", "hang", "area"], correct: 0 },
+            { category: "Idioms & Phrases", question: "The inspector soon began to get the ______.", options: ["area", "picture", "stick", "hang"], correct: 3 },
+            { category: "Idioms & Phrases", question: "To replace 'I understand the situation,' you would say:", options: ["I get the hang of it", "I get the picture", "I read between the lines", "I haven't got a clue"], correct: 1 },
+            { category: "Idioms & Phrases", question: "To replace 'tends to misunderstand,' you would say he:", options: ["gets hold of the wrong end of the stick", "hasn't got a clue", "goes in one ear and out the other", "gets the picture"], correct: 0 },
+            { category: "Idioms & Phrases", question: "To replace 'I know nothing about book keeping,' you would say:", options: ["I don't get the picture", "I haven't got a clue", "I don't get the hang of it", "I read between the lines"], correct: 1 },
+            { category: "Idioms & Phrases", question: "To replace 'I can sense it,' you would say:", options: ["I read between the lines", "I get the picture", "I get hold of the wrong end of the stick", "I go in one ear and out the other"], correct: 0 },
+            { category: "Idioms & Phrases", question: "To replace 'you learn how to do it,' you would say:", options: ["you read between the lines", "you haven't got a clue", "you get the hang of it", "you get the picture"], correct: 2 },
+            { category: "Idioms & Phrases", question: "To replace 'Whatever you say will be forgotten immediately,' you would say:", options: ["It gets the picture", "It reads between the lines", "It goes in one ear and out the other", "It gets the hang of it"], correct: 2 },
+
+            // --- PASSAGE 1: Ambulance ---
+            { category: "Reading Comprehension: Ambulance", question: "What is the synonym of the word 'strange' as used in the passage?", options: ["Ordinary", "Unusual", "Common", "Predictable"], correct: 1 },
+            { category: "Reading Comprehension: Ambulance", question: "Which of the following is the best synonym for 'campaigns' in context?", options: ["Celebrations", "Military operations", "Sporting events", "Local meetings"], correct: 1 },
+            { category: "Reading Comprehension: Ambulance", question: "What is the synonym for the word 'devise'?", options: ["Destroy", "Invent", "Ignore", "Follow"], correct: 1 },
+            { category: "Reading Comprehension: Ambulance", question: "Which word is closest in meaning to 'aid'?", options: ["Hindrance", "Support", "Obstruction", "Delay"], correct: 1 },
+            { category: "Reading Comprehension: Ambulance", question: "In the passage, what is the synonym for 'directly'?", options: ["Indirectly", "Immediately", "Gradually", "Temporarily"], correct: 1 },
+            { category: "Reading Comprehension: Ambulance", question: "What is a synonym for 'injured'?", options: ["Healthy", "Wounded", "Strong", "Unaffected"], correct: 1 },
+            { category: "Reading Comprehension: Ambulance", question: "Which word is closest in meaning to 'evacuate'?", options: ["Protect", "Capture", "Remove", "Provide"], correct: 2 },
+            { category: "Reading Comprehension: Ambulance", question: "What is the synonym of 'corrupted' as used in the passage?", options: ["Preserved", "Improved", "Altered", "Strengthened"], correct: 2 },
+            { category: "Reading Comprehension: Ambulance", question: "What is a synonym for 'economized'?", options: ["Wasted", "Saved", "Spent", "Increased"], correct: 1 },
+            { category: "Reading Comprehension: Ambulance", question: "Which of the following is the best synonym for 'embraced'?", options: ["Rejected", "Ignored", "Accepted", "Dismissed"], correct: 2 },
+            { category: "Reading Comprehension: Ambulance", question: "What was the original concept of an 'ambulance'?", options: ["Transport injured to hospital", "Mobile hospital for soldiers", "Modern emergency service", "Hospital on wheels for civilians"], correct: 1 },
+            { category: "Reading Comprehension: Ambulance", question: "What does the word 'ambulance' originally mean in French?", options: ["A moving hospital", "A walking hospital", "A mobile clinic", "A field hospital"], correct: 1 },
+            { category: "Reading Comprehension: Ambulance", question: "Who first devised the concept of a 'hôpital ambulant'?", options: ["The French during Revolution", "The British", "Napoleon", "The Egyptians"], correct: 2 },
+            { category: "Reading Comprehension: Ambulance", question: "What was the primary purpose of the original 'hôpital ambulant'?", options: ["Aid civilians", "Carry dressings", "Treat in field hospitals", "Evacuate injured soldiers"], correct: 3 },
+            { category: "Reading Comprehension: Ambulance", question: "What did the British do after seeing the French 'hôpital ambulant'?", options: ["Improved it", "Created their own version", "Rejected it", "Adopted it without changes"], correct: 1 },
+            { category: "Reading Comprehension: Ambulance", question: "Why did the British drop the word 'hôpital'?", options: ["Simplify the word", "Create new language", "Sound more English", "Didn't understand meaning"], correct: 0 },
+            { category: "Reading Comprehension: Ambulance", question: "What is the origin of the word 'ambulance'?", options: ["Latin 'ambulare' (to walk)", "Greek for hospital", "German for emergency", "New invention"], correct: 0 },
+            { category: "Reading Comprehension: Ambulance", question: "How did the French respond to the British use of 'ambulance'?", options: ["Adopted it immediately", "Rejected it", "Ignored it", "Created new word"], correct: 0 },
+            { category: "Reading Comprehension: Ambulance", question: "Main function during Napoleon's campaigns?", options: ["Treat civilians", "Transport to permanent hospital", "Provide aid and evacuate", "Deliver food"], correct: 2 },
+            { category: "Reading Comprehension: Ambulance", question: "Why is 'ambulance' used worldwide today?", options: ["First invented in England", "Popular in USA", "French embraced English term", "Pronunciation"], correct: 2 },
+
+            // --- PASSAGE 4: Eohippus ---
+            { category: "Reading Comprehension: Eohippus", question: "The passage mainly discusses the:", options: ["evolution of the horse", "size of eohippus", "animals of the Eocene", "plight of endangered species"], correct: 0 },
+            { category: "Reading Comprehension: Eohippus", question: "The author states that eohippus was related to the:", options: ["horsefly", "tapeworm", "hippopotamus", "rhinoceros"], correct: 3 },
+            { category: "Reading Comprehension: Eohippus", question: "What did the eohippus eat?", options: ["Rhinoceros meat", "Soft leaves", "Hard siliceous grass", "Other horses"], correct: 1 },
+            { category: "Reading Comprehension: Eohippus", question: "How did predators present less of a threat to eohippus?", options: ["Eohippus was hidden by forest", "Could run farther", "Not edible", "Larger and stronger"], correct: 0 },
+            { category: "Reading Comprehension: Eohippus", question: "The paragraph following the passage most probably discusses:", options: ["changes of rhinoceros", "reasons for extinction", "further development of early horses", "diet of eohippus"], correct: 2 },
+
+            // --- PASSAGE 5: Oysters ---
+            { category: "Reading Comprehension: Oysters", question: "Best title for the passage?", options: ["Threatened Extinction", "Cultivation of Oysters", "Marine Biologists", "Varieties of Wild Oysters"], correct: 1 },
+            { category: "Reading Comprehension: Oysters", question: "Oyster production is compared to what other industry?", options: ["Mining", "Fishing", "Banking", "Farming"], correct: 3 },
+            { category: "Reading Comprehension: Oysters", question: "Which is NOT mentioned as a stage of an oyster's life?", options: ["Debris", "Egg", "Larvae", "Spat"], correct: 0 },
+            { category: "Reading Comprehension: Oysters", question: "When did scientists discover oysters were in danger?", options: ["Early 19th century", "Beginning of this century", "In the 1940's", "Just recently"], correct: 3 },
+            { category: "Reading Comprehension: Oysters", question: "Word describing efforts of marine biologists:", options: ["Persistent", "Intermittent", "Traditional", "Fruitless"], correct: 0 },
+            { category: "Reading Comprehension: Oysters", question: "New strains of oyster are:", options: ["cheaper", "shaped differently", "better textured", "healthier"], correct: 3 },
+            { category: "Reading Comprehension: Oysters", question: "Paragraph describing successful methods:", options: ["First", "Second", "Third", "Fourth"], correct: 2 },
+            { category: "Reading Comprehension: Oysters", question: "Organization of the passage:", options: ["Step by step description", "Chronological events", "Random facts", "Geographic locations"], correct: 0 },
+
+            // --- PASSAGE 10: Bacteria ---
+            { category: "Reading Comprehension: Bacteria", question: "Main topic of the passage:", options: ["Characteristics of bacteria", "How bacteria reproduce", "Functions of bacteria", "Disease contribution"], correct: 0 },
+            { category: "Reading Comprehension: Bacteria", question: "Bacteria are measured in:", options: ["inches", "centimeters", "microns", "millimeters"], correct: 2 },
+            { category: "Reading Comprehension: Bacteria", question: "Which of the following is the smallest?", options: ["A pinhead", "A rounded bacterium", "A microscope", "A rod-shaped bacterium"], correct: 1 },
+            { category: "Reading Comprehension: Bacteria", question: "Using a 100x microscope, one would see:", options: ["tiny dots", "small hairs", "large rods", "detailed structures"], correct: 0 },
+            { category: "Reading Comprehension: Bacteria", question: "Relationship between bacterium and flagella analogous to:", options: ["rider on horse", "ball hit by bat", "boat powered by motor", "door closed by wind"], correct: 2 },
+            { category: "Reading Comprehension: Bacteria", question: "Comparing water to molasses introduces:", options: ["bacterial content", "bacteria in molasses", "molecular structures", "difficulty to move"], correct: 3 },
+
+            // --- PASSAGE 13: Insect Camouflage ---
+            { category: "Reading Comprehension: Insect Camouflage", question: "Main subject of the passage:", options: ["Caterpillars in trees", "Feeding habits", "How insects camouflage", "Extinction"], correct: 2 },
+            { category: "Reading Comprehension: Insect Camouflage", question: "'Enemies' refers to:", options: ["competitors", "weather", "creatures that eat insects", "inedible insects"], correct: 2 },
+            { category: "Reading Comprehension: Insect Camouflage", question: "How does stick caterpillar look like a twig?", options: ["Holding body stiff", "Looping around stick", "Changing color", "Laying flat"], correct: 0 },
+            { category: "Reading Comprehension: Insect Camouflage", question: "True of stick insects:", options: ["Resemble surroundings always", "Look like other insects", "Camouflaged only when walking", "Change color for invisibility"], correct: 0 },
+            { category: "Reading Comprehension: Insect Camouflage", question: "NOT mentioned as imitated object:", options: ["Thorns", "Flowers", "Leaves", "Sticks"], correct: 1 },
+            { category: "Reading Comprehension: Insect Camouflage", question: "Paragraph describing movement:", options: ["Paragraph one", "Paragraph two", "Paragraph three", "Paragraph four"], correct: 2 },
+            { category: "Reading Comprehension: Insect Camouflage", question: "Where is habitat described?", options: ["Line 7", "Lines 10-11", "Lines 13-15", "Lines 16-17"], correct: 2 },
+
+            // --- GENERAL GRAMMAR & VOCAB ---
+            { category: "General Grammar & Vocabulary", question: "Ali talked ______ about employees' problems.", options: ["confident", "confidentially", "confidence", "confide"], correct: 1 },
+            { category: "General Grammar & Vocabulary", question: "We are ______ qualified for these jobs.", options: ["high", "highly", "height", "heighten"], correct: 1 },
+            { category: "General Grammar & Vocabulary", question: "Ashraf did not pass the exam as ______ as he thought.", options: ["easy", "easily", "ease", "easier"], correct: 1 },
+            { category: "General Grammar & Vocabulary", question: "She is wearing a ______ dress.", options: ["colourful", "colourfully", "colour", "colouring"], correct: 0 },
+            { category: "General Grammar & Vocabulary", question: "You should do it ______.", options: ["careful", "carefully", "care", "caring"], correct: 1 },
+            { category: "General Grammar & Vocabulary", question: "I haven't seen her ______.", options: ["late", "lately", "later", "latest"], correct: 1 },
+            { category: "General Grammar & Vocabulary", question: "You didn't do your work ______.", options: ["correct", "correctly", "correction", "correcting"], correct: 1 },
+            { category: "General Grammar & Vocabulary", question: "Are you ______ frustrated?", options: ["serious", "seriously", "seriousness", "series"], correct: 1 },
+            { category: "General Grammar & Vocabulary", question: "That engine is very ______.", options: ["noise", "noisy", "noisily", "noisome"], correct: 1 },
+            { category: "General Grammar & Vocabulary", question: "The animals were ______.", options: ["thirsty", "thirst", "thirstily", "thirsting"], correct: 0 },
+            { category: "General Grammar & Vocabulary", question: "Laura is walking ______.", options: ["quiet", "quietly", "quietness", "quietude"], correct: 1 },
+            { category: "General Grammar & Vocabulary", question: "Jessica is ______ a brilliant woman that everyone admires her.", options: ["so", "such", "very", "too"], correct: 1 },
+            { category: "General Grammar & Vocabulary", question: "He made ______ an unforgivable mistake that it caused him his marriage.", options: ["so", "such", "very", "an"], correct: 1 },
+            { category: "General Grammar & Vocabulary", question: "She is ______ shy that she would only talk to her parents.", options: ["so", "such", "very", "much"], correct: 0 },
+            { category: "General Grammar & Vocabulary", question: "The teacher was ______ tired that she had to dismiss the class.", options: ["so", "such", "very", "quite"], correct: 0 },
+            { category: "General Grammar & Vocabulary", question: "Those shoes are ______ expensive that I can never afford them.", options: ["so", "such", "very", "really"], correct: 0 },
+            { category: "General Grammar & Vocabulary", question: "I have ______ great memories with her that I will never forget her.", options: ["so", "such", "very", "many"], correct: 1 },
+            { category: "General Grammar & Vocabulary", question: "They were ______ close to winning that everyone felt disappointed with the loss.", options: ["so", "such", "very", "too"], correct: 0 },
+            { category: "General Grammar & Vocabulary", question: "He is ______ a clever boy that he can learn multiple languages at the same time.", options: ["so", "such", "very", "a"], correct: 1 },
+
+            // --- PREPOSITIONS ---
+            { category: "Insert the proper preposition", question: "You succeeded ______ your hard work.", options: ["Until", "From", "Because", "With"], correct: 2 },
+            { category: "Insert the proper preposition", question: "______ a single student was absent.", options: ["On", "Like", "Not", "Away"], correct: 2 },
+            { category: "Insert the proper preposition", question: "The mischievous are different ______ the righteous.", options: ["from", "with", "of", "for"], correct: 1 },
+            { category: "Insert the proper preposition", question: "May God be pleased ______ him.", options: ["for", "with", "on", "of"], correct: 1 },
+            { category: "Insert the proper preposition", question: "______ the trunks of palm trees.", options: ["Of", "Away", "On", "Until"], correct: 2 },
+            { category: "Insert the proper preposition", question: "Took ______ their light.", options: ["until", "away", "like", "on"], correct: 1 },
+            { category: "Insert the proper preposition", question: "a spring ______ which Allah's servants will drink.", options: ["for", "of", "with", "from"], correct: 1 },
+            { category: "Insert the proper preposition", question: "the day when I slaughtered my horse ______ the virgins.", options: ["from", "on", "for", "like"], correct: 2 },
+            { category: "Insert the proper preposition", question: "There is nothing ______ Him.", options: ["Not", "Until", "Like", "From"], correct: 2 },
+            { category: "Insert the proper preposition", question: "______ a camel passes through the eye of a needle.", options: ["Because", "Away", "Until", "Like"], correct: 2 },
+        ];
+
+        // 2. SHUFFLE & RENDER LOGIC
+        const quizData = rawQuizData.map(q => {
+            const opts = q.options.map((text, i) => ({ text, isCorrect: i === q.correct }));
+            // Shuffle options
+            for (let i = opts.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [opts[i], opts[j]] = [opts[j], opts[i]];
+            }
+            return { ...q, options: opts.map(o => o.text), correct: opts.findIndex(o => o.isCorrect) };
+        });
+
+        const container = document.getElementById('quiz-container');
+        let score = 0; let answeredCount = 0;
+        let currentCategory = "";
+
+        function renderQuiz() {
+            document.getElementById('total-display').innerText = `/ ${quizData.length}`;
+            let htmlContent = "";
+
+            quizData.forEach((q, index) => {
+                // Section Header logic
+                if (q.category !== currentCategory) {
+                    currentCategory = q.category;
+                    htmlContent += `
+                        <div class="section-header">
+                            <span>${currentCategory}</span>
+                        </div>
+                    `;
+                }
+
+                htmlContent += `
+                <div class="card bg-white rounded-xl p-6 mb-6 border border-gray-100">
+                    <div class="flex justify-between items-center mb-4 border-b border-gray-50 pb-3">
+                        <span class="bg-blue-100 text-blue-800 text-xs font-bold px-3 py-1 rounded-full">Question ${index + 1}</span>
+                         ${q.options.length === 2 ? '<span class="bg-purple-100 text-purple-800 text-xs font-bold px-2 py-1 rounded-md">True/False</span>' : ''}
+                    </div>
+                    <h3 class="text-gray-800 font-bold mb-6 text-lg leading-relaxed font-cairo" style="direction: ltr; text-align: left;">${q.question}</h3>
+                    <div class="grid gap-3 ${q.options.length === 2 ? 'grid-cols-2' : ''}">
+                        ${q.options.map((opt, i) => `<button onclick="checkAnswer(${index}, ${i})" class="option-btn option-btn-${index} w-full text-left px-5 py-4 rounded-xl border border-gray-200 hover:bg-blue-50 hover:border-blue-300 focus:outline-none flex items-center justify-between group bg-white"><span class="font-medium text-gray-700 group-hover:text-blue-700 font-sans">${opt}</span></button>`).join('')}
+                    </div>
+                </div>`;
+            });
+
+            container.innerHTML = htmlContent;
+        }
+
+        window.checkAnswer = function(qIndex, optIndex) {
+            const q = quizData[qIndex];
+            const btns = document.querySelectorAll(`.option-btn-${qIndex}`);
+            
+            if (btns[0].disabled) return;
+
+            btns.forEach((btn, i) => {
+                btn.disabled = true;
+                if (i === q.correct) { btn.classList.add('correct-answer'); btn.innerHTML += '<i class="fas fa-check float-right"></i>'; }
+                else if (i === optIndex) { btn.classList.add('wrong-answer'); btn.innerHTML += '<i class="fas fa-times float-right"></i>'; }
+                else { btn.classList.add('opacity-50'); }
+            });
+
+            if (optIndex !== q.correct) {
+                btns[q.correct].classList.remove('opacity-50');
+                btns[q.correct].classList.add('correct-answer');
+                if(!btns[q.correct].innerHTML.includes('fa-check')) {
+                     btns[q.correct].innerHTML += '<i class="fas fa-check float-right"></i>';
+                }
+            }
+
+            if (optIndex === q.correct) score++;
+            answeredCount++;
+            if (answeredCount === quizData.length) {
+                document.getElementById('result-summary').classList.remove('hidden-content');
+                document.getElementById('score-display').innerText = score;
+                document.getElementById('score-message').innerText = (score/quizData.length*100) >= 50 ? "Excellent Job!" : "Keep Practicing";
+                setTimeout(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }), 500);
+            }
+        };
+        renderQuiz();
+    </script>
+</body>
+</html>
