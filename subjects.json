@@ -521,7 +521,71 @@
     "color": "#10b981",
     "department": "common_t1",
     "lectures": [
-      { "name": "كويز 1", "file": "#", "questions": 20 }
+        {
+    "name": "Introduction to Health Education",
+    "file": "quizzes/Introduction to Health Education.html",
+    "questions": 0
+  },
+  {
+    "name": "Health Educator Fundamentals",
+    "file": "quizzes/Health Educator Fundamentals.html",
+    "questions": 0
+  },
+  {
+    "name": "Health and Human Behaviour",
+    "file": "quizzes/Health and Human Behaviour.html",
+    "questions": 0
+  },
+  {
+    "name": "Health Education Process",
+    "file": "quizzes/Health Education Process.html",
+    "questions": 0
+  },
+  {
+    "name": "1. Assessment Phase",
+    "file": "quizzes/1. Assessment Phase.html",
+    "questions": 0
+  },
+  {
+    "name": "2. Planning Phase",
+    "file": "quizzes/2. Planning Phase.html",
+    "questions": 0
+  },
+  {
+    "name": "3. Implementation phase",
+    "file": "quizzes/3. Implementation phase.html",
+    "questions": 0
+  },
+  {
+    "name": "4. Evaluation Phase",
+    "file": "quizzes/4. Evaluation Phase.html",
+    "questions": 0
+  },
+  {
+    "name": "Instructional Media",
+    "file": "quizzes/Instructional Media.html",
+    "questions": 0
+  },
+  {
+    "name": "Ethical Issues in Health Education",
+    "file": "quizzes/Ethical Issues in Health Education.html",
+    "questions": 0
+  },
+  {
+    "name": "شامل 120 تثقيف صحي",
+    "file": "quizzes/شامل 120 تثقيف صحي.html",
+    "questions": 0
+  },
+  {
+    "name": "فاينال تثقيف 2024",
+    "file": "quizzes/فاينال تثقيف 2024.html",
+    "questions": 0
+  },
+  {
+    "name": "محاكاة فاينال تثقيف",
+    "file": "quizzes/محاكاة فاينال تثقيف.html",
+    "questions": 0
+  }
     ]
   },
   {
@@ -532,7 +596,56 @@
     "color": "#8b5cf6",
     "department": "common_t1",
     "lectures": [
-      { "name": "كويز 1", "file": "#", "questions": 20 }
+       {
+    "name": "Ethics Overview and Concepts",
+    "file": "quizzes/Ethics Overview and Concepts.html",
+    "questions": 0
+  },
+  {
+    "name": "Ethical Principles and Concepts in Nursing Practice",
+    "file": "quizzes/Ethical Principles and Concepts in Nursing Practice.html",
+    "questions": 0
+  },
+  {
+    "name": "ETHICAL DECISION MAKING",
+    "file": "quizzes/ETHICAL DECISION MAKING.html",
+    "questions": 0
+  },
+  {
+    "name": "Unethical & Illegal Aspects in Nursing Practice",
+    "file": "quizzes/Unethical & Illegal Aspects in Nursing Practice.html",
+    "questions": 0
+  },
+  {
+    "name": "Code of Ethics in Nursing",
+    "file": "quizzes/Code of Ethics in Nursing.html",
+    "questions": 0
+  },
+  {
+    "name": "Professional Boundaries in Nursing Practice",
+    "file": "quizzes/Professional Boundaries in Nursing Practice.html",
+    "questions": 0
+  },
+  {
+    "name": "Ethical Dilemma in Nursing",
+    "file": "quizzes/Ethical Dilemma in Nursing.html",
+    "questions": 0
+  },
+  {
+    "name": "CULTURAL DIVERSITY",
+    "file": "quizzes/CULTURAL DIVERSITY.html",
+    "questions": 0
+  },
+  {
+    "name": "شامل 120 اخلاقيات",
+    "file": "quizzes/شامل 120 اخلاقيات.html",
+    "questions": 0
+  },
+  {
+    "name": "فاينال اخلاقيات 2024",
+    "file": "quizzes/فاينال اخلاقيات 2024.html",
+    "questions": 0
+  }
     ]
   },
   {
@@ -554,7 +667,16 @@
     "color": "#3b82f6",
     "department": "common_t1",
     "lectures": [
-      { "name": "كويز 1", "file": "#", "questions": 20 }
+       {
+    "name": "كويز انجليزي ",
+    "file": "quizzes/كويز انجليزي .html",
+    "questions": 0
+  },
+  {
+    "name": "شامل 156 انجليزي",
+    "file": "quizzes/شامل 156 انجليزي.html",
+    "questions": 0
+  }
     ]
   },
   {
