@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Noto+Sans:wght@400;600;700&display=swap');
+        body { font-family: 'Noto Sans', 'Cairo', sans-serif; background-color: #f8fafc; }
+        .card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .card:hover { transform: translateY(-4px); box-shadow: 0 12px 20px -5px rgba(0, 0, 0, 0.1); }
+        .correct-answer { background-color: #dcfce7 !important; border-color: #22c55e !important; color: #15803d !important; }
+        .wrong-answer { background-color: #fee2e2 !important; border-color: #ef4444 !important; color: #b91c1c !important; }
+        .hidden-content { display: none; }
+        .option-btn { transition: all 0.2s; }
+        .option-btn:disabled { cursor: default; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
+    </style>
+</head>
+<body class="pb-12 bg-gray-50">
+    <div class="max-w-3xl mx-auto px-4 py-8">
+        <div class="bg-white rounded-2xl shadow-sm p-8 mb-8 text-center border-t-4 border-blue-600 relative overflow-hidden">
+            <div class="absolute top-0 right-0 p-4 opacity-10"><i class="fas fa-user-md text-8xl text-blue-600"></i></div>
+            
+            <h1 class="text-3xl font-bold text-gray-800 mb-2 font-cairo text-center" dir="auto">Health Education Process</h1>
+            
+            <div class="flex items-center justify-center gap-2 text-green-600 font-semibold bg-green-50 w-fit mx-auto px-4 py-1 rounded-full text-sm">
+                <i class="fas fa-check-circle"></i> "تم صنع هذا الامتحان بواسطة عبدالحليم رزق"
+            </div>
+        </div>
+        <div id="quiz-container"></div>
+        <div id="result-summary" class="hidden-content bg-white rounded-2xl shadow-lg p-8 text-center mt-8 border border-gray-100">
+            <h2 class="text-2xl font-bold text-gray-800">Exam Completed</h2>
+            <div class="mt-4 text-4xl font-bold text-blue-600 mb-2">
+                <span id="score-display">0</span> <span class="text-xl text-gray-400" id="total-display"></span>
+            </div>
+            <p id="score-message" class="text-gray-500 mb-6"></p>
+            <button onclick="location.reload()" class="bg-blue-600 text-white px-8 py-3 rounded-xl hover:bg-blue-700 transition shadow-lg hover:shadow-blue-200">
+                <i class="fas fa-redo mr-2"></i> Restart Exam
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. QUESTIONS ARRAY (GENERATE 50 QUESTIONS HERE) ---
+        const rawQuizData = [
+            {
+                id: 1,
+                question: "Which phase is considered the initial step of the health education process where information is continuously collected?",
+                options: ["Assessment phase", "Planning phase", "Implementation phase", "Evaluation phase"],
+                correct: 0,
+                rationale: "The initial step of the health education process is the assessment phase, where the health educator collects, validates, categorizes, and interprets information."
+            },
+            {
+                id: 2,
+                question: "Which type of evaluation assesses the immediate effects of health education activities such as changes in knowledge or behavior?",
+                options: ["Process evaluation", "Impact evaluation", "Outcome evaluation", "Structural evaluation"],
+                correct: 1,
+                rationale: "Impact evaluation refers to assessing the immediate effects of health education activities on the people who have received the messages."
+            },
+            {
+                id: 3,
+                question: "Which communication stage ensures that the message is not only understood but also believed by the audience?",
+                options: ["Attracting attention", "Understanding the message", "Promoting change", "Producing behavior change"],
+                correct: 2,
+                rationale: "Stage 4 is promoting change (acceptance), where the communication must be believed and accepted, not just understood."
+            },
+            {
+                id: 4,
+                question: "What is the primary focus of the psychomotor domain in educational objectives?",
+                options: ["Knowledge and understanding", "Attitudes and values", "Skills and physical abilities", "Emotional engagement"],
+                correct: 2,
+                rationale: "The psychomotor domain focuses on skills and physical abilities, such as demonstrations and simulations."
+            },
+            {
+                id: 5,
+                question: "Which term describes the ongoing appraisal of the process during the implementation phase without involving judgment?",
+                options: ["Evaluation", "Monitoring", "Diagnosis", "Planning"],
+                correct: 1,
+                rationale: "In the implementation phase, the process is referred to as monitoring (or process evaluation) and does not involve judgments."
+            },
+            {
+                id: 6,
+                question: "Which factor is assessed to identify the client's developmental stage and tailor content accordingly?",
+                options: ["Occupation", "Income", "Age", "Religion"],
+                correct: 2,
+                rationale: "Age should be assessed carefully to identify information about the client's developmental stage and helps prepare appropriate content."
+            },
+            {
+                id: 7,
+                question: "What is the correct definition of the health education process?",
+                options: ["A systematic process to assess and evaluate communities", "A cooperative process to diagnose and treat physical ailments", "A process concerned with assessing planning implementing and evaluating educational programs", "A method strictly for documenting patient medical history"],
+                correct: 2,
+                rationale: "The health education process is defined as a systematic and cooperative process concerned with assessing, planning, implementing, evaluating, and documenting educational programs."
+            },
+            {
+                id: 8,
+                question: "Which learning style prefers hands-on experiences and physical engagement with the material?",
+                options: ["Visual Learners", "Auditory Learners", "Kinesthetic Learners", "Social Learners"],
+                correct: 2,
+                rationale: "Kinesthetic learners prefer hands-on experiences and physical engagement with the material."
+            },
+            {
+                id: 9,
+                question: "True or False: Documentation of patient teaching should only occur at the very end of the teaching process.",
+                options: ["True", "False"],
+                correct: 1,
+                rationale: "Documentation of patient teaching should take place throughout the entire teaching process, not just at the end."
+            },
+            {
+                id: 10,
+                question: "Which component of an educational objective describes the specific behavior the learner will demonstrate?",
+                options: ["Criteria", "Condition", "Action verb", "Content"],
+                correct: 2,
+                rationale: "The action verb describes what the client should know or be able to do."
+            },
+            {
+                id: 11,
+                question: "Which type of evaluation is concerned with assessing how the work takes place and if activities are efficient?",
+                options: ["Outcome evaluation", "Process evaluation", "Impact evaluation", "Summative evaluation"],
+                correct: 1,
+                rationale: "Process evaluation is concerned with assessing the process of health education implementation and how the work takes place."
+            },
+            {
+                id: 12,
+                question: "What is the end product of the assessment phase in the health education process?",
+                options: ["Collection of data", "Nursing diagnosis", "Teaching plan", "Evaluation tool"],
+                correct: 1,
+                rationale: "Nursing diagnosis is the end product of the assessment phase, derived from data collection."
+            },
+            {
+                id: 13,
+                question: "Which physical environment factor is essential for a comfortable learning setting?",
+                options: ["High noise levels", "Dim lighting", "Adequate ventilation", "Crowded space"],
+                correct: 2,
+                rationale: "Physical environment considerations include adequate lighting, space, and ventilation."
+            },
+            {
+                id: 14,
+                question: "Which communication characteristic involves using bold text or high-pitched sounds to gain focus?",
+                options: ["Motivational characteristics", "Physical characteristics", "Social characteristics", "Cultural characteristics"],
+                correct: 1,
+                rationale: "Physical characteristics that attract attention include size, intensity, high-pitched sounds, color, and pictures."
+            },
+            {
+                id: 15,
+                question: "True or False: Outcome evaluation focuses on long-term changes such as decreases in mortality or morbidity.",
+                options: ["True", "False"],
+                correct: 0,
+                rationale: "Outcome evaluation refers to long-term changes that may have occurred, such as decreases in mortality and morbidity."
+            },
+            {
+                id: 16,
+                question: "Which domain of learning focuses on attitudes, values, and emotions?",
+                options: ["Cognitive", "Psychomotor", "Affective", "Technical"],
+                correct: 2,
+                rationale: "The affective domain focuses on attitudes, values, and emotions."
+            },
+            {
+                id: 17,
+                question: "What is the first step in the evaluation of health education activities?",
+                options: ["Describe the activities", "Select methods", "Involve people", "Collect credible data"],
+                correct: 2,
+                rationale: "Step 1 is to involve people to participate in the activities, such as community members and key informants."
+            },
+            {
+                id: 18,
+                question: "Which factor falls under psychological readiness to learn?",
+                options: ["Preparation of environment", "Motivation and curiosity", "Time of teaching", "Availability of materials"],
+                correct: 1,
+                rationale: "Psychological readiness includes interest, curiosity, attention, and motivation."
+            },
+            {
+                id: 19,
+                question: "Which teaching method is considered a formal method?",
+                options: ["Health Fairs", "Social Media Campaigns", "Support Groups", "Lectures"],
+                correct: 3,
+                rationale: "Lectures and curriculum-based programs are categorized as formal methods."
+            },
+            {
+                id: 20,
+                question: "Which instructional media is categorized as non-projected media?",
+                options: ["Slideshows", "Videos", "Models", "Overhead Projectors"],
+                correct: 2,
+                rationale: "Non-projected media include printed materials, models, anatomical charts, books, and interactive tools."
+            },
+            {
+                id: 21,
+                question: "True or False: A nursing diagnosis should be prioritized based solely on the health educator's schedule.",
+                options: ["True", "False"],
+                correct: 1,
+                rationale: "Prioritizing nursing diagnosis must take into consideration the individual needs, readiness to learn, and time available."
+            },
+            {
+                id: 22,
+                question: "Which principle of effective therapeutic communication involves understanding and sharing the feelings of another?",
+                options: ["Active Listening", "Empathy", "Clarification", "Professional Boundaries"],
+                correct: 1,
+                rationale: "Empathy is the ability to understand and share the feelings of another, responding with compassion."
+            },
+            {
+                id: 23,
+                question: "What is the purpose of categorizing data during the assessment phase?",
+                options: ["To determine the teaching budget", "To prioritize needs and problems", "To select the evaluation tool", "To finalize the documentation"],
+                correct: 1,
+                rationale: "Categorizing data helps in setting priorities of needs and problems, ordering them according to importance."
+            },
+            {
+                id: 24,
+                question: "Which strategy helps attract the audience's attention using motivational characteristics?",
+                options: ["Using bold text", "Using primary colors", "Addressing felt needs", "Using high pitched sounds"],
+                correct: 2,
+                rationale: "Motivational characteristics include novelty, interest (felt needs of the audience), and entertainment."
+            },
+            {
+                id: 25,
+                question: "True or False: The health educator should use medical jargon to demonstrate professionalism during teaching.",
+                options: ["True", "False"],
+                correct: 1,
+                rationale: "The health educator should explain medical jargon in lay terms to ensure the patient understands."
+            },
+            {
+                id: 26,
+                question: "Which assessment data includes the client's pattern of eating, sleeping, and social groups?",
+                options: ["Biological status", "Psychological status", "Economic status", "Prior learning"],
+                correct: 1,
+                rationale: "Psychological status is affected by changes in environment, patterns of eating, sleeping, and social groups."
+            },
+            {
+                id: 27,
+                question: "What is a common cause of failure in the first stage of communication?",
+                options: ["Preaching to the converted", "Using too many colors", "Speaking too loudly", "Using printed materials"],
+                correct: 0,
+                rationale: "A common cause of failure in reaching the intended audience is preaching to the converted (those who are already motivated)."
+            },
+            {
+                id: 28,
+                question: "Which method is appropriate for evaluating cognitive learning?",
+                options: ["Observing return demonstrations", "Measuring blood pressure", "Giving simple written tests", "Monitoring daily weights"],
+                correct: 2,
+                rationale: "Giving simple written tests or questionnaires is a way to measure cognitive learning."
+            },
+            {
+                id: 29,
+                question: "Which ink colors are recommended for documenting patient teaching for legal purposes?",
+                options: ["Red or Green", "Black or Blue", "Pencil only", "Any legible color"],
+                correct: 1,
+                rationale: "Documentation should be written in black or blue ink for legal and reproduction purposes."
+            },
+            {
+                id: 30,
+                question: "True or False: Process evaluation provides feedback to take corrective action while activities are still ongoing.",
+                options: ["True", "False"],
+                correct: 0,
+                rationale: "Process evaluation provides feedback and the ability to take corrective action while activities are still going on."
+            },
+            {
+                id: 31,
+                question: "Which domain of learning is primarily focused on knowledge and understanding?",
+                options: ["Cognitive Domain", "Affective Domain", "Psychomotor Domain", "Social Domain"],
+                correct: 0,
+                rationale: "The cognitive domain focuses on knowledge and understanding, often using lectures and case studies."
+            },
+            {
+                id: 32,
+                question: "What is the recommended method to prioritize learning needs?",
+                options: ["Alphabetical order", "Maslow's hierarchy of needs", "Chronological order", "Random selection"],
+                correct: 1,
+                rationale: "A commonly used method to prioritize learning needs is Maslow's hierarchy of needs."
+            },
+            {
+                id: 33,
+                question: "Which element is part of the physical readiness to learn?",
+                options: ["Curiosity", "Motivation", "Preparation of environment", "Interest"],
+                correct: 2,
+                rationale: "Physical readiness includes preparation of environment, materials, setting, and the health educator."
+            },
+            {
+                id: 34,
+                question: "True or False: The goal of evaluation is to find out if the patient has learned what was taught.",
+                options: ["True", "False"],
+                correct: 0,
+                rationale: "The goal of evaluation is to find out if the patient has learned what you taught."
+            },
+            {
+                id: 35,
+                question: "Which type of learner benefits most from lectures, discussions, and audio recordings?",
+                options: ["Visual Learners", "Auditory Learners", "Kinesthetic Learners", "Reading Learners"],
+                correct: 1,
+                rationale: "Auditory learners learn best through listening and benefit from lectures and discussions."
+            },
+            {
+                id: 36,
+                question: "What does the 'S' in SMART goals stand for?",
+                options: ["Simple", "Standard", "Specific", "Scientific"],
+                correct: 2,
+                rationale: "SMART stands for Specific, Measurable, Achievable, Relevant, and Time-bound."
+            },
+            {
+                id: 37,
+                question: "Which step in the evaluation process involves judging achievements against objectives?",
+                options: ["Step 1: Involve people", "Step 3: Select methods", "Step 5: Analyze data", "Step 6: Learn from evaluation"],
+                correct: 3,
+                rationale: "Step 6, 'Learn from evaluation', deals with judging achievements and the extent to which objectives were met."
+            },
+            {
+                id: 38,
+                question: "Which source of data collection is considered the primary source?",
+                options: ["Client's record", "Client himself", "Health care team", "Lab investigations"],
+                correct: 1,
+                rationale: "The client himself is a primary source of data collection."
+            },
+            {
+                id: 39,
+                question: "True or False: Evaluation is strictly a one-time event that occurs only at the end of the program.",
+                options: ["True", "False"],
+                correct: 1,
+                rationale: "Evaluation is not a one-time event; it is a continuous process."
+            },
+            {
+                id: 40,
+                question: "Which activity is an example of an informal teaching method?",
+                options: ["Curriculum-Based Programs", "Lectures", "Health Fairs", "Seminars"],
+                correct: 2,
+                rationale: "Health fairs and social media campaigns are categorized as informal methods."
+            },
+            {
+                id: 41,
+                question: "What is the third stage of communication in health education?",
+                options: ["Attracting attention", "Understanding the message", "Promoting change", "Reaching the audience"],
+                correct: 1,
+                rationale: "The stages are: 1. Reaching, 2. Attracting, 3. Understanding, 4. Acceptance, 5. Behavior Change, 6. Health Improvement."
+            },
+            {
+                id: 42,
+                question: "Which aspect of the client's history includes assessing specific regimens, likes, and dislikes?",
+                options: ["Medications", "Diet", "Activity of daily living", "Exercises"],
+                correct: 1,
+                rationale: "Diet assessment includes specific regimens, number of meals, likes, dislikes, and ability to buy food."
+            },
+            {
+                id: 43,
+                question: "True or False: Misunderstandings often occur when complex language or unfamiliar technical words are used.",
+                options: ["True", "False"],
+                correct: 0,
+                rationale: "Misunderstandings take place when complex language or unfamiliar technical words are used."
+            },
+            {
+                id: 44,
+                question: "Which type of evaluation might be conducted by external agencies due to its long-term nature?",
+                options: ["Process evaluation", "Monitoring", "Outcome evaluation", "Formative evaluation"],
+                correct: 2,
+                rationale: "Outcome evaluation relies on measuring long-term changes and may be conducted by external agencies."
+            },
+            {
+                id: 45,
+                question: "Which component is NOT part of the four components of an educational objective?",
+                options: ["Action verb", "Content", "Budget", "Criteria"],
+                correct: 2,
+                rationale: "The four components are Action verb, Content, Condition, and Criteria."
+            },
+            {
+                id: 46,
+                question: "What is the main purpose of documentation in patient teaching?",
+                options: ["To increase hospital revenue", "To promote communication among the team", "To replace verbal communication", "To finalize the patient's bill"],
+                correct: 1,
+                rationale: "Documentation promotes communication about the patient's progress among all health care team members."
+            },
+            {
+                id: 47,
+                question: "True or False: Active listening involves only hearing the words the patient says without needing to understand feelings.",
+                options: ["True", "False"],
+                correct: 1,
+                rationale: "Active listening involves fully concentrating, understanding, responding, and remembering, validating feelings."
+            },
+            {
+                id: 48,
+                question: "Which teaching material is an example of projected media?",
+                options: ["Pamphlets", "Models", "Film Strips", "Flip charts"],
+                correct: 2,
+                rationale: "Projected media includes slides, videos, film strips, and overhead projectors."
+            },
+            {
+                id: 49,
+                question: "Which factor implies the extent to which objectives have been achieved with the proper utilization of resources?",
+                options: ["Effectiveness", "Efficiency", "Reliability", "Validity"],
+                correct: 1,
+                rationale: "Efficiency means the extent to which objectives have been achieved with the available amount of resources."
+            },
+            {
+                id: 50,
+                question: "True or False: Learning is more effective when it is relevant to the learner's personal experiences.",
+                options: ["True", "False"],
+                correct: 0,
+                rationale: "Relevance of content to client needs and personal experiences resonates more and motivates action."
+            }
+        ];
+
+        // --- 2. SHUFFLE & RENDER LOGIC (DO NOT EDIT) ---
+        const quizData = rawQuizData.map(q => {
+            const opts = q.options.map((text, i) => ({ text, isCorrect: i === q.correct }));
+            for (let i = opts.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [opts[i], opts[j]] = [opts[j], opts[i]];
+            }
+            return { ...q, options: opts.map(o => o.text), correct: opts.findIndex(o => o.isCorrect) };
+        });
+
+        const container = document.getElementById('quiz-container');
+        let score = 0; let answeredCount = 0;
+
+        function renderQuiz() {
+            document.getElementById('total-display').innerText = `/ ${quizData.length}`;
+            container.innerHTML = quizData.map((q, index) => {
+                return `
+                <div class="card bg-white rounded-xl p-6 mb-6 border border-gray-100">
+                    <div class="flex justify-between items-center mb-4 border-b border-gray-50 pb-3">
+                        <span class="bg-blue-100 text-blue-800 text-xs font-bold px-3 py-1 rounded-full">Question ${index + 1}</span>
+                         ${q.options.length === 2 ? '<span class="bg-purple-100 text-purple-800 text-xs font-bold px-2 py-1 rounded-md">True/False</span>' : ''}
+                    </div>
+                    <h3 class="text-gray-800 font-bold mb-6 text-lg leading-relaxed font-cairo" style="direction: ltr; text-align: left;">${q.question}</h3>
+                    <div class="grid gap-3 ${q.options.length === 2 ? 'grid-cols-2' : ''}">
+                        ${q.options.map((opt, i) => `<button onclick="checkAnswer(${index}, ${i})" class="option-btn option-btn-${index} w-full text-left px-5 py-4 rounded-xl border border-gray-200 hover:bg-blue-50 hover:border-blue-300 focus:outline-none flex items-center justify-between group bg-white"><span class="font-medium text-gray-700 group-hover:text-blue-700 font-sans">${opt}</span></button>`).join('')}
+                    </div>
+                    <div id="feedback-${index}" class="hidden-content mt-6 bg-blue-50 rounded-xl p-5 border border-blue-100 animate-fade-in text-left">
+                        <p class="text-blue-800 text-sm leading-relaxed"><strong>Rationale:</strong> ${q.rationale}</p>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        window.checkAnswer = function(qIndex, optIndex) {
+            const q = quizData[qIndex];
+            const feedback = document.getElementById(`feedback-${qIndex}`);
+            const btns = document.querySelectorAll(`.option-btn-${qIndex}`);
+            if (!feedback.classList.contains('hidden-content')) return;
+            feedback.classList.remove('hidden-content');
+            btns.forEach((btn, i) => {
+                btn.disabled = true;
+                if (i === q.correct) { btn.classList.add('correct-answer'); btn.innerHTML += '<i class="fas fa-check float-right"></i>'; }
+                else if (i === optIndex) { btn.classList.add('wrong-answer'); btn.innerHTML += '<i class="fas fa-times float-right"></i>'; }
+                else { btn.classList.add('opacity-50'); }
+            });
+            if (optIndex === q.correct) score++;
+            answeredCount++;
+            if (answeredCount === quizData.length) {
+                document.getElementById('result-summary').classList.remove('hidden-content');
+                document.getElementById('score-display').innerText = score;
+                document.getElementById('score-message').innerText = (score/quizData.length*100) >= 50 ? "Good Job!" : "Keep Studying";
+                setTimeout(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }), 500);
+            }
+        };
+        renderQuiz();
+    </script>
+</body>
+</html>

@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Noto+Sans:wght@400;600;700&display=swap');
+        body { font-family: 'Noto Sans', 'Cairo', sans-serif; background-color: #f8fafc; }
+        .card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .card:hover { transform: translateY(-4px); box-shadow: 0 12px 20px -5px rgba(0, 0, 0, 0.1); }
+        .correct-answer { background-color: #dcfce7 !important; border-color: #22c55e !important; color: #15803d !important; }
+        .wrong-answer { background-color: #fee2e2 !important; border-color: #ef4444 !important; color: #b91c1c !important; }
+        .hidden-content { display: none; }
+        .option-btn { transition: all 0.2s; }
+        .option-btn:disabled { cursor: default; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
+    </style>
+</head>
+<body class="pb-12 bg-gray-50">
+    <div class="max-w-3xl mx-auto px-4 py-8">
+        <div class="bg-white rounded-2xl shadow-sm p-8 mb-8 text-center border-t-4 border-blue-600 relative overflow-hidden">
+            <div class="absolute top-0 right-0 p-4 opacity-10"><i class="fas fa-user-md text-8xl text-blue-600"></i></div>
+            
+            <h1 class="text-3xl font-bold text-gray-800 mb-2 font-cairo text-center" dir="auto">ETHICAL DECISION MAKING</h1>
+            
+            <div class="flex items-center justify-center gap-2 text-green-600 font-semibold bg-green-50 w-fit mx-auto px-4 py-1 rounded-full text-sm">
+                <i class="fas fa-check-circle"></i> "تم صنع هذا الامتحان بواسطة عبدالحليم رزق"
+            </div>
+        </div>
+        <div id="quiz-container"></div>
+        <div id="result-summary" class="hidden-content bg-white rounded-2xl shadow-lg p-8 text-center mt-8 border border-gray-100">
+            <h2 class="text-2xl font-bold text-gray-800">Exam Completed</h2>
+            <div class="mt-4 text-4xl font-bold text-blue-600 mb-2">
+                <span id="score-display">0</span> <span class="text-xl text-gray-400" id="total-display"></span>
+            </div>
+            <p id="score-message" class="text-gray-500 mb-6"></p>
+            <button onclick="location.reload()" class="bg-blue-600 text-white px-8 py-3 rounded-xl hover:bg-blue-700 transition shadow-lg hover:shadow-blue-200">
+                <i class="fas fa-redo mr-2"></i> Restart Exam
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. QUESTIONS ARRAY (40 COMPREHENSIVE QUESTIONS) ---
+        const rawQuizData = [
+            { id: 1, question: "Which term describes ethical decision making in nursing?", options: ["Static event", "Continuous process", "One-time action", "Rigid procedure"], correct: 1, rationale: "Ethical decision making in nursing is defined as a continuous and evolving process." },
+            { id: 2, question: "What is the first step in the ethical decision-making process?", options: ["Gather information", "Identify the decision", "Review", "Take action"], correct: 1, rationale: "Step 1 is to Identify the decision." },
+            { id: 3, question: "Decision making by nurses influences the quality of care more than any other factor.", options: ["True", "False"], correct: 0, rationale: "The text states that ethical decision making by nurses influences the quality of nursing care more than any other factors." },
+            { id: 4, question: "Which factor implies recognizing new directions and choices?", options: ["Decision criteria", "Decision situation", "Time", "People affected"], correct: 1, rationale: "In 'Decision situation', adjectives like 'new' imply choice and recognizing new directions." },
+            { id: 5, question: "During which step should a nurse review and assess the gathered information?", options: ["Step 1", "Step 2", "Step 3", "Step 4"], correct: 1, rationale: "Step 2 is 'Gather information', where you review and assess the information." },
+            { id: 6, question: "What is an example of ethical decision making in nursing mentioned in the text?", options: ["Diagnosing a medical condition", "Prescribing medication", "Developing patient care plans", "Performing surgery"], correct: 2, rationale: "Developing patient care plans is listed as an example." },
+            { id: 7, question: "Who are the people affected by decisions interested in economic outcomes?", options: ["Stakeholders", "Shareholders", "Patients", "Nurses"], correct: 1, rationale: "Shareholders are interested in economic outcomes." },
+            { id: 8, question: "Which step involves brainstorming to find options?", options: ["Identify prospective alternatives", "Weigh the evidence", "Gather information", "Identify the decision"], correct: 0, rationale: "Brainstorming is helpful in Step 3: Identify prospective alternatives." },
+            { id: 9, question: "The review stage is the first step of the decision-making process.", options: ["True", "False"], correct: 1, rationale: "The review stage is the last step (Step 7)." },
+            { id: 10, question: "What should be used to measure and monitor performance in the review step?", options: ["Guesses", "Metrics", "Opinions", "Emotions"], correct: 1, rationale: "The text mentions using metrics to help measure and monitor performance." },
+            { id: 11, question: "Which factor affects everyone to varying degrees regarding approval of friends?", options: ["Time", "Decision criteria", "Decision Makers", "Decision tools"], correct: 2, rationale: "Social pressure and approval of friends affect Decision Makers." },
+            { id: 12, question: "Ethical decision making should be based on which of the following?", options: ["Personal gain", "Code of ethics", "Random choice", "Convenience"], correct: 1, rationale: "The definition states it is based on choice of action according to the code of ethics." },
+            { id: 13, question: "What is a benefit of ethical decision making regarding resources?", options: ["Increased cost", "Fuller utilization", "Wasted materials", "Ignored resources"], correct: 1, rationale: "It leads to fuller utilization of resources." },
+            { id: 14, question: "Identify the step where you put principle to practice.", options: ["Take action", "Review", "Identify decision", "Weigh evidence"], correct: 0, rationale: "Step 6: Take action is where you put principle to practice." },
+            { id: 15, question: "Stakeholders' interests are broader than just economic ones.", options: ["True", "False"], correct: 0, rationale: "Stakeholders interested in the decision are much broader than economic." },
+            { id: 16, question: "Which step involves considering opportunities, risks, and alignment of values?", options: ["Step 3", "Step 4", "Step 5", "Step 6"], correct: 1, rationale: "Step 4: Weigh the evidence involves considering opportunities, risks, and alignment of values." },
+            { id: 17, question: "What helps a nurse identify patient requirements?", options: ["Administration tasks", "Clinical decision making", "Financial planning", "Socializing"], correct: 1, rationale: "Process of clinical decision making may contribute to identify patients' requirements." },
+            { id: 18, question: "Time is a factor that can affect the nature of participation in decision making.", options: ["True", "False"], correct: 0, rationale: "Time is listed as a factor affecting the nature of people's participation." },
+            { id: 19, question: "Step 5 involves selecting which alternative?", options: ["The best alternative", "The easiest alternative", "The fastest alternative", "The cheapest alternative"], correct: 0, rationale: "Step 5 is 'Choose the best alternative'." },
+            { id: 20, question: "Which example involves assigning tasks based on competence?", options: ["Delegation", "Uniform selection", "Registering for class", "Telling information"], correct: 0, rationale: "Delegation of a task considering competences is an example." },
+            { id: 21, question: "Choosing an alternative without action would do what to the process?", options: ["Accelerate it", "Stall it", "Complete it", "Validate it"], correct: 1, rationale: "Choosing an alternative without action would stall the decision-making process." },
+            { id: 22, question: "Identifying the decision in Step 1 paves the way for what?", options: ["The next step", "Immediate action", "Skipping research", "Ignoring the problem"], correct: 0, rationale: "Identifying the decision is an essential step that paves the way for the next step." },
+            { id: 23, question: "Individual beliefs and values do not affect decision making.", options: ["True", "False"], correct: 1, rationale: "Individuals are unique in terms of their personalities, abilities, beliefs and values, which affect decision making." },
+            { id: 24, question: "What is the final step in the ethical decision-making process?", options: ["Review", "Take action", "Choose alternative", "Weigh evidence"], correct: 0, rationale: "Step 7: Review is the last step." },
+            { id: 25, question: "Which factor involves identifying areas of agreement and disagreement?", options: ["Decision criteria", "Time", "People affected", "Decision situation"], correct: 0, rationale: "Decision criteria involves identifying areas where there is agreement and disagreement." },
+            { id: 26, question: "Identifying alternatives is considered which part of the process in Step 3?", options: ["The tricky part", "The easy part", "The final part", "The unnecessary part"], correct: 0, rationale: "Step 3: Now comes the tricky part, the identification of alternatives." },
+            { id: 27, question: "When weighing evidence, which alternative should be considered first?", options: ["The riskiest", "The best", "The newest", "The cheapest"], correct: 1, rationale: "Think about opportunities... with the best alternative first." },
+            { id: 28, question: "Choosing a new uniform style is an example of ethical decision making.", options: ["True", "False"], correct: 0, rationale: "Choose a new uniform style in the unit is listed as an example." },
+            { id: 29, question: "The review step evaluates whether the outcome did what?", options: ["Resolved the problem", "Created new problems", "Saved money only", "Impressed colleagues"], correct: 0, rationale: "The review stage evaluates whether or not the specific outcome resolved the problem." },
+            { id: 30, question: "Political beliefs do not vary among individuals making decisions.", options: ["True", "False"], correct: 1, rationale: "Political beliefs also vary and people will rank differently." },
+            { id: 31, question: "Ethical decision making helps in the formulation of plans for whom?", options: ["Patients only", "Families only", "Community only", "Patients, families, and community"], correct: 3, rationale: "Formulation of plans and policies for the good of the patients/families/community." },
+            { id: 32, question: "In Step 2, besides identifying information needed, what else must you identify?", options: ["How to get it and use it", "Who to blame", "Why to ignore it", "When to stop"], correct: 0, rationale: "Identify what kinds of information you need, how you will get that information and how you will use the information." },
+            { id: 33, question: "Which factor describes the context as often 'messy and complex'?", options: ["Decision situation", "Decision criteria", "Time", "Decision theories"], correct: 0, rationale: "The decision situation is often messy and complex." },
+            { id: 34, question: "Step 3 is considered easy because it avoids unknowns.", options: ["True", "False"], correct: 1, rationale: "Step 3 leads to a deeper dive into the unknowns and potential impact." },
+            { id: 35, question: "In Step 5, you put what on the table before deciding?", options: ["Knowns and unknowns", "Only knowns", "Only unknowns", "Nothing"], correct: 0, rationale: "You put all of what you know, including the unknowns, on the table." },
+            { id: 36, question: "Regarding risk-taking, how do decision makers vary?", options: ["Some like more risk than others", "All avoid risk", "All seek risk", "Risk is irrelevant"], correct: 0, rationale: "Some like to take More risk than others." },
+            { id: 37, question: "Registering for conferences is listed as an example of what?", options: ["Ethical decision making", "Poor planning", "Administrative burden", "Social gathering"], correct: 0, rationale: "Register in formal/informal classes/ conferences is an example of ethical decision making." },
+            { id: 38, question: "All decisions should be made according to correct values and beliefs.", options: ["True", "False"], correct: 0, rationale: "All the decision should be according to correct values and believes." },
+            { id: 39, question: "People affected by decisions can have what kind of influence on the outcome?", options: ["Direct or indirect", "Only direct", "Only indirect", "No influence"], correct: 0, rationale: "People affected by decisions can have considerable direct or indirect influence." },
+            { id: 40, question: "What provides the background necessary to understand ethical decision making?", options: ["Ethics in Nursing practice", "Medical textbooks", "Hospital policies", "Government laws"], correct: 0, rationale: "Ethics in Nursing practice provides the background necessary to understand ethical decision making." }
+        ];
+
+        // --- 2. SHUFFLE & RENDER LOGIC (DO NOT EDIT) ---
+        const quizData = rawQuizData.map(q => {
+            const opts = q.options.map((text, i) => ({ text, isCorrect: i === q.correct }));
+            for (let i = opts.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [opts[i], opts[j]] = [opts[j], opts[i]];
+            }
+            return { ...q, options: opts.map(o => o.text), correct: opts.findIndex(o => o.isCorrect) };
+        });
+
+        const container = document.getElementById('quiz-container');
+        let score = 0; let answeredCount = 0;
+
+        function renderQuiz() {
+            document.getElementById('total-display').innerText = `/ ${quizData.length}`;
+            container.innerHTML = quizData.map((q, index) => {
+                return `
+                <div class="card bg-white rounded-xl p-6 mb-6 border border-gray-100">
+                    <div class="flex justify-between items-center mb-4 border-b border-gray-50 pb-3">
+                        <span class="bg-blue-100 text-blue-800 text-xs font-bold px-3 py-1 rounded-full">Question ${index + 1}</span>
+                         ${q.options.length === 2 ? '<span class="bg-purple-100 text-purple-800 text-xs font-bold px-2 py-1 rounded-md">True/False</span>' : ''}
+                    </div>
+                    <h3 class="text-gray-800 font-bold mb-6 text-lg leading-relaxed font-cairo" style="direction: ltr; text-align: left;">${q.question}</h3>
+                    <div class="grid gap-3 ${q.options.length === 2 ? 'grid-cols-2' : ''}">
+                        ${q.options.map((opt, i) => `<button onclick="checkAnswer(${index}, ${i})" class="option-btn option-btn-${index} w-full text-left px-5 py-4 rounded-xl border border-gray-200 hover:bg-blue-50 hover:border-blue-300 focus:outline-none flex items-center justify-between group bg-white"><span class="font-medium text-gray-700 group-hover:text-blue-700 font-sans">${opt}</span></button>`).join('')}
+                    </div>
+                    <div id="feedback-${index}" class="hidden-content mt-6 bg-blue-50 rounded-xl p-5 border border-blue-100 animate-fade-in text-left">
+                        <p class="text-blue-800 text-sm leading-relaxed"><strong>Rationale:</strong> ${q.rationale}</p>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        window.checkAnswer = function(qIndex, optIndex) {
+            const q = quizData[qIndex];
+            const feedback = document.getElementById(`feedback-${qIndex}`);
+            const btns = document.querySelectorAll(`.option-btn-${qIndex}`);
+            if (!feedback.classList.contains('hidden-content')) return;
+            feedback.classList.remove('hidden-content');
+            btns.forEach((btn, i) => {
+                btn.disabled = true;
+                if (i === q.correct) { btn.classList.add('correct-answer'); btn.innerHTML += '<i class="fas fa-check float-right"></i>'; }
+                else if (i === optIndex) { btn.classList.add('wrong-answer'); btn.innerHTML += '<i class="fas fa-times float-right"></i>'; }
+                else { btn.classList.add('opacity-50'); }
+            });
+            if (optIndex === q.correct) score++;
+            answeredCount++;
+            if (answeredCount === quizData.length) {
+                document.getElementById('result-summary').classList.remove('hidden-content');
+                document.getElementById('score-display').innerText = score;
+                document.getElementById('score-message').innerText = (score/quizData.length*100) >= 50 ? "Good Job!" : "Keep Studying";
+                setTimeout(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }), 500);
+            }
+        };
+        renderQuiz();
+    </script>
+</body>
+</html>

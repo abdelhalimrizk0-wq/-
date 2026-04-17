@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Noto+Sans:wght@400;600;700&display=swap');
+        body { font-family: 'Noto Sans', 'Cairo', sans-serif; background-color: #f8fafc; }
+        .card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .card:hover { transform: translateY(-4px); box-shadow: 0 12px 20px -5px rgba(0, 0, 0, 0.1); }
+        .correct-answer { background-color: #dcfce7 !important; border-color: #22c55e !important; color: #15803d !important; }
+        .wrong-answer { background-color: #fee2e2 !important; border-color: #ef4444 !important; color: #b91c1c !important; }
+        .hidden-content { display: none; }
+        .option-btn { transition: all 0.2s; }
+        .option-btn:disabled { cursor: default; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
+    </style>
+</head>
+<body class="pb-12 bg-gray-50">
+    <div class="max-w-3xl mx-auto px-4 py-8">
+        <div class="bg-white rounded-2xl shadow-sm p-8 mb-8 text-center border-t-4 border-blue-600 relative overflow-hidden">
+            <div class="absolute top-0 right-0 p-4 opacity-10"><i class="fas fa-user-md text-8xl text-blue-600"></i></div>
+            
+            <h1 class="text-3xl font-bold text-gray-800 mb-2 font-cairo text-center" dir="auto">Health Education Process: Assessment Phase</h1>
+            
+            <div class="flex items-center justify-center gap-2 text-green-600 font-semibold bg-green-50 w-fit mx-auto px-4 py-1 rounded-full text-sm">
+                <i class="fas fa-check-circle"></i> "تم صنع هذا الامتحان بواسطة عبدالحليم رزق"
+            </div>
+        </div>
+        <div id="quiz-container"></div>
+        <div id="result-summary" class="hidden-content bg-white rounded-2xl shadow-lg p-8 text-center mt-8 border border-gray-100">
+            <h2 class="text-2xl font-bold text-gray-800">Exam Completed</h2>
+            <div class="mt-4 text-4xl font-bold text-blue-600 mb-2">
+                <span id="score-display">0</span> <span class="text-xl text-gray-400" id="total-display"></span>
+            </div>
+            <p id="score-message" class="text-gray-500 mb-6"></p>
+            <button onclick="location.reload()" class="bg-blue-600 text-white px-8 py-3 rounded-xl hover:bg-blue-700 transition shadow-lg hover:shadow-blue-200">
+                <i class="fas fa-redo mr-2"></i> Restart Exam
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. QUESTIONS ARRAY (GENERATE 50 QUESTIONS HERE) ---
+        const rawQuizData = [
+            {
+                id: 1,
+                question: "Which phase is considered the initial step of the health education process where information is continuously collected?",
+                options: ["Assessment phase", "Planning phase", "Implementation phase", "Evaluation phase"],
+                correct: 0,
+                rationale: "The text states that the initial step of the health education process is the assessment phase, where the health educator collects information continuously."
+            },
+            {
+                id: 2,
+                question: "What is the primary purpose of the assessment step in health education?",
+                options: ["To evaluate the final outcome of the program", "To determine what and how much the client needs to learn", "To document the teaching process legally", "To implement the teaching strategies immediately"],
+                correct: 1,
+                rationale: "The purpose of this step is explicitly defined as determining what and how much the client needs, wants, and is able to learn."
+            },
+            {
+                id: 3,
+                question: "Which of the following is considered an end product of the assessment phase?",
+                options: ["Nursing diagnosis", "Lesson plan", "Evaluation tool", "Audio visual material"],
+                correct: 0,
+                rationale: "The text states that nursing diagnosis is the end product of the assessment phase of the health education process."
+            },
+            {
+                id: 4,
+                question: "According to Maslow's hierarchy of needs as used in prioritization, which needs are generally assessed first?",
+                options: ["Self esteem needs", "Physiological and survival needs", "Love and belonging needs", "Self actualization needs"],
+                correct: 1,
+                rationale: "Maslow's hierarchy suggests that the nurse's first priority is to assess how well an individual is meeting physiological and survival needs."
+            },
+            {
+                id: 5,
+                question: "Which factor is a component of psychological readiness to learn?",
+                options: ["Preparation of the environment", "Time of teaching", "Motivation and curiosity", "Physical comfort"],
+                correct: 2,
+                rationale: "Psychological readiness includes interest, curiosity, attention, and motivation, whereas the other options relate to physical readiness."
+            },
+            {
+                id: 6,
+                question: "Why is assessing the client's occupation important in health education?",
+                options: ["To determine the cost of the hospital stay", "To identify potential occupational hazards", "To judge the social status of the client", "To decide on the hospital room type"],
+                correct: 1,
+                rationale: "Occupation affects health status and may lead to problems such as lumbar disc prolapse or varicose veins, requiring specific information to cope with hazards."
+            },
+            {
+                id: 7,
+                question: "Which data collection method involves face to face interaction or telephone communication?",
+                options: ["Interview", "Observation", "Survey", "Physical examination"],
+                correct: 0,
+                rationale: "The interview method is described as taking place face to face, by telephone, or via audio or video conferencing."
+            },
+            {
+                id: 8,
+                question: "What specific element should be assessed regarding a client's income?",
+                options: ["Ability to buy medications and diet", "Total savings in the bank", "Investment portfolio value", "Debt to income ratio"],
+                correct: 0,
+                rationale: "Income should be assessed to identify the client's ability to buy expensive medications, diet, devices, follow up, and referral."
+            },
+            {
+                id: 9,
+                question: "Inaccurate assessment in the health education process is most likely to lead to which outcome?",
+                options: ["Misdirection and failure", "Faster recovery times", "Improved client satisfaction", "Decreased medical costs"],
+                correct: 0,
+                rationale: "The text concludes that assessment is the core of the process and inaccurate assessment may lead to misdirection and failure."
+            },
+            {
+                id: 10,
+                question: "Which of the following is an example of a biological status assessment?",
+                options: ["History of illness and past surgeries", "Anxiety and fear levels", "Religious beliefs and practices", "Learning style preference"],
+                correct: 0,
+                rationale: "Biological status assessment includes chief complaint, history of illness, past surgeries, immunization, signs and symptoms, and family history."
+            },
+            {
+                id: 11,
+                question: "When prioritizing needs, under what specific circumstance might psychological needs take precedence over physical needs?",
+                options: ["When the client is hungry", "When the client is suicidal", "When the client is tired", "When the client is in pain"],
+                correct: 1,
+                rationale: "The text notes that sometimes we can begin with psychological needs before physical ones, explicitly citing the example of committing suicide."
+            },
+            {
+                id: 12,
+                question: "Physical readiness to learn involves which of the following?",
+                options: ["Client interest and attention", "Curiosity about the subject", "Preparation of the setting", "Past learning experiences"],
+                correct: 2,
+                rationale: "Physical readiness includes preparation of environment, materials, setting, and health educator."
+            },
+            {
+                id: 13,
+                question: "Why is religion an important component of the assessment data?",
+                options: ["It determines the hospital discharge date", "It helps in selecting diet and spiritual support", "It is required for insurance processing", "It dictates the room temperature settings"],
+                correct: 1,
+                rationale: "Religion should be added to the plan for selection of diet and spiritual support, especially for clients with terminal illnesses."
+            },
+            {
+                id: 14,
+                question: "Which aspect of the client's profile helps the educator determine the appropriate language and instructional media?",
+                options: ["Level of education", "Marital status", "Number of children", "Housing type"],
+                correct: 0,
+                rationale: "Identification of the level of education helps the educator know the appropriate knowledge level, language, and method of teaching."
+            },
+            {
+                id: 15,
+                question: "Which of the following falls under the category of 'Client's knowledge and practices'?",
+                options: ["Activity of daily living", "Family medical history", "Date of birth", "Hospital admission date"],
+                correct: 0,
+                rationale: "Client's knowledge and practices include diet, medications, activity of daily living, client's habits, and exercises."
+            },
+            {
+                id: 16,
+                question: "The nursing process is a problem solving method designed to meet client needs in a disorganized way.",
+                options: ["True", "False"],
+                correct: 1,
+                rationale: "The text defines the nursing process as a systematic, organized way to meet client needs, not a disorganized one."
+            },
+            {
+                id: 17,
+                question: "Observation is listed as one of the methods for collecting client data.",
+                options: ["True", "False"],
+                correct: 0,
+                rationale: "The list of methods for collecting client data explicitly includes Interview, Questionnaire, Observation, Surveys, and others."
+            },
+            {
+                id: 18,
+                question: "Assessment is a one time event that occurs only at the very beginning of the health education process.",
+                options: ["True", "False"],
+                correct: 1,
+                rationale: "The text states that the health educator is collecting information continuously, implying it is not just a single one-time event."
+            },
+            {
+                id: 19,
+                question: "Learning styles such as visual, auditory, and kinesthetic are part of assessing prior learning experiences.",
+                options: ["True", "False"],
+                correct: 0,
+                rationale: "Under 'Prior learning experiences', the text lists learning styles (identifying preferred ways of learning like visual, auditory, kinesthetic)."
+            },
+            {
+                id: 20,
+                question: "Cultural remedies used by the client should be ignored during the assessment phase.",
+                options: ["True", "False"],
+                correct: 1,
+                rationale: "The text states it is important to know about any remedies the client currently uses and their meaning, so they should not be ignored."
+            }
+        ];
+
+        // --- 2. SHUFFLE & RENDER LOGIC (DO NOT EDIT) ---
+        const quizData = rawQuizData.map(q => {
+            const opts = q.options.map((text, i) => ({ text, isCorrect: i === q.correct }));
+            for (let i = opts.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [opts[i], opts[j]] = [opts[j], opts[i]];
+            }
+            return { ...q, options: opts.map(o => o.text), correct: opts.findIndex(o => o.isCorrect) };
+        });
+
+        const container = document.getElementById('quiz-container');
+        let score = 0; let answeredCount = 0;
+
+        function renderQuiz() {
+            document.getElementById('total-display').innerText = `/ ${quizData.length}`;
+            container.innerHTML = quizData.map((q, index) => {
+                return `
+                <div class="card bg-white rounded-xl p-6 mb-6 border border-gray-100">
+                    <div class="flex justify-between items-center mb-4 border-b border-gray-50 pb-3">
+                        <span class="bg-blue-100 text-blue-800 text-xs font-bold px-3 py-1 rounded-full">Question ${index + 1}</span>
+                         ${q.options.length === 2 ? '<span class="bg-purple-100 text-purple-800 text-xs font-bold px-2 py-1 rounded-md">True/False</span>' : ''}
+                    </div>
+                    <h3 class="text-gray-800 font-bold mb-6 text-lg leading-relaxed font-cairo" style="direction: ltr; text-align: left;">${q.question}</h3>
+                    <div class="grid gap-3 ${q.options.length === 2 ? 'grid-cols-2' : ''}">
+                        ${q.options.map((opt, i) => `<button onclick="checkAnswer(${index}, ${i})" class="option-btn option-btn-${index} w-full text-left px-5 py-4 rounded-xl border border-gray-200 hover:bg-blue-50 hover:border-blue-300 focus:outline-none flex items-center justify-between group bg-white"><span class="font-medium text-gray-700 group-hover:text-blue-700 font-sans">${opt}</span></button>`).join('')}
+                    </div>
+                    <div id="feedback-${index}" class="hidden-content mt-6 bg-blue-50 rounded-xl p-5 border border-blue-100 animate-fade-in text-left">
+                        <p class="text-blue-800 text-sm leading-relaxed"><strong>Rationale:</strong> ${q.rationale}</p>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        window.checkAnswer = function(qIndex, optIndex) {
+            const q = quizData[qIndex];
+            const feedback = document.getElementById(`feedback-${qIndex}`);
+            const btns = document.querySelectorAll(`.option-btn-${qIndex}`);
+            if (!feedback.classList.contains('hidden-content')) return;
+            feedback.classList.remove('hidden-content');
+            btns.forEach((btn, i) => {
+                btn.disabled = true;
+                if (i === q.correct) { btn.classList.add('correct-answer'); btn.innerHTML += '<i class="fas fa-check float-right"></i>'; }
+                else if (i === optIndex) { btn.classList.add('wrong-answer'); btn.innerHTML += '<i class="fas fa-times float-right"></i>'; }
+                else { btn.classList.add('opacity-50'); }
+            });
+            if (optIndex === q.correct) score++;
+            answeredCount++;
+            if (answeredCount === quizData.length) {
+                document.getElementById('result-summary').classList.remove('hidden-content');
+                document.getElementById('score-display').innerText = score;
+                document.getElementById('score-message').innerText = (score/quizData.length*100) >= 50 ? "Good Job!" : "Keep Studying";
+                setTimeout(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }), 500);
+            }
+        };
+        renderQuiz();
+    </script>
+</body>
+</html>

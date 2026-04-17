@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Noto+Sans:wght@400;600;700&display=swap');
+        body { font-family: 'Noto Sans', 'Cairo', sans-serif; background-color: #f8fafc; }
+        .card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .card:hover { transform: translateY(-4px); box-shadow: 0 12px 20px -5px rgba(0, 0, 0, 0.1); }
+        .correct-answer { background-color: #dcfce7 !important; border-color: #22c55e !important; color: #15803d !important; }
+        .wrong-answer { background-color: #fee2e2 !important; border-color: #ef4444 !important; color: #b91c1c !important; }
+        .hidden-content { display: none; }
+        .option-btn { transition: all 0.2s; }
+        .option-btn:disabled { cursor: default; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
+    </style>
+</head>
+<body class="pb-12 bg-gray-50">
+    <div class="max-w-3xl mx-auto px-4 py-8">
+        <div class="bg-white rounded-2xl shadow-sm p-8 mb-8 text-center border-t-4 border-blue-600 relative overflow-hidden">
+            <div class="absolute top-0 right-0 p-4 opacity-10"><i class="fas fa-user-md text-8xl text-blue-600"></i></div>
+            
+            <h1 class="text-3xl font-bold text-gray-800 mb-2 font-cairo text-center" dir="auto">Ethics Overview and Concepts</h1>
+            
+            <div class="flex items-center justify-center gap-2 text-green-600 font-semibold bg-green-50 w-fit mx-auto px-4 py-1 rounded-full text-sm">
+                <i class="fas fa-check-circle"></i> "تم صنع هذا الامتحان بواسطة عبدالحليم رزق"
+            </div>
+        </div>
+        <div id="quiz-container"></div>
+        <div id="result-summary" class="hidden-content bg-white rounded-2xl shadow-lg p-8 text-center mt-8 border border-gray-100">
+            <h2 class="text-2xl font-bold text-gray-800">Exam Completed</h2>
+            <div class="mt-4 text-4xl font-bold text-blue-600 mb-2">
+                <span id="score-display">0</span> <span class="text-xl text-gray-400" id="total-display"></span>
+            </div>
+            <p id="score-message" class="text-gray-500 mb-6"></p>
+            <button onclick="location.reload()" class="bg-blue-600 text-white px-8 py-3 rounded-xl hover:bg-blue-700 transition shadow-lg hover:shadow-blue-200">
+                <i class="fas fa-redo mr-2"></i> Restart Exam
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. QUESTIONS ARRAY (EXACTLY 40 COMPREHENSIVE QUESTIONS) ---
+        const rawQuizData = [
+            // Definitions & Origins
+            { question: "What is the Greek word from which 'Ethics' is derived?", options: ["Ethos", "Mores", "Moralis", "Logos"], correct: 0, rationale: "Ethics comes from the Greek word 'ethos,' meaning character." },
+            { question: "What does the Latin word 'Mores' refer to?", options: ["Character", "Customs", "Laws", "Virtues"], correct: 1, rationale: "The word ethics is derived from the Latin word 'mores' which means customs." },
+            { question: "Which term refers to universal rules of conduct identifying valued actions and motives?", options: ["Ethical values", "Cultural norms", "Legal statutes", "Personal habits"], correct: 0, rationale: "Ethical values are universal rules of conduct that provide a practical basis for identifying what kinds of actions are valued." },
+            { question: "True or False: Culture and ethics are exactly the same concept.", options: ["True", "False"], correct: 1, rationale: "Culture reflects interaction standards, while ethics characterizes moral principles determining right and wrong." },
+
+            // Branches of Ethics & Theories
+            { question: "Which branch of ethics seeks to establish norms or standards of conduct?", options: ["Metaethics", "Applied ethics", "Normative ethics", "Descriptive ethics"], correct: 2, rationale: "Normative ethics seeks to establish norms or standards of conduct." },
+            { question: "What is the focus of Metaethics?", options: ["Practical moral problems", "The nature of ethical judgments", "Establishing moral rules", "Medical decision making"], correct: 1, rationale: "Metaethics is concerned with the nature of ethical judgments and theories." },
+            { question: "Applied ethics involves the application of normative theories to what?", options: ["Logical language", "Practical moral problems", "Historical events", "Religious texts"], correct: 1, rationale: "Applied ethics consists of the application of normative ethical theories to practical moral problems." },
+            { question: "Deontological theories judge actions based on conformity to what?", options: ["Consequences", "Moral rules", "Personal feelings", "Social trends"], correct: 1, rationale: "Deontological theories judge actions based on their conformity to some moral rule." },
+            { question: "Consequentialist theories judge actions based on what?", options: ["Intentions", "Outcomes/Consequences", "Ancient customs", "Written laws"], correct: 1, rationale: "Consequentialist theories judge actions right or wrong based on their consequences." },
+            { question: "Which of the following is a major field of applied ethics?", options: ["Bioethics", "Emotivism", "Naturalism", "Intuitionism"], correct: 0, rationale: "Among the major fields of applied ethics are bioethics, business ethics, and legal ethics." },
+
+            // History & Code of Ethics
+            { question: "When was the first formal Code of Ethics for nurses developed?", options: ["1890s", "1920s", "1950s", "1980s"], correct: 2, rationale: "The first formal Code of Ethics to guide the nursing profession was developed in the 1950s." },
+            { question: "Which organization developed the Code of Ethics for nurses?", options: ["WHO", "ANA", "ICN", "UN"], correct: 1, rationale: "The American Nurses Association (ANA) developed the Code of Ethics." },
+            { question: "Who is referred to as the founder of modern nursing?", options: ["Clara Barton", "Florence Nightingale", "Dorothea Dix", "Mary Breckinridge"], correct: 1, rationale: "Florence Nightingale is often referred to as the founder of modern nursing." },
+            { question: "In the late 19th century, what was a primary virtue associated with nursing ethics?", options: ["Patient advocacy", "Physician obedience", "Autonomy", "Research"], correct: 1, rationale: "At that time, it was thought that ethics involved virtues such as physician loyalty and obedience." },
+            { question: "True or False: The ANA Code of Ethics is a negotiable standard.", options: ["True", "False"], correct: 1, rationale: "It provides a nonnegotiable ethical standard." },
+
+            // Ethical Principles
+            { question: "Which principle refers to self-determination?", options: ["Justice", "Autonomy", "Fidelity", "Veracity"], correct: 1, rationale: "Autonomy is defined as self-determination." },
+            { question: "What is the primary focus of Beneficence?", options: ["To do good", "To do no harm", "To be fair", "To tell the truth"], correct: 0, rationale: "Beneficence means to do good." },
+            { question: "What is the primary focus of Nonmaleficence?", options: ["To do good", "To do no harm", "To keep promises", "To protect privacy"], correct: 1, rationale: "Nonmaleficence means to do no harm." },
+            { question: "Which principle is defined as fairness?", options: ["Veracity", "Justice", "Advocacy", "Fidelity"], correct: 1, rationale: "Justice is defined as fairness." },
+            { question: "What does Fidelity refer to in the nurse-patient relationship?", options: ["Telling the truth", "Keeping promises", "Avoiding harm", "Fair distribution"], correct: 1, rationale: "Fidelity refers to keeping promises about the trust relationship." },
+            { question: "Which principle requires telling the truth?", options: ["Confidentiality", "Veracity", "Nonmaleficence", "Autonomy"], correct: 1, rationale: "Veracity means to tell the truth." },
+            { question: "What does Confidentiality involve?", options: ["Defense of rights", "Protecting personal information", "Self-determination", "Doing good"], correct: 1, rationale: "Confidentiality involves protecting personal information." },
+            { question: "Which term describes the defense of basic human rights?", options: ["Advocacy", "Loyalty", "Obedience", "Secrecy"], correct: 0, rationale: "Advocacy is the defense of basic human rights." },
+            { question: "True or False: Respect and Human Dignity are not considered ethical principles in nursing.", options: ["True", "False"], correct: 1, rationale: "Respect and Human Dignity are listed as ethical principles guiding nursing practice." },
+
+            // Nursing Responsibilities & Professionalism
+            { question: "Which of the following is NOT one of the four fundamental responsibilities of a nurse?", options: ["Promote health", "Prevent illness", "Maximize profit", "Alleviate suffering"], correct: 2, rationale: "The four responsibilities are: promote health, prevent illness, restore health, and alleviate suffering." },
+            { question: "True or False: Nurses work under the license of the physician.", options: ["True", "False"], correct: 1, rationale: "Nurses work under their own license and are completely responsible for their work." },
+            { question: "Nurses are now considered part of the healthcare team and primarily act as what?", options: ["Physician assistants", "Patient advocates", "Hospital administrators", "Silent observers"], correct: 1, rationale: "Nurses are now part of the healthcare team and are patient advocates." },
+            { question: "What is 'Behavior' or 'Conduct' defined as?", options: ["A written law", "The way one acts towards others", "A medical diagnosis", "A philosophical theory"], correct: 1, rationale: "Behavior is the way in which one acts or conducts oneself, especially towards others." },
+
+            // Factors & Importance
+            { question: "Ethical behavior of nurses is described as what kind of process?", options: ["Linear and simple", "Relational and contextual", "Strictly legal", "Isolated and independent"], correct: 1, rationale: "Ethical behavior of nurses is a strong relational and contextual process." },
+            { question: "Which of the following is considered an 'Individual Factor' affecting ethical behavior?", options: ["Moral awareness", "Values", "Colleagues support", "Standards"], correct: 1, rationale: "Individual factors include values, faith, experience, and knowledge skills." },
+            { question: "Which of the following is considered a 'Contextual Factor' affecting ethical behavior?", options: ["Experience", "Judgment", "Personal faith", "Knowledge"], correct: 1, rationale: "Contextual factors include moral awareness, observation, analysis, and judgment." },
+            { question: "Why is ethics important regarding decision making?", options: ["It avoids making decisions", "It improves decision making", "It slows down the process", "It makes decisions irrelevant"], correct: 1, rationale: "Ethics is important for improving decision making." },
+            { question: "How does ethics impact organizational credibility?", options: ["It creates credibility", "It reduces trust", "It is irrelevant to outsiders", "It hides information"], correct: 0, rationale: "Ethics creates credibility by those who may have no information about the working." },
+            { question: "What role does ethics play when the law fails?", options: ["It encourages harm", "It stops organizations from harming", "It becomes invalid", "It follows the law blindly"], correct: 1, rationale: "Often when the law fails, it is the ethics that may stop organizations from harming." },
+            
+            // Concepts & Application
+            { question: "What helps identify what kinds of actions, intentions, and motives are valued?", options: ["Ethical values", "Economic trends", "Political polls", "Personal whims"], correct: 0, rationale: "Ethical values provide a practical basis for identifying what kinds of actions, intentions, and motives are valued." },
+            { question: "True or False: Ethics helps in uniting people and leadership.", options: ["True", "False"], correct: 0, rationale: "Ethics is important for uniting people and leadership." },
+            { question: "What are the agreed core concepts of nursing mentioned in the text?", options: ["Person, culture, care, health", "Diagnosis, treatment, money, time", "Doctor, nurse, hospital, patient", "Law, policy, rule, regulation"], correct: 0, rationale: "The core concepts are person, culture, care, health, healing environment, and nursing itself." },
+            { question: "True or False: Ethical questions in nursing only relate to clinical issues, not collaboration with colleagues.", options: ["True", "False"], correct: 1, rationale: "Ethical questions are raised about their collaboration with colleagues and other professions as well." },
+            { question: "What outcome is associated with ethical practices in healthcare?", options: ["Increased errors", "Improved healthcare outcomes", "Reduced patient trust", "Higher legal costs"], correct: 1, rationale: "Ethical practices lead to more informed decisions, fewer errors, and better patient outcomes." },
+            { question: "True or False: Some ethics are defined by religion and others by personal choice.", options: ["True", "False"], correct: 0, rationale: "Some ethics are defined by religion, others by the society... and others by personal choice." }
+        ];
+
+        // --- 2. SHUFFLE & RENDER LOGIC (DO NOT EDIT) ---
+        const quizData = rawQuizData.map(q => {
+            const opts = q.options.map((text, i) => ({ text, isCorrect: i === q.correct }));
+            for (let i = opts.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [opts[i], opts[j]] = [opts[j], opts[i]];
+            }
+            return { ...q, options: opts.map(o => o.text), correct: opts.findIndex(o => o.isCorrect) };
+        });
+
+        const container = document.getElementById('quiz-container');
+        let score = 0; let answeredCount = 0;
+
+        function renderQuiz() {
+            document.getElementById('total-display').innerText = `/ ${quizData.length}`;
+            container.innerHTML = quizData.map((q, index) => {
+                return `
+                <div class="card bg-white rounded-xl p-6 mb-6 border border-gray-100">
+                    <div class="flex justify-between items-center mb-4 border-b border-gray-50 pb-3">
+                        <span class="bg-blue-100 text-blue-800 text-xs font-bold px-3 py-1 rounded-full">Question ${index + 1}</span>
+                         ${q.options.length === 2 ? '<span class="bg-purple-100 text-purple-800 text-xs font-bold px-2 py-1 rounded-md">True/False</span>' : ''}
+                    </div>
+                    <h3 class="text-gray-800 font-bold mb-6 text-lg leading-relaxed font-cairo" style="direction: ltr; text-align: left;">${q.question}</h3>
+                    <div class="grid gap-3 ${q.options.length === 2 ? 'grid-cols-2' : ''}">
+                        ${q.options.map((opt, i) => `<button onclick="checkAnswer(${index}, ${i})" class="option-btn option-btn-${index} w-full text-left px-5 py-4 rounded-xl border border-gray-200 hover:bg-blue-50 hover:border-blue-300 focus:outline-none flex items-center justify-between group bg-white"><span class="font-medium text-gray-700 group-hover:text-blue-700 font-sans">${opt}</span></button>`).join('')}
+                    </div>
+                    <div id="feedback-${index}" class="hidden-content mt-6 bg-blue-50 rounded-xl p-5 border border-blue-100 animate-fade-in text-left">
+                        <p class="text-blue-800 text-sm leading-relaxed"><strong>Rationale:</strong> ${q.rationale}</p>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        window.checkAnswer = function(qIndex, optIndex) {
+            const q = quizData[qIndex];
+            const feedback = document.getElementById(`feedback-${qIndex}`);
+            const btns = document.querySelectorAll(`.option-btn-${qIndex}`);
+            if (!feedback.classList.contains('hidden-content')) return;
+            feedback.classList.remove('hidden-content');
+            btns.forEach((btn, i) => {
+                btn.disabled = true;
+                if (i === q.correct) { btn.classList.add('correct-answer'); btn.innerHTML += '<i class="fas fa-check float-right"></i>'; }
+                else if (i === optIndex) { btn.classList.add('wrong-answer'); btn.innerHTML += '<i class="fas fa-times float-right"></i>'; }
+                else { btn.classList.add('opacity-50'); }
+            });
+            if (optIndex === q.correct) score++;
+            answeredCount++;
+            if (answeredCount === quizData.length) {
+                document.getElementById('result-summary').classList.remove('hidden-content');
+                document.getElementById('score-display').innerText = score;
+                document.getElementById('score-message').innerText = (score/quizData.length*100) >= 50 ? "Good Job!" : "Keep Studying";
+                setTimeout(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }), 500);
+            }
+        };
+        renderQuiz();
+    </script>
+</body>
+</html>

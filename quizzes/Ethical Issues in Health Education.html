@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Noto+Sans:wght@400;600;700&display=swap');
+        body { font-family: 'Noto Sans', 'Cairo', sans-serif; background-color: #f8fafc; }
+        .card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .card:hover { transform: translateY(-4px); box-shadow: 0 12px 20px -5px rgba(0, 0, 0, 0.1); }
+        .correct-answer { background-color: #dcfce7 !important; border-color: #22c55e !important; color: #15803d !important; }
+        .wrong-answer { background-color: #fee2e2 !important; border-color: #ef4444 !important; color: #b91c1c !important; }
+        .hidden-content { display: none; }
+        .option-btn { transition: all 0.2s; }
+        .option-btn:disabled { cursor: default; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
+    </style>
+</head>
+<body class="pb-12 bg-gray-50">
+    <div class="max-w-3xl mx-auto px-4 py-8">
+        <div class="bg-white rounded-2xl shadow-sm p-8 mb-8 text-center border-t-4 border-blue-600 relative overflow-hidden">
+            <div class="absolute top-0 right-0 p-4 opacity-10"><i class="fas fa-user-md text-8xl text-blue-600"></i></div>
+            
+            <h1 class="text-3xl font-bold text-gray-800 mb-2 font-cairo text-center" dir="auto">Ethical Issues in Health Education</h1>
+            
+            <div class="flex items-center justify-center gap-2 text-green-600 font-semibold bg-green-50 w-fit mx-auto px-4 py-1 rounded-full text-sm">
+                <i class="fas fa-check-circle"></i> "تم صنع هذا الامتحان بواسطة عبدالحليم رزق"
+            </div>
+        </div>
+        <div id="quiz-container"></div>
+        <div id="result-summary" class="hidden-content bg-white rounded-2xl shadow-lg p-8 text-center mt-8 border border-gray-100">
+            <h2 class="text-2xl font-bold text-gray-800">Exam Completed</h2>
+            <div class="mt-4 text-4xl font-bold text-blue-600 mb-2">
+                <span id="score-display">0</span> <span class="text-xl text-gray-400" id="total-display"></span>
+            </div>
+            <p id="score-message" class="text-gray-500 mb-6"></p>
+            <button onclick="location.reload()" class="bg-blue-600 text-white px-8 py-3 rounded-xl hover:bg-blue-700 transition shadow-lg hover:shadow-blue-200">
+                <i class="fas fa-redo mr-2"></i> Restart Exam
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. QUESTIONS ARRAY (GENERATE 50 QUESTIONS HERE) ---
+        const rawQuizData = [
+            {
+                id: 1,
+                question: "Which term refers to beliefs about how people ought to behave?",
+                options: ["Ethics", "Moral", "Autonomy", "Justice"],
+                correct: 1,
+                rationale: "The document defines 'Moral' as referring to those beliefs about how people ought to behave."
+            },
+            {
+                id: 2,
+                question: "The principle of autonomy includes the right to which of the following?",
+                options: ["Privacy and confidentiality", "Guaranteed cure", "Free medication", "Immediate results"],
+                correct: 0,
+                rationale: "Rights in relation to health care under autonomy include the right to information, privacy and confidentiality, and appropriate care."
+            },
+            {
+                id: 3,
+                question: "Which principle is defined as overriding a patient's choices to provide benefit and prevent harm?",
+                options: ["Beneficence", "Paternalism", "Fidelity", "Veracity"],
+                correct: 1,
+                rationale: "Paternalism is defined as the overriding of patient choices in order to provide benefit and prevent harm to the patient or society."
+            },
+            {
+                id: 4,
+                question: "What is the primary goal of the principle of non-maleficence?",
+                options: ["Doing good", "Doing no harm", "Speaking the truth", "Keeping promises"],
+                correct: 1,
+                rationale: "Non-maleficence requires health professionals to act in such a manner as to avoid causing harm to clients."
+            },
+            {
+                id: 5,
+                question: "Fidelity in health education primarily involves which obligation?",
+                options: ["Being honest", "Doing no harm", "Keeping promises", "Distributing resources"],
+                correct: 2,
+                rationale: "Fidelity means faithfulness and keeping promises made to self and others."
+            },
+            {
+                id: 6,
+                question: "True or False: An ethical dilemma occurs when a clear right answer exists but is difficult to implement.",
+                options: ["True", "False"],
+                correct: 1,
+                rationale: "False. An ethical dilemma is a situation where a person faces conflicting moral principles and no option seems to provide a completely right solution."
+            },
+            {
+                id: 7,
+                question: "Which component is necessary for a person to give valid informed consent?",
+                options: ["Competency to consent", "High education level", "Family approval", "Medical degree"],
+                correct: 0,
+                rationale: "The components of the consent process include determining the person's competency to consent and ensuring no physical or mental impairments hinder understanding."
+            },
+            {
+                id: 8,
+                question: "The word 'ethics' is derived from which Greek word?",
+                options: ["Ethos", "Pathos", "Logos", "Chronos"],
+                correct: 0,
+                rationale: "The word ethics comes from the Greek word ethos and refers to custom, convention, or collective belief systems."
+            },
+            {
+                id: 9,
+                question: "Which principle supports the fair distribution of scarce resources?",
+                options: ["Autonomy", "Justice", "Beneficence", "Fidelity"],
+                correct: 1,
+                rationale: "Justice includes the fair distribution of scarce resources and respect for individual and group rights."
+            },
+            {
+                id: 10,
+                question: "Confidentiality allows people to limit which of the following?",
+                options: ["Medical treatment", "Access to personal information", "Professional advice", "Health education"],
+                correct: 1,
+                rationale: "Confidentiality is the right to decide who can have access to information about oneself, limiting the negative use of personal information."
+            },
+            {
+                id: 11,
+                question: "Which action best demonstrates the principle of veracity?",
+                options: ["Keeping promises", "Avoiding harm", "Telling the truth", "Respecting choices"],
+                correct: 2,
+                rationale: "The principle of truth telling, or honesty, requires telling the truth as a necessary component of meaningful communication."
+            },
+            {
+                id: 12,
+                question: "What is a potential negative side effect of health screening mentioned in the context of non-maleficence?",
+                options: ["Physical pain", "Anxiety and stress", "Financial loss", "Time consumption"],
+                correct: 1,
+                rationale: "Screening creates worry, anxiety, and stress, and sometimes results in unnecessary treatment, which must be weighed against benefits."
+            },
+            {
+                id: 13,
+                question: "True or False: Paternalism is never applied to unconscious patients.",
+                options: ["True", "False"],
+                correct: 1,
+                rationale: "False. Special situations for applying paternalism include mental illness, children, and unconscious patients."
+            },
+            {
+                id: 14,
+                question: "Which responsibility falls under the Health Educator's duty to the Profession?",
+                options: ["Promoting equity", "Maintaining competence", "Respecting autonomy", "Validating sources"],
+                correct: 1,
+                rationale: "Responsibilities to the profession include maintaining professional competence and upholding the integrity of the profession."
+            },
+            {
+                id: 15,
+                question: "In the context of beneficence, what must be done in addition to promoting good?",
+                options: ["Prevent and remove harm", "Enforce strict rules", "Ignore minor risks", "Prioritize cost"],
+                correct: 0,
+                rationale: "Beneficence has 3 major components: Do or promote well, Prevent harm, and Remove harm."
+            },
+            {
+                id: 16,
+                question: "What is the Latin meaning of 'auto' in autonomy?",
+                options: ["Control", "Self", "Rule", "Law"],
+                correct: 1,
+                rationale: "In Latin, autonomy comes from 'auto' which means 'self' and 'nomy' which means 'control'."
+            },
+            {
+                id: 17,
+                question: "Which example illustrates a conflict between Autonomy and Beneficence?",
+                options: ["Rural vs urban funding", "Patient refusing beneficial education", "Breaching confidentiality", "Lying about diagnosis"],
+                correct: 1,
+                rationale: "A patient refusing a diabetes education program despite its health benefits is a dilemma conflicting respecting autonomy vs promoting best interest."
+            },
+            {
+                id: 18,
+                question: "Which of the following creates a trusting nurse-patient relationship?",
+                options: ["Fidelity", "Paternalism", "Authority", "Coercion"],
+                correct: 0,
+                rationale: "Fidelity is described as the core stone of a trusting nurse-patient relationship."
+            },
+            {
+                id: 19,
+                question: "True or False: Health educators should use scientifically validated sources for research.",
+                options: ["True", "False"],
+                correct: 0,
+                rationale: "True. Responsibilities to Research & Evidence Base include using scientifically validated sources."
+            },
+            {
+                id: 20,
+                question: "Coercion by professionals violates which ethical requirement?",
+                options: ["Informed consent", "Paternalism", "Beneficence", "Justice"],
+                correct: 0,
+                rationale: "For informed consent, there must be no subtle or overt coercion by professionals or others."
+            },
+            {
+                id: 21,
+                question: "Which principle is jeopardized when a nurse shares patient data without permission?",
+                options: ["Justice", "Confidentiality", "Beneficence", "Non-maleficence"],
+                correct: 1,
+                rationale: "Breaching confidentiality involves disclosing personal information without the person's decision or permission."
+            },
+            {
+                id: 22,
+                question: "Why is ethics important for the effectiveness of health education?",
+                options: ["It reduces costs", "It increases patient compliance", "It simplifies laws", "It speeds up care"],
+                correct: 1,
+                rationale: "Ethics increases effectiveness because patients are more likely to follow advice they perceive as respectful and truthful."
+            },
+            {
+                id: 23,
+                question: "Advocating for policies supporting health equity is a duty to whom?",
+                options: ["The Profession", "Employers and Organizations", "The Individual", "Research"],
+                correct: 1,
+                rationale: "Responsibilities to Employers & Organizations include advocating for policies that support health equity and patient rights."
+            },
+            {
+                id: 24,
+                question: "True or False: Ethical principles are also known as standards.",
+                options: ["True", "False"],
+                correct: 0,
+                rationale: "True. The document states that ethical principles, also known as standards, provide the framework for practice."
+            },
+            {
+                id: 25,
+                question: "Which situation permits the use of paternalism?",
+                options: ["A competent adult refusing diet advice", "A patient seeking second opinion", "A child requiring care", "A patient asking questions"],
+                correct: 2,
+                rationale: "Special situations for applying paternalism include Mental Illness, Children, and Unconscious patients."
+            },
+            {
+                id: 26,
+                question: "To be substantially informed, a person must understand which of the following?",
+                options: ["Hospital history", "Doctor's biography", "Alternatives available", "Insurance policies"],
+                correct: 2,
+                rationale: "To be informed, a person must be aware of risks, purpose, success probability, and what alternatives are available."
+            },
+            {
+                id: 27,
+                question: "Which term describes basic truths or laws that guide conduct?",
+                options: ["Ethical principles", "Moral beliefs", "Customs", "Conventions"],
+                correct: 0,
+                rationale: "Ethical principles are defined as basic truths or laws that guide conduct and behavior."
+            },
+            {
+                id: 28,
+                question: "What is the primary conflict in the 'Justice and Equity in Access' dilemma?",
+                options: ["Honesty vs Harm", "Equity vs Maximizing benefit", "Autonomy vs Control", "Privacy vs Safety"],
+                correct: 1,
+                rationale: "The conflict is described as Equity in resource distribution vs. maximizing benefit (e.g., funding for urban vs rural)."
+            },
+            {
+                id: 29,
+                question: "True or False: Health educators must align education with ethical standards even under pressure.",
+                options: ["True", "False"],
+                correct: 0,
+                rationale: "True. They must deliver education that aligns with ethical standards, even under organizational pressures."
+            },
+            {
+                id: 30,
+                question: "Which principle requires weighing harm against expected benefit?",
+                options: ["Non-maleficence", "Fidelity", "Veracity", "Autonomy"],
+                correct: 0,
+                rationale: "Non-maleficence involves avoiding harm as a consequence of doing well, where harm must be weighed against expected benefit."
+            }
+        ];
+
+        // --- 2. SHUFFLE & RENDER LOGIC (DO NOT EDIT) ---
+        const quizData = rawQuizData.map(q => {
+            const opts = q.options.map((text, i) => ({ text, isCorrect: i === q.correct }));
+            for (let i = opts.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [opts[i], opts[j]] = [opts[j], opts[i]];
+            }
+            return { ...q, options: opts.map(o => o.text), correct: opts.findIndex(o => o.isCorrect) };
+        });
+
+        const container = document.getElementById('quiz-container');
+        let score = 0; let answeredCount = 0;
+
+        function renderQuiz() {
+            document.getElementById('total-display').innerText = `/ ${quizData.length}`;
+            container.innerHTML = quizData.map((q, index) => {
+                return `
+                <div class="card bg-white rounded-xl p-6 mb-6 border border-gray-100">
+                    <div class="flex justify-between items-center mb-4 border-b border-gray-50 pb-3">
+                        <span class="bg-blue-100 text-blue-800 text-xs font-bold px-3 py-1 rounded-full">Question ${index + 1}</span>
+                         ${q.options.length === 2 ? '<span class="bg-purple-100 text-purple-800 text-xs font-bold px-2 py-1 rounded-md">True/False</span>' : ''}
+                    </div>
+                    <h3 class="text-gray-800 font-bold mb-6 text-lg leading-relaxed font-cairo" style="direction: ltr; text-align: left;">${q.question}</h3>
+                    <div class="grid gap-3 ${q.options.length === 2 ? 'grid-cols-2' : ''}">
+                        ${q.options.map((opt, i) => `<button onclick="checkAnswer(${index}, ${i})" class="option-btn option-btn-${index} w-full text-left px-5 py-4 rounded-xl border border-gray-200 hover:bg-blue-50 hover:border-blue-300 focus:outline-none flex items-center justify-between group bg-white"><span class="font-medium text-gray-700 group-hover:text-blue-700 font-sans">${opt}</span></button>`).join('')}
+                    </div>
+                    <div id="feedback-${index}" class="hidden-content mt-6 bg-blue-50 rounded-xl p-5 border border-blue-100 animate-fade-in text-left">
+                        <p class="text-blue-800 text-sm leading-relaxed"><strong>Rationale:</strong> ${q.rationale}</p>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        window.checkAnswer = function(qIndex, optIndex) {
+            const q = quizData[qIndex];
+            const feedback = document.getElementById(`feedback-${qIndex}`);
+            const btns = document.querySelectorAll(`.option-btn-${qIndex}`);
+            if (!feedback.classList.contains('hidden-content')) return;
+            feedback.classList.remove('hidden-content');
+            btns.forEach((btn, i) => {
+                btn.disabled = true;
+                if (i === q.correct) { btn.classList.add('correct-answer'); btn.innerHTML += '<i class="fas fa-check float-right"></i>'; }
+                else if (i === optIndex) { btn.classList.add('wrong-answer'); btn.innerHTML += '<i class="fas fa-times float-right"></i>'; }
+                else { btn.classList.add('opacity-50'); }
+            });
+            if (optIndex === q.correct) score++;
+            answeredCount++;
+            if (answeredCount === quizData.length) {
+                document.getElementById('result-summary').classList.remove('hidden-content');
+                document.getElementById('score-display').innerText = score;
+                document.getElementById('score-message').innerText = (score/quizData.length*100) >= 50 ? "Good Job!" : "Keep Studying";
+                setTimeout(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }), 500);
+            }
+        };
+        renderQuiz();
+    </script>
+</body>
+</html>

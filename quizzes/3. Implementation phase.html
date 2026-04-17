@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Noto+Sans:wght@400;600;700&display=swap');
+        body { font-family: 'Noto Sans', 'Cairo', sans-serif; background-color: #f8fafc; }
+        .card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .card:hover { transform: translateY(-4px); box-shadow: 0 12px 20px -5px rgba(0, 0, 0, 0.1); }
+        .correct-answer { background-color: #dcfce7 !important; border-color: #22c55e !important; color: #15803d !important; }
+        .wrong-answer { background-color: #fee2e2 !important; border-color: #ef4444 !important; color: #b91c1c !important; }
+        .hidden-content { display: none; }
+        .option-btn { transition: all 0.2s; }
+        .option-btn:disabled { cursor: default; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
+    </style>
+</head>
+<body class="pb-12 bg-gray-50">
+    <div class="max-w-3xl mx-auto px-4 py-8">
+        <div class="bg-white rounded-2xl shadow-sm p-8 mb-8 text-center border-t-4 border-blue-600 relative overflow-hidden">
+            <div class="absolute top-0 right-0 p-4 opacity-10"><i class="fas fa-user-md text-8xl text-blue-600"></i></div>
+            
+            <h1 class="text-3xl font-bold text-gray-800 mb-2 font-cairo text-center" dir="auto">3. Implementation phase (Health education communication)</h1>
+            
+            <div class="flex items-center justify-center gap-2 text-green-600 font-semibold bg-green-50 w-fit mx-auto px-4 py-1 rounded-full text-sm">
+                <i class="fas fa-check-circle"></i> "تم صنع هذا الامتحان بواسطة عبدالحليم رزق"
+            </div>
+        </div>
+        <div id="quiz-container"></div>
+        <div id="result-summary" class="hidden-content bg-white rounded-2xl shadow-lg p-8 text-center mt-8 border border-gray-100">
+            <h2 class="text-2xl font-bold text-gray-800">Exam Completed</h2>
+            <div class="mt-4 text-4xl font-bold text-blue-600 mb-2">
+                <span id="score-display">0</span> <span class="text-xl text-gray-400" id="total-display"></span>
+            </div>
+            <p id="score-message" class="text-gray-500 mb-6"></p>
+            <button onclick="location.reload()" class="bg-blue-600 text-white px-8 py-3 rounded-xl hover:bg-blue-700 transition shadow-lg hover:shadow-blue-200">
+                <i class="fas fa-redo mr-2"></i> Restart Exam
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. QUESTIONS ARRAY (GENERATE 50 QUESTIONS HERE) ---
+        const rawQuizData = [
+            {
+                id: 1,
+                question: "Which of the following is considered a motivational characteristic used to attract an audience's attention?",
+                options: ["Size of the poster", "Novelty and unusual features", "Intensity of bold text", "Use of primary colors"],
+                correct: 1,
+                rationale: "Motivational characteristics include novelty (unusual features), interest (felt needs), and entertainment. Size, intensity, and color are physical characteristics."
+            },
+            {
+                id: 2,
+                question: "Which teaching method is most effective for the psychomotor domain to teach specific skills like CPR?",
+                options: ["Lectures", "Group discussions", "Demonstrations", "Role playing"],
+                correct: 2,
+                rationale: "Demonstrations are a method for the psychomotor domain as they show how to perform specific skills, whereas lectures are for knowledge (cognitive) and role-playing is for attitudes (affective)."
+            },
+            {
+                id: 3,
+                question: "Which type of learner prefers hands-on experiences and physical engagement with the material?",
+                options: ["Visual learner", "Auditory learner", "Kinesthetic learner", "Reading learner"],
+                correct: 2,
+                rationale: "Kinesthetic learners prefer hands-on experiences and physical engagement, such as simulations and practical exercises."
+            },
+            {
+                id: 4,
+                question: "True or False: Documenting observations and patient feedback should be done at the very beginning of the health teaching session.",
+                options: ["True", "False"],
+                correct: 1,
+                rationale: "Documentation of observations, teaching activities, and patient feedback occurs at the end of the health teaching session."
+            },
+            {
+                id: 5,
+                question: "According to the principles of learning, why is relevance important for the learner?",
+                options: ["It ensures the teacher enjoys the topic", "It helps learners pass exams easier", "It motivates action by connecting to experience", "It reduces the time needed for teaching"],
+                correct: 2,
+                rationale: "Relevance is important because content that pertains to the learner's personal experiences and background resonates more and motivates action."
+            },
+            {
+                id: 6,
+                question: "Which of the following is classified as non-projected instructional media?",
+                options: ["PowerPoint slideshows", "Educational videos", "Anatomical models", "Overhead transparencies"],
+                correct: 2,
+                rationale: "Models and anatomical charts are non-projected media, while slideshows, videos, and overheads are projected media."
+            },
+            {
+                id: 7,
+                question: "True or False: Communication involves only a sender and does not require a receiver to be effective.",
+                options: ["True", "False"],
+                correct: 1,
+                rationale: "The process of communication always involves both a sender and a receiver, regardless of the number of people concerned."
+            },
+            {
+                id: 8,
+                question: "What is a common cause of failure in the first stage of communication known as 'Reaching the intended audience'?",
+                options: ["Using too many bright colors", "Preaching to the converted", "Speaking too loudly", "Using complex technical jargon"],
+                correct: 1,
+                rationale: "A common cause of failure in Stage 1 is 'preaching to the converted,' meaning the message only reaches those who are already motivated and attending services."
+            },
+            {
+                id: 9,
+                question: "What is the definition of empathy in the context of effective therapeutic communication?",
+                options: ["Feeling sorry for the patient's situation", "The ability to understand and share feelings", "Ignoring the patient's feelings for objectivity", "Giving advice based on personal life experiences"],
+                correct: 1,
+                rationale: "Empathy is defined as the ability to understand and share the feelings of another, involving putting oneself in the patient's shoes."
+            },
+            {
+                id: 10,
+                question: "Which of the following is considered a group teaching method involving interactive sessions and skill-building?",
+                options: ["One on one counseling", "Workshops", "Personalized learning plans", "Health fairs"],
+                correct: 1,
+                rationale: "Workshops are a group method described as interactive sessions where participants engage in discussions and skill-building exercises."
+            },
+            {
+                id: 11,
+                question: "True or False: Setting SMART goals helps learners focus their efforts and provides a roadmap for success.",
+                options: ["True", "False"],
+                correct: 0,
+                rationale: "Goal setting is a principle of learning where clear, achievable goals (SMART) help learners focus and provide a roadmap."
+            },
+            {
+                id: 12,
+                question: "Why might a misunderstanding occur during the 'Understanding the message' stage of communication?",
+                options: ["The message is too short", "The listener is paying too much attention", "Unfamiliar technical words are used", "The speaker is using a microphone"],
+                correct: 2,
+                rationale: "Misunderstandings can occur when complex language or unfamiliar technical words are used, or when too much information is presented."
+            },
+            {
+                id: 13,
+                question: "What is the preferred learning method for auditory learners?",
+                options: ["Reading textbooks", "Looking at diagrams", "Listening to lectures", "Building models"],
+                correct: 2,
+                rationale: "Auditory learners learn best through listening and benefit from lectures, discussions, and audio recordings."
+            },
+            {
+                id: 14,
+                question: "When communicating during health teaching, how should medical jargon be handled?",
+                options: ["Used frequently to show expertise", "Explained in lay terms", "Avoided completely without explanation", "Written down for the patient to look up later"],
+                correct: 1,
+                rationale: "During health teaching, the educator should explain medical jargon in lay terms to ensure the patient understands."
+            },
+            {
+                id: 15,
+                question: "Which of the following is an example of an informal teaching method?",
+                options: ["Curriculum based programs", "Social media campaigns", "Structured lectures", "University seminars"],
+                correct: 1,
+                rationale: "Social media campaigns and health fairs are listed as informal methods, whereas lectures and curriculum-based programs are formal."
+            },
+            {
+                id: 16,
+                question: "True or False: Brochures and flyers are examples of projected media.",
+                options: ["True", "False"],
+                correct: 1,
+                rationale: "Brochures, flyers, and posters are classified as non-projected media. Projected media includes slides and videos."
+            },
+            {
+                id: 17,
+                question: "Why is maintaining professional boundaries crucial in therapeutic communication?",
+                options: ["To establish trust and respect", "To ensure the patient likes the provider", "To allow the provider to share personal problems", "To make the session last longer"],
+                correct: 0,
+                rationale: "Maintaining professional boundaries is crucial for establishing trust and respect, keeping a distinction between personal and professional relationships."
+            },
+            {
+                id: 18,
+                question: "Why might a communication change beliefs but fail to change behavior?",
+                options: ["The person did not hear the message", "Lack of enabling factors or social pressure", "The message was too simple", "The sender was not an expert"],
+                correct: 1,
+                rationale: "Behavior change may fail if there is pressure from family/community or a lack of enabling factors, even if beliefs have changed."
+            },
+            {
+                id: 19,
+                question: "True or False: Reading/Writing learners benefit most from handouts, articles, and note-taking.",
+                options: ["True", "False"],
+                correct: 0,
+                rationale: "Reading/Writing learners prefer to learn through reading and writing and benefit from materials like handouts and articles."
+            },
+            {
+                id: 20,
+                question: "How does active participation benefit the learner according to the principles of learning?",
+                options: ["It allows them to sleep during class", "It engages them rather than keeping them passive", "It removes the need for an instructor", "It guarantees a perfect score on tests"],
+                correct: 1,
+                rationale: "Active participation involves learners actively engaging in the process (e.g., interactive activities) rather than being passive recipients."
+            }
+        ];
+
+        // --- 2. SHUFFLE & RENDER LOGIC (DO NOT EDIT) ---
+        const quizData = rawQuizData.map(q => {
+            const opts = q.options.map((text, i) => ({ text, isCorrect: i === q.correct }));
+            for (let i = opts.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [opts[i], opts[j]] = [opts[j], opts[i]];
+            }
+            return { ...q, options: opts.map(o => o.text), correct: opts.findIndex(o => o.isCorrect) };
+        });
+
+        const container = document.getElementById('quiz-container');
+        let score = 0; let answeredCount = 0;
+
+        function renderQuiz() {
+            document.getElementById('total-display').innerText = `/ ${quizData.length}`;
+            container.innerHTML = quizData.map((q, index) => {
+                return `
+                <div class="card bg-white rounded-xl p-6 mb-6 border border-gray-100">
+                    <div class="flex justify-between items-center mb-4 border-b border-gray-50 pb-3">
+                        <span class="bg-blue-100 text-blue-800 text-xs font-bold px-3 py-1 rounded-full">Question ${index + 1}</span>
+                         ${q.options.length === 2 ? '<span class="bg-purple-100 text-purple-800 text-xs font-bold px-2 py-1 rounded-md">True/False</span>' : ''}
+                    </div>
+                    <h3 class="text-gray-800 font-bold mb-6 text-lg leading-relaxed font-cairo" style="direction: ltr; text-align: left;">${q.question}</h3>
+                    <div class="grid gap-3 ${q.options.length === 2 ? 'grid-cols-2' : ''}">
+                        ${q.options.map((opt, i) => `<button onclick="checkAnswer(${index}, ${i})" class="option-btn option-btn-${index} w-full text-left px-5 py-4 rounded-xl border border-gray-200 hover:bg-blue-50 hover:border-blue-300 focus:outline-none flex items-center justify-between group bg-white"><span class="font-medium text-gray-700 group-hover:text-blue-700 font-sans">${opt}</span></button>`).join('')}
+                    </div>
+                    <div id="feedback-${index}" class="hidden-content mt-6 bg-blue-50 rounded-xl p-5 border border-blue-100 animate-fade-in text-left">
+                        <p class="text-blue-800 text-sm leading-relaxed"><strong>Rationale:</strong> ${q.rationale}</p>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        window.checkAnswer = function(qIndex, optIndex) {
+            const q = quizData[qIndex];
+            const feedback = document.getElementById(`feedback-${qIndex}`);
+            const btns = document.querySelectorAll(`.option-btn-${qIndex}`);
+            if (!feedback.classList.contains('hidden-content')) return;
+            feedback.classList.remove('hidden-content');
+            btns.forEach((btn, i) => {
+                btn.disabled = true;
+                if (i === q.correct) { btn.classList.add('correct-answer'); btn.innerHTML += '<i class="fas fa-check float-right"></i>'; }
+                else if (i === optIndex) { btn.classList.add('wrong-answer'); btn.innerHTML += '<i class="fas fa-times float-right"></i>'; }
+                else { btn.classList.add('opacity-50'); }
+            });
+            if (optIndex === q.correct) score++;
+            answeredCount++;
+            if (answeredCount === quizData.length) {
+                document.getElementById('result-summary').classList.remove('hidden-content');
+                document.getElementById('score-display').innerText = score;
+                document.getElementById('score-message').innerText = (score/quizData.length*100) >= 50 ? "Good Job!" : "Keep Studying";
+                setTimeout(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }), 500);
+            }
+        };
+        renderQuiz();
+    </script>
+</body>
+</html>

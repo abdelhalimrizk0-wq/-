@@ -1,0 +1,949 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Noto+Sans:wght@400;600;700&display=swap');
+        body { font-family: 'Noto Sans', 'Cairo', sans-serif; background-color: #f8fafc; }
+        .card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .card:hover { transform: translateY(-4px); box-shadow: 0 12px 20px -5px rgba(0, 0, 0, 0.1); }
+        .correct-answer { background-color: #dcfce7 !important; border-color: #22c55e !important; color: #15803d !important; }
+        .wrong-answer { background-color: #fee2e2 !important; border-color: #ef4444 !important; color: #b91c1c !important; }
+        .hidden-content { display: none; }
+        .option-btn { transition: all 0.2s; }
+        .option-btn:disabled { cursor: default; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
+    </style>
+</head>
+<body class="pb-12 bg-gray-50">
+    <div class="max-w-3xl mx-auto px-4 py-8">
+        <div class="bg-white rounded-2xl shadow-sm p-8 mb-8 text-center border-t-4 border-blue-600 relative overflow-hidden">
+            <div class="absolute top-0 right-0 p-4 opacity-10"><i class="fas fa-user-md text-8xl text-blue-600"></i></div>
+            
+            <h1 class="text-3xl font-bold text-gray-800 mb-2 font-cairo text-center" dir="auto">Health Education شامل </h1>
+            
+            <div class="flex items-center justify-center gap-2 text-green-600 font-semibold bg-green-50 w-fit mx-auto px-4 py-1 rounded-full text-sm">
+                <i class="fas fa-check-circle"></i> "تم صنع هذا الامتحان بواسطة عبدالحليم رزق"
+            </div>
+        </div>
+        <div id="quiz-container"></div>
+        <div id="result-summary" class="hidden-content bg-white rounded-2xl shadow-lg p-8 text-center mt-8 border border-gray-100">
+            <h2 class="text-2xl font-bold text-gray-800">Exam Completed</h2>
+            <div class="mt-4 text-4xl font-bold text-blue-600 mb-2">
+                <span id="score-display">0</span> <span class="text-xl text-gray-400" id="total-display"></span>
+            </div>
+            <p id="score-message" class="text-gray-500 mb-6"></p>
+            <button onclick="location.reload()" class="bg-blue-600 text-white px-8 py-3 rounded-xl hover:bg-blue-700 transition shadow-lg hover:shadow-blue-200">
+                <i class="fas fa-redo mr-2"></i> Restart Exam
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. QUESTIONS ARRAY (GENERATE 120 QUESTIONS HERE) ---
+        const rawQuizData = [
+            {
+                id: 1,
+                question: "According to the WHO definition, health is described as a state of complete physical, mental, emotional, and social well-being, not merely the absence of which factor?",
+                options: ["Disease or infirmity", "Stress and anxiety", "Financial instability", "Environmental hazards"],
+                correct: 0,
+                rationale: "The WHO constitution of 1948 defines health as a state of complete physical, mental, and social well-being and not merely the absence of disease or infirmity."
+            },
+            {
+                id: 2,
+                question: "Which component of the Health Belief Model involves an individual's opinion on the seriousness of a condition and its potential consequences?",
+                options: ["Perceived severity", "Perceived susceptibility", "Perceived benefits", "Perceived barriers"],
+                correct: 0,
+                rationale: "Perceived severity refers to an individual's perception of the potential seriousness of a condition in terms of pain, disability, or death."
+            },
+            {
+                id: 3,
+                question: "In the context of instructional media, which of the following is considered a projected medium?",
+                options: ["Overhead transparencies", "Printed textbooks", "Anatomical models", "Flip charts"],
+                correct: 0,
+                rationale: "Projected media require a light source and screen, such as overhead transparencies, slides, or filmstrips."
+            },
+            {
+                id: 4,
+                question: "Which ethical principle refers to the individual's right to self-determination and the ability to make their own choices regarding health care?",
+                options: ["Autonomy", "Beneficence", "Justice", "Fidelity"],
+                correct: 0,
+                rationale: "Autonomy is derived from 'auto' (self) and 'nomy' (control), referring to the right of an individual to choose and act on that choice."
+            },
+            {
+                id: 5,
+                question: "During the assessment phase of the health education process, which activity is primarily performed by the educator?",
+                options: ["Collecting and categorizing data", "Setting learning goals", "Conducting the teaching session", "Measuring learning outcomes"],
+                correct: 0,
+                rationale: "Assessment is the initial step where the educator collects, validates, and categorizes data to identify learning needs."
+            },
+            {
+                id: 6,
+                question: "True or False: Health education is considered a static process that occurs only once during a patient's treatment.",
+                options: ["False", "True"],
+                correct: 0,
+                rationale: "Health education is described as a dynamic, progressive, and lifelong process, not a one-time affair."
+            },
+            {
+                id: 7,
+                question: "Which domain of learning involves the development of skills and physical abilities?",
+                options: ["Psychomotor domain", "Cognitive domain", "Affective domain", "Social domain"],
+                correct: 0,
+                rationale: "The psychomotor domain concerns voluntary muscle action and the mastery of skills."
+            },
+            {
+                id: 8,
+                question: "What type of evaluation is conducted during the implementation phase to check progress and identify problems early?",
+                options: ["Process evaluation", "Impact evaluation", "Outcome evaluation", "Summative evaluation"],
+                correct: 0,
+                rationale: "Process evaluation (or monitoring) occurs during implementation to assess how the work is taking place and allows for immediate corrections."
+            },
+            {
+                id: 9,
+                question: "Which level of prevention includes measures like immunization and proper nutrition to prevent the onset of disease?",
+                options: ["Primary prevention", "Secondary prevention", "Tertiary prevention", "Rehabilitation"],
+                correct: 0,
+                rationale: "Primary prevention is directed at healthy people to prevent the occurrence of ill-health, such as through vaccination."
+            },
+            {
+                id: 10,
+                question: "The principle of 'Non-maleficence' in health ethics primarily implies which obligation?",
+                options: ["Doing no harm", "Doing good", "Being fair", "Telling the truth"],
+                correct: 0,
+                rationale: "Non-maleficence requires professionals to act in a manner that avoids causing harm to clients."
+            },
+            {
+                id: 11,
+                question: "Which factor is considered a 'Modifying Factor' in the Health Belief Model?",
+                options: ["Socioeconomic status", "Perceived threat", "Cues to action", "Self-efficacy"],
+                correct: 0,
+                rationale: "Modifying factors include age, gender, ethnicity, personality, and socioeconomics, which influence individual beliefs."
+            },
+            {
+                id: 12,
+                question: "Which instructional medium is best classified as an audio aid?",
+                options: ["Radio", "Silent film", "Poster", "Diagram"],
+                correct: 0,
+                rationale: "Radio is an audio medium that appeals to the auditory sense alone."
+            },
+            {
+                id: 13,
+                question: "True or False: Paternalism involves overriding a patient's choices to provide benefit or prevent harm.",
+                options: ["True", "False"],
+                correct: 0,
+                rationale: "Paternalism is defined as overriding a client's choices in order to provide benefit or prevent harm to them or society."
+            },
+            {
+                id: 14,
+                question: "What is the primary purpose of the 'Planning Phase' in health education?",
+                options: ["Setting goals and selecting methods", "Gathering patient history", "Delivering the lecture", "Analyzing statistical data"],
+                correct: 0,
+                rationale: "The planning phase involves setting goals, determining objectives, choosing content, and selecting teaching methods."
+            },
+            {
+                id: 15,
+                question: "Which characteristic is essential for an effective health educator regarding their relationship with learners?",
+                options: ["Empathy and patience", "Strict authority", "Social distance", "Rigid discipline"],
+                correct: 0,
+                rationale: "Personal characteristics of an effective educator include being patient, having sympathy, being friendly, and demonstrating empathy."
+            },
+            {
+                id: 16,
+                question: "In the context of health behavior, what do 'Predisposing factors' primarily provide?",
+                options: ["Motivation for behavior", "Skills to perform behavior", "Feedback after behavior", "Environmental support"],
+                correct: 0,
+                rationale: "Predisposing factors provide the rationale or motivation for a behavior to occur, such as knowledge, beliefs, and attitudes."
+            },
+            {
+                id: 17,
+                question: "Which type of evaluation assesses the long-term changes such as decreases in mortality or morbidity rates?",
+                options: ["Outcome evaluation", "Impact evaluation", "Process evaluation", "Formative evaluation"],
+                correct: 0,
+                rationale: "Outcome evaluation refers to assessing long-term changes like mortality and morbidity, often measured years later."
+            },
+            {
+                id: 18,
+                question: "Which communication stage involves the audience selecting a part of the information to focus on while ignoring others?",
+                options: ["Attracting attention", "Reaching the audience", "Understanding the message", "Promoting change"],
+                correct: 0,
+                rationale: "Attention is the process by which a person selects part of a complex mixture of stimuli to focus on."
+            },
+            {
+                id: 19,
+                question: "True or False: 'Fidelity' in ethics means being faithful to commitments and keeping promises.",
+                options: ["True", "False"],
+                correct: 0,
+                rationale: "Fidelity is the obligation to be faithful to commitments made to self and others, forming the basis of trust."
+            },
+            {
+                id: 20,
+                question: "Which of the following is a physical factor of the environment influencing health?",
+                options: ["Climate and temperature", "Bacteria and viruses", "Income and status", "Social support"],
+                correct: 0,
+                rationale: "Physical environmental factors include climate, rainfall, and temperature."
+            },
+            {
+                id: 21,
+                question: "What does the 'Justice' principle in health ethics emphasize?",
+                options: ["Fair distribution of resources", "Maximizing personal gain", "Prioritizing the wealthy", "Ignoring legal standards"],
+                correct: 0,
+                rationale: "Justice requires treating human beings fairly and distributing benefits and burdens equitably."
+            },
+            {
+                id: 22,
+                question: "Which teaching method is classified as an 'Individual Method'?",
+                options: ["One-on-one counseling", "Seminars", "Workshops", "Support groups"],
+                correct: 0,
+                rationale: "One-on-one counseling is a personalized session focused on individual health needs."
+            },
+            {
+                id: 23,
+                question: "Which component of health involves the ability to perform routine tasks without physical restriction?",
+                options: ["Physical health", "Mental health", "Social health", "Spiritual health"],
+                correct: 0,
+                rationale: "Physical health includes the biological integrity of the body and the ability to perform routine tasks."
+            },
+            {
+                id: 24,
+                question: "True or False: Secondary prevention measures include screening interventions like Pap smears.",
+                options: ["True", "False"],
+                correct: 0,
+                rationale: "Secondary prevention involves early detection and prompt treatment, such as screening for asymptomatic disease."
+            },
+            {
+                id: 25,
+                question: "In the Health Belief Model, what are 'Cues to Action'?",
+                options: ["Strategies to activate readiness", "Barriers to performance", "Long-term health goals", "Demographic variables"],
+                correct: 0,
+                rationale: "Cues to action are events or strategies (like reminders or symptoms) that trigger the individual to take action."
+            },
+            {
+                id: 26,
+                question: "Which aspect of the 'Assessment phase' involves prioritizing the client's needs?",
+                options: ["Categorizing data", "Collecting data", "Documenting data", "Validating data"],
+                correct: 0,
+                rationale: "Categorizing data involves setting priorities, distinguishing between actual and high-risk problems."
+            },
+            {
+                id: 27,
+                question: "Which media type combines text, video, sound, graphics, and animation?",
+                options: ["Multimedia", "Print media", "Audio media", "Visual media"],
+                correct: 0,
+                rationale: "Multimedia combines five basic types of media (text, video, sound, graphics, animation) into one learning environment."
+            },
+            {
+                id: 28,
+                question: "The 'Cognitive domain' of behavior primarily deals with which process?",
+                options: ["Processing information", "Expressing emotions", "Moving muscles", "Forming relationships"],
+                correct: 0,
+                rationale: "The cognitive domain involves encoding, storing, retrieving, and processing information (knowledge)."
+            },
+            {
+                id: 29,
+                question: "Which ethical dilemma arises when a patient refuses a beneficial treatment, creating a conflict between respect for rights and doing good?",
+                options: ["Autonomy vs. Beneficence", "Justice vs. Fidelity", "Veracity vs. Privacy", "Non-maleficence vs. Justice"],
+                correct: 0,
+                rationale: "This is a classic conflict between Autonomy (patient's choice) and Beneficence (acting in the patient's best interest)."
+            },
+            {
+                id: 30,
+                question: "True or False: Process evaluation is usually conducted by external agencies years after the program ends.",
+                options: ["False", "True"],
+                correct: 0,
+                rationale: "Process evaluation is conducted while activities are ongoing, usually by those carrying out the work."
+            },
+            {
+                id: 31,
+                question: "Which of the following is considered a 'Reinforcing factor' for behavior?",
+                options: ["Peer support", "Knowledge of risks", "Availability of clinics", "Genetic predisposition"],
+                correct: 0,
+                rationale: "Reinforcing factors come subsequent to behavior and include feedback from peers, family, and teachers."
+            },
+            {
+                id: 32,
+                question: "What is the definition of 'Wellness'?",
+                options: ["The optimal state of health", " The absence of disease", "A static physical condition", "The ability to buy medicine"],
+                correct: 0,
+                rationale: "Wellness is the optimal state of health involving the realization of the fullest potential of an individual."
+            },
+            {
+                id: 33,
+                question: "Which teaching strategy is best suited for the 'Affective Domain'?",
+                options: ["Role-playing", "Lectures", "Demonstrations", "Drills"],
+                correct: 0,
+                rationale: "Role-playing allows exploration of feelings and perspectives, which is central to the affective domain."
+            },
+            {
+                id: 34,
+                question: "What does the acronym KAP stand for in health education objectives?",
+                options: ["Knowledge, Attitude, Practice", "Knowledge, Action, Plan", "Key, Assessment, Process", "Keep, Act, Perform"],
+                correct: 0,
+                rationale: "Educational objectives often aim to improve Knowledge, Attitude, and Practice (KAP)."
+            },
+            {
+                id: 35,
+                question: "True or False: A health educator should use complex medical jargon to demonstrate competence.",
+                options: ["False", "True"],
+                correct: 0,
+                rationale: "Effective communication requires explaining medical jargon in lay terms to ensure the patient understands."
+            },
+            {
+                id: 36,
+                question: "Which step comes immediately after 'Assessment' in the health education process?",
+                options: ["Planning", "Implementation", "Evaluation", "Documentation"],
+                correct: 0,
+                rationale: "The steps are Assessment, Planning, Implementation, and Evaluation."
+            },
+            {
+                id: 37,
+                question: "Which principle involves the obligation to tell the truth?",
+                options: ["Veracity", "Confidentiality", "Privacy", "Security"],
+                correct: 0,
+                rationale: "Veracity (or truth-telling) is the principle of being honest in communication."
+            },
+            {
+                id: 38,
+                question: "What is a 'Non-projected' visual aid?",
+                options: ["Chart", "Slide", "Filmstrip", "Video"],
+                correct: 0,
+                rationale: "Non-projected aids do not require a light source or screen, such as charts, posters, and models."
+            },
+            {
+                id: 39,
+                question: "Which factor is an 'Enabling factor' in health behavior?",
+                options: ["Availability of resources", "Personal beliefs", "Family encouragement", "Cultural values"],
+                correct: 0,
+                rationale: "Enabling factors are environmental characteristics or resources (like availability and accessibility) that facilitate behavior."
+            },
+            {
+                id: 40,
+                question: "True or False: Tertiary prevention seeks to limit disability from an irreversible condition.",
+                options: ["True", "False"],
+                correct: 0,
+                rationale: "Tertiary prevention focuses on limiting disability and complications in established disease (e.g., rehabilitation)."
+            },
+            {
+                id: 41,
+                question: "Which learning style prefers hands-on experiences and physical engagement?",
+                options: ["Kinesthetic", "Visual", "Auditory", "Reading/Writing"],
+                correct: 0,
+                rationale: "Kinesthetic learners prefer learning through doing, movement, and physical engagement."
+            },
+            {
+                id: 42,
+                question: "What is the main goal of 'Impact evaluation'?",
+                options: ["Assessing immediate changes", "Measuring cost-efficiency", "Determining long-term mortality", "Checking staff attendance"],
+                correct: 0,
+                rationale: "Impact evaluation assesses immediate effects like changes in awareness, knowledge, or skills."
+            },
+            {
+                id: 43,
+                question: "The 'Social Health' dimension primarily involves which ability?",
+                options: ["Interacting with others", "Fighting infection", "Learning new facts", "Managing stress"],
+                correct: 0,
+                rationale: "Social health is the ability to make and maintain acceptable interaction and communication with others."
+            },
+            {
+                id: 44,
+                question: "Which action is an example of 'Active Listening'?",
+                options: ["Fully concentrating on the speaker", "Planning the next response", "Interrupting with questions", "Looking at medical records"],
+                correct: 0,
+                rationale: "Active listening involves fully concentrating, understanding, responding, and remembering what the patient says."
+            },
+            {
+                id: 45,
+                question: "What is a characteristic of 'Effective Health Education Curricula'?",
+                options: ["Focuses on behavioral outcomes", "Emphasizes only scientific facts", "Ignores social pressures", "Uses a single teaching method"],
+                correct: 0,
+                rationale: "Effective curricula focus on clear health goals and related behavioral outcomes, not just facts."
+            },
+            {
+                id: 46,
+                question: "True or False: Confidentiality implies that a health educator can share patient information with anyone they choose.",
+                options: ["False", "True"],
+                correct: 0,
+                rationale: "Confidentiality restricts access to personal information, sharing it only with authorized individuals."
+            },
+            {
+                id: 47,
+                question: "Which term describes a conviction that a phenomenon is true or real?",
+                options: ["Belief", "Attitude", "Value", "Norm"],
+                correct: 0,
+                rationale: "A belief is a conviction that a phenomenon or object is true or real."
+            },
+            {
+                id: 48,
+                question: "In the context of media, what is a benefit of using visuals?",
+                options: ["Increased retention", "Higher cost", "Slower processing", "Reduced clarity"],
+                correct: 0,
+                rationale: "Visuals help memory and increase retention compared to text alone."
+            },
+            {
+                id: 49,
+                question: "Which nursing diagnosis category indicates a problem that has not yet occurred but is likely to?",
+                options: ["High risk", "Actual", "Historical", "Resolved"],
+                correct: 0,
+                rationale: "High risk (or potential) diagnoses identify problems that are likely to develop if intervention is not taken."
+            },
+            {
+                id: 50,
+                question: "True or False: 'Beneficence' means doing good and preventing harm.",
+                options: ["True", "False"],
+                correct: 0,
+                rationale: "Beneficence defines the obligation to do or promote good and prevent/remove harm."
+            },
+            {
+                id: 51,
+                question: "Which type of prevention involves educating a diabetic patient on how to prevent complications?",
+                options: ["Tertiary prevention", "Primary prevention", "Secondary prevention", "Primordial prevention"],
+                correct: 0,
+                rationale: "Tertiary prevention is used when disease is established (like diabetes) to prevent further complications."
+            },
+            {
+                id: 52,
+                question: "Which element of the communication process is the 'Sender'?",
+                options: ["The source of the message", "The person receiving the message", "The method of transmission", "The feedback loop"],
+                correct: 0,
+                rationale: "The sender is the originator of the communication message."
+            },
+            {
+                id: 53,
+                question: "What defines 'Health Literacy'?",
+                options: ["Ability to access and use health info", "Ability to read medical textbooks", "Having a medical degree", "Knowing all disease names"],
+                correct: 0,
+                rationale: "Health literacy is the degree to which people can access, understand, and communicate information to promote health."
+            },
+            {
+                id: 54,
+                question: "Which medium allows for self-paced learning but lacks visual engagement?",
+                options: ["Audio media", "Video media", "Print media", "Interactive games"],
+                correct: 0,
+                rationale: "Audio media (like tapes/podcasts) allows portability and self-pacing but engages only the auditory sense."
+            },
+            {
+                id: 55,
+                question: "True or False: Assessment in health education should only consider the patient's physical needs.",
+                options: ["False", "True"],
+                correct: 0,
+                rationale: "Assessment must cover biological, psychological, social, cultural, and learning needs."
+            },
+            {
+                id: 56,
+                question: "Which behavior domain includes feelings, beliefs, and attitudes?",
+                options: ["Affective", "Cognitive", "Psychomotor", "Biomedical"],
+                correct: 0,
+                rationale: "The affective domain comprises attitudes, beliefs, values, and emotions."
+            },
+            {
+                id: 57,
+                question: "What is the final step in the health education process?",
+                options: ["Evaluation", "Implementation", "Assessment", "Planning"],
+                correct: 0,
+                rationale: "The process concludes with Evaluation (though it is often cyclical)."
+            },
+            {
+                id: 58,
+                question: "Which ethical principle is violated if a nurse reveals a patient's diagnosis to a neighbor?",
+                options: ["Confidentiality", "Justice", "Beneficence", "Autonomy"],
+                correct: 0,
+                rationale: "Breaching confidentiality involves disclosing private patient information without consent."
+            },
+            {
+                id: 59,
+                question: "Which determining factor of health includes genetics transmitted from parents?",
+                options: ["Human Biology", "Environment", "Lifestyle", "Health Care Organization"],
+                correct: 0,
+                rationale: "Human biology includes genetic inheritance and biological processes."
+            },
+            {
+                id: 60,
+                question: "True or False: Support groups are considered an 'Individual' teaching method.",
+                options: ["False", "True"],
+                correct: 0,
+                rationale: "Support groups are a 'Group' method, facilitating interaction among multiple participants."
+            },
+            {
+                id: 61,
+                question: "What is the primary role of 'Modifying Factors' in the HBM?",
+                options: ["Influence individual beliefs", "Eliminate all barriers", "Replace medical treatment", "Guaranty behavior change"],
+                correct: 0,
+                rationale: "Modifying factors (demographics, sociopsychological) influence perceptions of susceptibility, severity, etc."
+            },
+            {
+                id: 62,
+                question: "Which of the following is a 'Projected' instructional aid?",
+                options: ["Filmstrip", "Chalkboard", "Model", "Leaflet"],
+                correct: 0,
+                rationale: "A filmstrip requires a projector to display images on a screen."
+            },
+            {
+                id: 63,
+                question: "Which concept refers to the ability to identify with another person's feelings?",
+                options: ["Empathy", "Sympathy", "Apathy", "Telepathy"],
+                correct: 0,
+                rationale: "Empathy is identifying with the way another person feels and being sensitive to it."
+            },
+            {
+                id: 64,
+                question: "What is 'Health Promotion' defined as?",
+                options: ["Educational and environmental supports", "Selling health products", "Only preventing disease", "Running hospitals"],
+                correct: 0,
+                rationale: "Health promotion is a combination of educational and environmental supports for living conditions conducive to health."
+            },
+            {
+                id: 65,
+                question: "True or False: The 'Evaluation' phase helps determine if objectives were met.",
+                options: ["True", "False"],
+                correct: 0,
+                rationale: "Evaluation assesses whether the specified objectives have been achieved and the program's success."
+            },
+            {
+                id: 66,
+                question: "Which type of learner benefits most from graphs, charts, and diagrams?",
+                options: ["Visual learner", "Auditory learner", "Kinesthetic learner", "Social learner"],
+                correct: 0,
+                rationale: "Visual learners prefer to see information presented in charts, diagrams, and written forms."
+            },
+            {
+                id: 67,
+                question: "Which ethical code obligates a professional to maintain competence?",
+                options: ["Responsibility to the Profession", "Responsibility to the Public", "Responsibility to Employers", "Responsibility to Researchers"],
+                correct: 0,
+                rationale: "Responsibility to the profession includes maintaining professional competence and sharing knowledge."
+            },
+            {
+                id: 68,
+                question: "What is a 'Lifestyle' determinant of health?",
+                options: ["Smoking habits", "Air pollution", "Access to clinics", "Genetic makeup"],
+                correct: 0,
+                rationale: "Lifestyle refers to personal behaviors and actions, such as smoking, diet, and exercise."
+            },
+            {
+                id: 69,
+                question: "Which method is effective for teaching psychomotor skills?",
+                options: ["Demonstration", "Lecture", "Reading", "Listening"],
+                correct: 0,
+                rationale: "Demonstrations allow learners to observe and practice skills (psychomotor domain)."
+            },
+            {
+                id: 70,
+                question: "True or False: 'Perceived Barriers' are the positive outcomes expected from a health action.",
+                options: ["False", "True"],
+                correct: 0,
+                rationale: "Perceived barriers are the negative aspects or costs (psychological, financial) of the action."
+            },
+            {
+                id: 71,
+                question: "Which level of prevention targets healthy individuals to avoid disease development?",
+                options: ["Primary", "Secondary", "Tertiary", "Acute"],
+                correct: 0,
+                rationale: "Primary prevention aims to prevent disease onset in healthy populations."
+            },
+            {
+                id: 72,
+                question: "What does 'Documentation' in health education provide?",
+                options: ["Legal record of teaching", "Diagnosis of disease", "Treatment prescription", "Hospital budget"],
+                correct: 0,
+                rationale: "Documentation serves as a legal record and evidence that teaching requirements were fulfilled."
+            },
+            {
+                id: 73,
+                question: "Which principle suggests that health education should involve the target group in planning?",
+                options: ["Principle of Participation", "Principle of Diagnosis", "Principle of Evaluation", "Principle of Content"],
+                correct: 0,
+                rationale: "The Principle of Participation states that initiatives should involve those concerned in all stages."
+            },
+            {
+                id: 74,
+                question: "What is an example of 'Non-verbal communication'?",
+                options: ["Facial expressions", "Spoken words", "Written notes", "Radio broadcast"],
+                correct: 0,
+                rationale: "Non-verbal communication includes body language, eye contact, and facial expressions."
+            },
+            {
+                id: 75,
+                question: "True or False: Audio-visual aids engage both hearing and seeing senses.",
+                options: ["True", "False"],
+                correct: 0,
+                rationale: "Audio-visual aids appeal to both auditory and visual senses simultaneously."
+            },
+            {
+                id: 76,
+                question: "Which factor implies that a health educator must be honest and not deceive patients?",
+                options: ["Truth telling", "Paternalism", "Authority", "Bias"],
+                correct: 0,
+                rationale: "Truth telling (Honesty) is a necessary component of meaningful and ethical communication."
+            },
+            {
+                id: 77,
+                question: "Which type of evaluation is likened to 'Monitoring'?",
+                options: ["Process evaluation", "Outcome evaluation", "Impact evaluation", "Final evaluation"],
+                correct: 0,
+                rationale: "Process evaluation is often referred to as monitoring the implementation phase."
+            },
+            {
+                id: 78,
+                question: "What does 'Self-efficacy' refer to?",
+                options: ["Confidence in one's ability", "Fear of disease", "Cost of treatment", "Genetic immunity"],
+                correct: 0,
+                rationale: "Self-efficacy is the confidence in one's own ability to take action and perform a behavior."
+            },
+            {
+                id: 79,
+                question: "Which instructional material is 'Print media'?",
+                options: ["Brochure", "Video tape", "Slide", "Podcast"],
+                correct: 0,
+                rationale: "Brochures, books, and pamphlets are examples of print media."
+            },
+            {
+                id: 80,
+                question: "True or False: 'Values' are broad ideas shared by a society about what is desirable.",
+                options: ["True", "False"],
+                correct: 0,
+                rationale: "Values are broad, widely held assumptions regarding what is desirable, correct, and good."
+            },
+            {
+                id: 81,
+                question: "Which step involves validating and summarizing collected data?",
+                options: ["Assessment", "Planning", "Teaching", "Evaluation"],
+                correct: 0,
+                rationale: "Assessment involves collecting, validating, categorizing, and summarizing data."
+            },
+            {
+                id: 82,
+                question: "What is the 'Psychological environment' for learning?",
+                options: ["Low stress and anxiety", "Room temperature", "Lighting quality", "Seating arrangement"],
+                correct: 0,
+                rationale: "Psychological environment includes factors like willingness to learn, attitude, and stress levels."
+            },
+            {
+                id: 83,
+                question: "Which ethical principle supports informed consent?",
+                options: ["Autonomy", "Justice", "Fidelity", "Utility"],
+                correct: 0,
+                rationale: "Informed consent is a direct application of respecting a person's autonomy."
+            },
+            {
+                id: 84,
+                question: "Which determinant of health includes industrial wastes and air pollution?",
+                options: ["Environment", "Genetics", "Behavior", "Health Services"],
+                correct: 0,
+                rationale: "These are chemical and physical factors of the external Environment."
+            },
+            {
+                id: 85,
+                question: "True or False: A health educator should never use humor in communication.",
+                options: ["False", "True"],
+                correct: 0,
+                rationale: "Humor can be an effective tool to maintain interest and create a relaxed atmosphere."
+            },
+            {
+                id: 86,
+                question: "What is the purpose of 'Clarification' in communication?",
+                options: ["Ensure understanding", "Confuse the patient", "End the conversation", "Judge the patient"],
+                correct: 0,
+                rationale: "Clarification helps ensure that the nurse and client have the same understanding."
+            },
+            {
+                id: 87,
+                question: "Which evaluation method is best for assessing psychomotor skills?",
+                options: ["Return demonstration", "Written test", "Oral quiz", "Essay"],
+                correct: 0,
+                rationale: "Return demonstration allows the educator to observe the learner performing the skill."
+            },
+            {
+                id: 88,
+                question: "Which model explains failure to participate in health programs based on perceptions?",
+                options: ["Health Belief Model", "Biomedical Model", "Economic Model", "Political Model"],
+                correct: 0,
+                rationale: "The HBM was developed to explain why people would or would not use health services."
+            },
+            {
+                id: 89,
+                question: "What defines 'Spiritual Health'?",
+                options: ["Relation with values and beliefs", "Physical strength", "Social popularity", "Intellectual IQ"],
+                correct: 0,
+                rationale: "Spiritual health relates to values, beliefs, and achieving mental satisfaction."
+            },
+            {
+                id: 90,
+                question: "True or False: 'Perceived Susceptibility' refers to the belief about the chances of getting a condition.",
+                options: ["True", "False"],
+                correct: 0,
+                rationale: "Perceived susceptibility is the individual's subjective perception of the risk of contracting a condition."
+            },
+            {
+                id: 91,
+                question: "Which creates a barrier to effective communication?",
+                options: ["Using complex jargon", "Active listening", "Empathy", "Eye contact"],
+                correct: 0,
+                rationale: "Using unfamiliar technical words (jargon) causes misunderstandings."
+            },
+            {
+                id: 92,
+                question: "Which represents a 'Reinforcing factor'?",
+                options: ["Praise from a doctor", "Cost of medicine", "Distance to clinic", "Personal knowledge"],
+                correct: 0,
+                rationale: "Feedback and praise from health providers reinforce behavior."
+            },
+            {
+                id: 93,
+                question: "What is 'Paternalism' often justified by?",
+                options: ["Preventing harm to the patient", "Saving money", "Saving time", "Educator's convenience"],
+                correct: 0,
+                rationale: "Paternalism is justified by the intent to provide benefit or prevent harm, even if it overrides choice."
+            },
+            {
+                id: 94,
+                question: "Which medium is 'Non-projected' and 'Three-dimensional'?",
+                options: ["Model", "Photograph", "Slide", "Film"],
+                correct: 0,
+                rationale: "Models, mock-ups, and puppets are 3D non-projected aids."
+            },
+            {
+                id: 95,
+                question: "True or False: Health education should always start with the educator's needs, not the client's.",
+                options: ["False", "True"],
+                correct: 0,
+                rationale: "Health education should be need-based, focusing on the client's needs."
+            },
+            {
+                id: 96,
+                question: "Which step involves setting specific, measurable objectives?",
+                options: ["Planning", "Assessment", "Implementation", "Documentation"],
+                correct: 0,
+                rationale: "Determining educational objectives is a key part of the Planning phase."
+            },
+            {
+                id: 97,
+                question: "What characterizes an 'Auditory learner'?",
+                options: ["Learns best by listening", "Learns best by reading", "Learns best by doing", "Learns best by seeing"],
+                correct: 0,
+                rationale: "Auditory learners benefit from lectures, discussions, and audio."
+            },
+            {
+                id: 98,
+                question: "Which implies 'Faithfulness' in a professional relationship?",
+                options: ["Fidelity", "Autonomy", "Justice", "Creativity"],
+                correct: 0,
+                rationale: "Fidelity means faithfulness and keeping promises to patients."
+            },
+            {
+                id: 99,
+                question: "Which factor is a 'Biological determinant' of health?",
+                options: ["Microorganisms", "Education", "Income", "Housing"],
+                correct: 0,
+                rationale: "Biological environmental factors include microorganisms and toxins."
+            },
+            {
+                id: 100,
+                question: "True or False: 'Outcome evaluation' is easy and quick to conduct.",
+                options: ["False", "True"],
+                correct: 0,
+                rationale: "Outcome evaluation is difficult and time-consuming as it measures long-term changes."
+            },
+            {
+                id: 101,
+                question: "Which is a 'Personal characteristic' of a good health educator?",
+                options: ["Enthusiastic", "Wealthy", "Famous", "Authoritative"],
+                correct: 0,
+                rationale: "Enthusiasm, honesty, and patience are personal characteristics."
+            },
+            {
+                id: 102,
+                question: "What is the purpose of 'Validation' in communication?",
+                options: ["Confirming understanding", "Ignoring the client", "Speaking loudly", "Writing notes"],
+                correct: 0,
+                rationale: "Validation confirms that the nurse and client share the same understanding."
+            },
+            {
+                id: 103,
+                question: "Which behavior domain involves 'Values'?",
+                options: ["Affective", "Cognitive", "Psychomotor", "Physical"],
+                correct: 0,
+                rationale: "The affective domain includes values, attitudes, and beliefs."
+            },
+            {
+                id: 104,
+                question: "What is 'Primary Health Care' closely linked to?",
+                options: ["Health education", "Surgery", "ICU management", "Forensics"],
+                correct: 0,
+                rationale: "Health education is a core component of Primary Health Care."
+            },
+            {
+                id: 105,
+                question: "True or False: A 'Norm' is a social rule specifying appropriate behavior.",
+                options: ["True", "False"],
+                correct: 0,
+                rationale: "Norms are social rules that specify what is appropriate or inappropriate behavior."
+            },
+            {
+                id: 106,
+                question: "Which is a 'Professional characteristic' of an educator?",
+                options: ["Knowledgeable and skillful", "Tall and strong", "Young and energetic", "Rich and powerful"],
+                correct: 0,
+                rationale: "Professional characteristics include being competent, knowledgeable, and skillful."
+            },
+            {
+                id: 107,
+                question: "What defines 'Quality of Life'?",
+                options: ["Individual's perception of position in life", "Total money earned", "Number of years lived", "Medical test results"],
+                correct: 0,
+                rationale: "Quality of life is an individual's perception of their position in life relative to goals and culture."
+            },
+            {
+                id: 108,
+                question: "Which phase involves the actual delivery of teaching?",
+                options: ["Implementation", "Planning", "Assessment", "Evaluation"],
+                correct: 0,
+                rationale: "Implementation is the phase where teaching and communication take place."
+            },
+            {
+                id: 109,
+                question: "Which barrier affects 'Perceived Barriers' in HBM?",
+                options: ["Cost and side effects", "High effectiveness", "Easy access", "Doctor's advice"],
+                correct: 0,
+                rationale: "Barriers include negative aspects like cost, pain, side effects, or inconvenience."
+            },
+            {
+                id: 110,
+                question: "True or False: 'Physical environment' includes lighting and ventilation in the classroom.",
+                options: ["True", "False"],
+                correct: 0,
+                rationale: "The learning environment's physical factors include lighting, space, and ventilation."
+            },
+            {
+                id: 111,
+                question: "What is the definition of 'Prevention'?",
+                options: ["Measures to forestall disease", "Curing all illness", "Ignoring symptoms", "Increasing risk"],
+                correct: 0,
+                rationale: "Prevention involves measures to forestall disease onset or arrest its progress."
+            },
+            {
+                id: 112,
+                question: "Which aid creates a 'Common reference' for students?",
+                options: ["Instructional media", "Secret notes", "Private thoughts", "Rumors"],
+                correct: 0,
+                rationale: "Instructional media provides a common reference point for instructor and students."
+            },
+            {
+                id: 113,
+                question: "Which term describes 'doing no harm'?",
+                options: ["Non-maleficence", "Beneficence", "Autonomy", "Justice"],
+                correct: 0,
+                rationale: "Non-maleficence is the obligation to avoid causing harm."
+            },
+            {
+                id: 114,
+                question: "What is a 'Social determinant' of health?",
+                options: ["Economic status", "Viruses", "Climate", "Genetics"],
+                correct: 0,
+                rationale: "Social environment includes economic status, overcrowding, and access to care."
+            },
+            {
+                id: 115,
+                question: "True or False: 'Health' is a process, not just a state.",
+                options: ["True", "False"],
+                correct: 0,
+                rationale: "Critics of the WHO definition argue that health is a dynamic process, not a static state."
+            },
+            {
+                id: 116,
+                question: "Which is a 'Projected-motion' media?",
+                options: ["Video cassette", "Slide", "Book", "Poster"],
+                correct: 0,
+                rationale: "Video cassettes, film, and TV are projected motion media."
+            },
+            {
+                id: 117,
+                question: "What is 'Empowerment' in health promotion?",
+                options: ["Enabling people to control health factors", "Forcing people to obey", "Giving free medicine", "Building more hospitals"],
+                correct: 0,
+                rationale: "Empowerment enables individuals and communities to assume power over factors affecting health."
+            },
+            {
+                id: 118,
+                question: "Which step involves 'Analyzing data' to find needs?",
+                options: ["Assessment", "Evaluation", "Implementation", "Planning"],
+                correct: 0,
+                rationale: "Assessment involves analyzing collected data to identify needs and diagnoses."
+            },
+            {
+                id: 119,
+                question: "Which ethical principle relates to 'Fairness'?",
+                options: ["Justice", "Autonomy", "Privacy", "Fidelity"],
+                correct: 0,
+                rationale: "Justice relates to fairness and the equitable distribution of resources."
+            },
+            {
+                id: 120,
+                question: "True or False: 'Multimedia' uses only one type of media.",
+                options: ["False", "True"],
+                correct: 0,
+                rationale: "Multimedia combines multiple forms (text, audio, video, graphics) into one tool."
+            }
+        ];
+
+        // --- 2. SHUFFLE & RENDER LOGIC (DO NOT EDIT) ---
+        const quizData = rawQuizData.map(q => {
+            const opts = q.options.map((text, i) => ({ text, isCorrect: i === q.correct }));
+            for (let i = opts.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [opts[i], opts[j]] = [opts[j], opts[i]];
+            }
+            return { ...q, options: opts.map(o => o.text), correct: opts.findIndex(o => o.isCorrect) };
+        });
+
+        const container = document.getElementById('quiz-container');
+        let score = 0; let answeredCount = 0;
+
+        function renderQuiz() {
+            document.getElementById('total-display').innerText = `/ ${quizData.length}`;
+            container.innerHTML = quizData.map((q, index) => {
+                return `
+                <div class="card bg-white rounded-xl p-6 mb-6 border border-gray-100">
+                    <div class="flex justify-between items-center mb-4 border-b border-gray-50 pb-3">
+                        <span class="bg-blue-100 text-blue-800 text-xs font-bold px-3 py-1 rounded-full">Question ${index + 1}</span>
+                         ${q.options.length === 2 ? '<span class="bg-purple-100 text-purple-800 text-xs font-bold px-2 py-1 rounded-md">True/False</span>' : ''}
+                    </div>
+                    <h3 class="text-gray-800 font-bold mb-6 text-lg leading-relaxed font-cairo" style="direction: ltr; text-align: left;">${q.question}</h3>
+                    <div class="grid gap-3 ${q.options.length === 2 ? 'grid-cols-2' : ''}">
+                        ${q.options.map((opt, i) => `<button onclick="checkAnswer(${index}, ${i})" class="option-btn option-btn-${index} w-full text-left px-5 py-4 rounded-xl border border-gray-200 hover:bg-blue-50 hover:border-blue-300 focus:outline-none flex items-center justify-between group bg-white"><span class="font-medium text-gray-700 group-hover:text-blue-700 font-sans">${opt}</span></button>`).join('')}
+                    </div>
+                    <div id="feedback-${index}" class="hidden-content mt-6 bg-blue-50 rounded-xl p-5 border border-blue-100 animate-fade-in text-left">
+                        <p class="text-blue-800 text-sm leading-relaxed"><strong>Rationale:</strong> ${q.rationale}</p>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        window.checkAnswer = function(qIndex, optIndex) {
+            const q = quizData[qIndex];
+            const feedback = document.getElementById(`feedback-${qIndex}`);
+            const btns = document.querySelectorAll(`.option-btn-${qIndex}`);
+            if (!feedback.classList.contains('hidden-content')) return;
+            feedback.classList.remove('hidden-content');
+            btns.forEach((btn, i) => {
+                btn.disabled = true;
+                if (i === q.correct) { btn.classList.add('correct-answer'); btn.innerHTML += '<i class="fas fa-check float-right"></i>'; }
+                else if (i === optIndex) { btn.classList.add('wrong-answer'); btn.innerHTML += '<i class="fas fa-times float-right"></i>'; }
+                else { btn.classList.add('opacity-50'); }
+            });
+            if (optIndex === q.correct) score++;
+            answeredCount++;
+            if (answeredCount === quizData.length) {
+                document.getElementById('result-summary').classList.remove('hidden-content');
+                document.getElementById('score-display').innerText = score;
+                document.getElementById('score-message').innerText = (score/quizData.length*100) >= 50 ? "Good Job!" : "Keep Studying";
+                setTimeout(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }), 500);
+            }
+        };
+        renderQuiz();
+    </script>
+</body>
+</html>

@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Noto+Sans:wght@400;600;700&display=swap');
+        body { font-family: 'Noto Sans', 'Cairo', sans-serif; background-color: #f8fafc; }
+        .card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .card:hover { transform: translateY(-4px); box-shadow: 0 12px 20px -5px rgba(0, 0, 0, 0.1); }
+        .correct-answer { background-color: #dcfce7 !important; border-color: #22c55e !important; color: #15803d !important; }
+        .wrong-answer { background-color: #fee2e2 !important; border-color: #ef4444 !important; color: #b91c1c !important; }
+        .hidden-content { display: none; }
+        .option-btn { transition: all 0.2s; }
+        .option-btn:disabled { cursor: default; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
+    </style>
+</head>
+<body class="pb-12 bg-gray-50">
+    <div class="max-w-3xl mx-auto px-4 py-8">
+        <div class="bg-white rounded-2xl shadow-sm p-8 mb-8 text-center border-t-4 border-blue-600 relative overflow-hidden">
+            <div class="absolute top-0 right-0 p-4 opacity-10"><i class="fas fa-user-md text-8xl text-blue-600"></i></div>
+            
+            <h1 class="text-3xl font-bold text-gray-800 mb-2 font-cairo text-center" dir="auto">CULTURAL DIVERSITY</h1>
+            
+            <div class="flex items-center justify-center gap-2 text-green-600 font-semibold bg-green-50 w-fit mx-auto px-4 py-1 rounded-full text-sm">
+                <i class="fas fa-check-circle"></i> "تم صنع هذا الامتحان بواسطة عبدالحليم رزق"
+            </div>
+        </div>
+        <div id="quiz-container"></div>
+        <div id="result-summary" class="hidden-content bg-white rounded-2xl shadow-lg p-8 text-center mt-8 border border-gray-100">
+            <h2 class="text-2xl font-bold text-gray-800">Exam Completed</h2>
+            <div class="mt-4 text-4xl font-bold text-blue-600 mb-2">
+                <span id="score-display">0</span> <span class="text-xl text-gray-400" id="total-display"></span>
+            </div>
+            <p id="score-message" class="text-gray-500 mb-6"></p>
+            <button onclick="location.reload()" class="bg-blue-600 text-white px-8 py-3 rounded-xl hover:bg-blue-700 transition shadow-lg hover:shadow-blue-200">
+                <i class="fas fa-redo mr-2"></i> Restart Exam
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. QUESTIONS ARRAY (GENERATE 50 QUESTIONS HERE) ---
+        const rawQuizData = [
+            {
+                id: 1,
+                question: "What is the primary definition of diversity provided in the lecture?",
+                options: ["Differences between cultures", "Differences among people", "Differences in languages", "Differences in beliefs"],
+                correct: 0,
+                rationale: "The text explicitly defines diversity as a term used to explain the differences between cultures."
+            },
+            {
+                id: 2,
+                question: "Which of the following is considered a secondary dimension of diversity?",
+                options: ["Age", "Race", "Education", "Gender"],
+                correct: 2,
+                rationale: "Secondary dimensions include education, work style, communication style, socioeconomic status, and occupation."
+            },
+            {
+                id: 3,
+                question: "Tertiary dimensions of diversity specifically include which of the following elements?",
+                options: ["Age and gender", "Assumptions and perceptions", "Education and occupation", "Race and ethnicity"],
+                correct: 1,
+                rationale: "Tertiary dimensions include beliefs, assumptions, perceptions, attitudes, feelings, and values."
+            },
+            {
+                id: 4,
+                question: "Primary dimensions of diversity are best described as which type of elements?",
+                options: ["Acquired traits", "Core elements", "Professional skills", "Temporary states"],
+                correct: 1,
+                rationale: "Primary dimensions are described as core elements through which people shape their self-image and world view."
+            },
+            {
+                id: 5,
+                question: "True or False: Increased conflict is considered an opportunity or advantage of workforce diversity.",
+                options: ["True", "False"],
+                correct: 1,
+                rationale: "Increased conflict is listed under the challenges (disadvantages) of workforce diversity, not opportunities."
+            },
+            {
+                id: 6,
+                question: "What is a negative consequence of people categorizing others into in-groups and out-groups?",
+                options: ["Increased creativity", "Bias and favoritism", "Better decisions", "Talent recruitment"],
+                correct: 1,
+                rationale: "This process leads to in-group bias and favoritism where members elicit more positive attitudes toward their own group."
+            },
+            {
+                id: 7,
+                question: "Which action should organization members take to manage a culturally diverse workforce?",
+                options: ["Ignore differences", "Avoid discussions", "Include employees", "Segregate groups"],
+                correct: 2,
+                rationale: "Organization members should include employees from a variety of backgrounds in decision making and problem-solving processes."
+            },
+            {
+                id: 8,
+                question: "What is the first step nurses can take to provide culturally sensitive care?",
+                options: ["Avoid assumptions", "Build trust", "Awareness", "Active listening"],
+                correct: 2,
+                rationale: "The first step listed in the 7 steps nurses can take is Awareness."
+            },
+            {
+                id: 9,
+                question: "When a nurse is unsure about a cultural practice, what is the recommended action?",
+                options: ["Make an assumption", "Simply ask", "Ignore the practice", "Consult a textbook only"],
+                correct: 1,
+                rationale: "The text advises that if you are unsure about something, simply ask, as most people will happily educate a willing listener."
+            },
+            {
+                id: 10,
+                question: "True or False: Secondary dimensions of diversity have no impact on how a person is viewed by others.",
+                options: ["True", "False"],
+                correct: 1,
+                rationale: "Secondary dimensions explicitly have an impact on how the person is viewed by others and their self-definition."
+            },
+            {
+                id: 11,
+                question: "Which of the following is an advantage of workforce diversity regarding talent?",
+                options: ["Reduced labor pool", "Recruit excellent talent", "Standardized skills", "Lower turnover"],
+                correct: 1,
+                rationale: "An opportunity of diversity is the ability to recruit excellent talent from the entire labor pool."
+            },
+            {
+                id: 12,
+                question: "How should a nurse communicate when using a translator?",
+                options: ["Look at the translator", "Look at the patient", "Look at the family", "Look at the chart"],
+                correct: 1,
+                rationale: "You should look at the patient and speak to them as if no language barrier existed, not at the translator."
+            },
+            {
+                id: 13,
+                question: "What is the main purpose of asking a patient to repeat back what was said?",
+                options: ["Test their memory", "Verify understanding", "Practice language", "Fill silence"],
+                correct: 1,
+                rationale: "Repeating back helps determine how much has been understood and if communication methods need to change."
+            },
+            {
+                id: 14,
+                question: "True or False: Religious beliefs are categorized as a secondary dimension of diversity in the text.",
+                options: ["True", "False"],
+                correct: 1,
+                rationale: "The text lists religious beliefs under Primary dimensions of diversity."
+            },
+            {
+                id: 15,
+                question: "Discrimination is defined as mistreatment based on which type of factors?",
+                options: ["Irrelevant factors", "Performance metrics", "Job requirements", "Attendance records"],
+                correct: 0,
+                rationale: "Discrimination is the mistreatment of people based on irrelevant factors such as race, sex, age, or handicap."
+            },
+            {
+                id: 16,
+                question: "Which tool is suggested to help describe an organization's culture?",
+                options: ["Financial reports", "Culture audit", "Marketing plan", "Annual budget"],
+                correct: 1,
+                rationale: "Development and implementation of a culture audit helps describe the culture."
+            },
+            {
+                id: 17,
+                question: "True or False: Heterogeneous groups face a lower likelihood of miscommunication than homogeneous groups.",
+                options: ["True", "False"],
+                correct: 1,
+                rationale: "Heterogeneous groups face a higher likelihood for miscommunication."
+            },
+            {
+                id: 18,
+                question: "What helps minimize discrimination between conflicting groups in an organization?",
+                options: ["Open discussions", "Strict separation", " ignoring conflicts", "Authoritarian rules"],
+                correct: 0,
+                rationale: "Open discussions between representatives of conflicting groups may help minimize discrimination."
+            },
+            {
+                id: 19,
+                question: "To learn about other cultures, the text suggests nurses should do what?",
+                options: ["Stay in their office", "Avoid travel", "Immerse themselves", "Rely on rumors"],
+                correct: 2,
+                rationale: "Nurses are encouraged to learn about cultures by becoming immersed in them."
+            },
+            {
+                id: 20,
+                question: "True or False: Active listening involves planning your response while the other person is speaking.",
+                options: ["True", "False"],
+                correct: 1,
+                rationale: "Active listening means actually hearing, considering, and validating, not planning what to say next."
+            },
+            {
+                id: 21,
+                question: "What body language is recommended when asking questions to a patient?",
+                options: ["Closed and firm", "Open and kind", "Distant and cold", "Fast and efficient"],
+                correct: 1,
+                rationale: "Make sure your body language communicates openness and intent to truly hear the patient."
+            },
+            {
+                id: 22,
+                question: "Primary dimensions of diversity differ from secondary dimensions because they are:",
+                options: ["Easily changed", "Inborn differences", "Educational based", "Work style based"],
+                correct: 1,
+                rationale: "Primary dimensions include inborn differences or differences that have an impact throughout one's life."
+            },
+            {
+                id: 23,
+                question: "Which of the following is listed as a secondary dimension of diversity?",
+                options: ["Mental ability", "National origin", "Socioeconomic status", "Race and color"],
+                correct: 2,
+                rationale: "Secondary dimensions include socioeconomic status, work style, education, etc."
+            },
+            {
+                id: 24,
+                question: "True or False: Managers should treat people with different lifestyles as if they need intervention.",
+                options: ["True", "False"],
+                correct: 1,
+                rationale: "The text states people with different lifestyles should NOT be treated as if they need interventions."
+            },
+            {
+                id: 25,
+                question: "What is a disadvantage of workforce diversity regarding group dynamics?",
+                options: ["Better decisions", "Poor integration", "Less conflict", "Higher creativity"],
+                correct: 1,
+                rationale: "Poor social integration is listed as a challenge/disadvantage of workforce diversity."
+            },
+            {
+                id: 26,
+                question: "When establishing trust with a patient who has a language barrier, what is essential?",
+                options: ["avoiding eye contact", "Heightened trust", "Using complex terms", "Speaking quickly"],
+                correct: 1,
+                rationale: "Treating culturally diverse patients requires a heightened level of trust to be established."
+            },
+            {
+                id: 27,
+                question: "Which activity is suggested to facilitate intercultural sensitivity in an organization?",
+                options: ["Budget cuts", "Role-playing", "Strict dress codes", "Isolating teams"],
+                correct: 1,
+                rationale: "Orientation programs, seminars, role-playing, and workshops can be used to facilitate intercultural sensitivity."
+            },
+            {
+                id: 28,
+                question: "True or False: Diversity provides both opportunities and challenges for organizations.",
+                options: ["True", "False"],
+                correct: 0,
+                rationale: "The text explicitly states that diversity provides both opportunities and challenges."
+            },
+            {
+                id: 29,
+                question: "What should organizational mission statements specifically address?",
+                options: ["Profit margins", "Diversity", "Market share", "Competitor analysis"],
+                correct: 1,
+                rationale: "The organizational mission and goal statements should address diversity."
+            },
+            {
+                id: 30,
+                question: "If a patient is unfamiliar with a medical practice, what is the nurse's role?",
+                options: ["Skip the procedure", "Explain in detail", "Ask the family", "Proceed silently"],
+                correct: 1,
+                rationale: "Nurses often have the job of explaining in detail why the procedure is needed and what to expect."
+            },
+            {
+                id: 31,
+                question: "True or False: Language barriers can exacerbate all other challenges in providing care.",
+                options: ["True", "False"],
+                correct: 0,
+                rationale: "Language barriers exacerbate all other challenges nurses face when providing care."
+            },
+            {
+                id: 32,
+                question: "Which dimension includes physical abilities?",
+                options: ["Primary", "Secondary", "Tertiary", "Quaternary"],
+                correct: 0,
+                rationale: "Primary dimensions include mental or physical abilities."
+            },
+            {
+                id: 33,
+                question: "What helps a nurse determine if a patient willingly consents to a procedure?",
+                options: ["Signing a form", "Patient clarity", "Family approval", "Doctor orders"],
+                correct: 1,
+                rationale: "Continue until reasonably confident the patient has enough clarity to willingly and knowingly consent."
+            },
+            {
+                id: 34,
+                question: "True or False: The nursing code of ethics allows for different quality of care based on socioeconomic status.",
+                options: ["True", "False"],
+                correct: 1,
+                rationale: "The code ensures all patients receive the same high quality of care regardless of socioeconomic status."
+            },
+            {
+                id: 35,
+                question: "To help a patient feel heard during active listening, what physical action is suggested?",
+                options: ["Stand over them", "Sit down", "Check the time", "Pace the room"],
+                correct: 1,
+                rationale: "Sit down with them, make eye contact, or gently place your hand over theirs."
+            },
+            {
+                id: 36,
+                question: "What is a potential negative outcome of diversity in groups regarding turnover?",
+                options: ["Decreased turnover", "Increased turnover", "Stable retention", "No impact"],
+                correct: 1,
+                rationale: "Increased turnover is listed as a challenge of workforce diversity."
+            },
+            {
+                id: 37,
+                question: "True or False: Managers should implement standards of performance to ensure fairness.",
+                options: ["True", "False"],
+                correct: 0,
+                rationale: "Managers should implement standards of performance and ensure fairness."
+            },
+            {
+                id: 38,
+                question: "Which of the following is considered a tertiary dimension of diversity?",
+                options: ["Work style", "Feelings", "Gender", "Ethnicity"],
+                correct: 1,
+                rationale: "Tertiary dimensions include beliefs, assumptions, perceptions, attitudes, feelings, and values."
+            },
+            {
+                id: 39,
+                question: "Using pictures or hand gestures is a strategy to overcome which barrier?",
+                options: ["Cultural bias", "Language barrier", "Physical disability", "Age difference"],
+                correct: 1,
+                rationale: "Use pictures or hand gestures to communicate when necessary to overcome language barriers."
+            },
+            {
+                id: 40,
+                question: "What effect does diversity have on workforce creativity?",
+                options: ["Decreases it", "Increases it", "Stagnates it", "Eliminates it"],
+                correct: 1,
+                rationale: "Increase in workforce creativity is an opportunity/advantage of diversity."
+            }
+        ];
+
+        // --- 2. SHUFFLE & RENDER LOGIC (DO NOT EDIT) ---
+        const quizData = rawQuizData.map(q => {
+            const opts = q.options.map((text, i) => ({ text, isCorrect: i === q.correct }));
+            for (let i = opts.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [opts[i], opts[j]] = [opts[j], opts[i]];
+            }
+            return { ...q, options: opts.map(o => o.text), correct: opts.findIndex(o => o.isCorrect) };
+        });
+
+        const container = document.getElementById('quiz-container');
+        let score = 0; let answeredCount = 0;
+
+        function renderQuiz() {
+            document.getElementById('total-display').innerText = `/ ${quizData.length}`;
+            container.innerHTML = quizData.map((q, index) => {
+                return `
+                <div class="card bg-white rounded-xl p-6 mb-6 border border-gray-100">
+                    <div class="flex justify-between items-center mb-4 border-b border-gray-50 pb-3">
+                        <span class="bg-blue-100 text-blue-800 text-xs font-bold px-3 py-1 rounded-full">Question ${index + 1}</span>
+                         ${q.options.length === 2 ? '<span class="bg-purple-100 text-purple-800 text-xs font-bold px-2 py-1 rounded-md">True/False</span>' : ''}
+                    </div>
+                    <h3 class="text-gray-800 font-bold mb-6 text-lg leading-relaxed font-cairo" style="direction: ltr; text-align: left;">${q.question}</h3>
+                    <div class="grid gap-3 ${q.options.length === 2 ? 'grid-cols-2' : ''}">
+                        ${q.options.map((opt, i) => `<button onclick="checkAnswer(${index}, ${i})" class="option-btn option-btn-${index} w-full text-left px-5 py-4 rounded-xl border border-gray-200 hover:bg-blue-50 hover:border-blue-300 focus:outline-none flex items-center justify-between group bg-white"><span class="font-medium text-gray-700 group-hover:text-blue-700 font-sans">${opt}</span></button>`).join('')}
+                    </div>
+                    <div id="feedback-${index}" class="hidden-content mt-6 bg-blue-50 rounded-xl p-5 border border-blue-100 animate-fade-in text-left">
+                        <p class="text-blue-800 text-sm leading-relaxed"><strong>Rationale:</strong> ${q.rationale}</p>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        window.checkAnswer = function(qIndex, optIndex) {
+            const q = quizData[qIndex];
+            const feedback = document.getElementById(`feedback-${qIndex}`);
+            const btns = document.querySelectorAll(`.option-btn-${qIndex}`);
+            if (!feedback.classList.contains('hidden-content')) return;
+            feedback.classList.remove('hidden-content');
+            btns.forEach((btn, i) => {
+                btn.disabled = true;
+                if (i === q.correct) { btn.classList.add('correct-answer'); btn.innerHTML += '<i class="fas fa-check float-right"></i>'; }
+                else if (i === optIndex) { btn.classList.add('wrong-answer'); btn.innerHTML += '<i class="fas fa-times float-right"></i>'; }
+                else { btn.classList.add('opacity-50'); }
+            });
+            if (optIndex === q.correct) score++;
+            answeredCount++;
+            if (answeredCount === quizData.length) {
+                document.getElementById('result-summary').classList.remove('hidden-content');
+                document.getElementById('score-display').innerText = score;
+                document.getElementById('score-message').innerText = (score/quizData.length*100) >= 50 ? "Good Job!" : "Keep Studying";
+                setTimeout(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }), 500);
+            }
+        };
+        renderQuiz();
+    </script>
+</body>
+</html>

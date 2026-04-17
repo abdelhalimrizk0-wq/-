@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Noto+Sans:wght@400;600;700&display=swap');
+        body { font-family: 'Noto Sans', 'Cairo', sans-serif; background-color: #f8fafc; }
+        .card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .card:hover { transform: translateY(-4px); box-shadow: 0 12px 20px -5px rgba(0, 0, 0, 0.1); }
+        .correct-answer { background-color: #dcfce7 !important; border-color: #22c55e !important; color: #15803d !important; }
+        .wrong-answer { background-color: #fee2e2 !important; border-color: #ef4444 !important; color: #b91c1c !important; }
+        .hidden-content { display: none; }
+        .option-btn { transition: all 0.2s; }
+        .option-btn:disabled { cursor: default; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
+    </style>
+</head>
+<body class="pb-12 bg-gray-50">
+    <div class="max-w-3xl mx-auto px-4 py-8">
+        <div class="bg-white rounded-2xl shadow-sm p-8 mb-8 text-center border-t-4 border-blue-600 relative overflow-hidden">
+            <div class="absolute top-0 right-0 p-4 opacity-10"><i class="fas fa-user-md text-8xl text-blue-600"></i></div>
+            
+            <h1 class="text-3xl font-bold text-gray-800 mb-2 font-cairo text-center" dir="auto">4. Evaluation Phase</h1>
+            
+            <div class="flex items-center justify-center gap-2 text-green-600 font-semibold bg-green-50 w-fit mx-auto px-4 py-1 rounded-full text-sm">
+                <i class="fas fa-check-circle"></i> "تم صنع هذا الامتحان بواسطة عبدالحليم رزق"
+            </div>
+        </div>
+        <div id="quiz-container"></div>
+        <div id="result-summary" class="hidden-content bg-white rounded-2xl shadow-lg p-8 text-center mt-8 border border-gray-100">
+            <h2 class="text-2xl font-bold text-gray-800">Exam Completed</h2>
+            <div class="mt-4 text-4xl font-bold text-blue-600 mb-2">
+                <span id="score-display">0</span> <span class="text-xl text-gray-400" id="total-display"></span>
+            </div>
+            <p id="score-message" class="text-gray-500 mb-6"></p>
+            <button onclick="location.reload()" class="bg-blue-600 text-white px-8 py-3 rounded-xl hover:bg-blue-700 transition shadow-lg hover:shadow-blue-200">
+                <i class="fas fa-redo mr-2"></i> Restart Exam
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. QUESTIONS ARRAY (GENERATE 50 QUESTIONS HERE) ---
+        const rawQuizData = [
+            {
+                id: 1,
+                question: "What is the primary definition of 'effectiveness' within the context of health education evaluation?",
+                options: ["The proper utilization of resources during the program", "The extent to which goals and objectives are achieved", "The calculation of financial costs incurred", "The speed at which the program is implemented"],
+                correct: 1,
+                rationale: "Effectiveness refers to the extent to which you have achieved your goals and objectives, whereas efficiency relates to resource utilization."
+            },
+            {
+                id: 2,
+                question: "Which type of evaluation is primarily concerned with assessing the immediate effects, such as changes in awareness or skills?",
+                options: ["Outcome evaluation", "Process evaluation", "Impact evaluation", "Structural evaluation"],
+                correct: 2,
+                rationale: "Impact evaluation refers to assessing the immediate effects of health education activities, such as changes in awareness, knowledge, skills, or behaviors."
+            },
+            {
+                id: 3,
+                question: "Documentation of patient teaching helps avoid the duplication of teaching efforts.",
+                options: ["True", "False"],
+                correct: 0,
+                rationale: "The text states that good documentation helps maintain continuity of care and avoids duplication of teaching."
+            },
+            {
+                id: 4,
+                question: "Which of the following describes a key characteristic of 'monitoring' as opposed to 'evaluation'?",
+                options: ["It involves judging the outcome of an activity", "It is usually conducted by external bodies", "It checks progress without passing judgment", "It occurs only at the very end of a program"],
+                correct: 2,
+                rationale: "Monitoring checks progress and identifies problems but does not involve judgments; it is distinct from evaluation which involves judgment of outcomes."
+            },
+            {
+                id: 5,
+                question: "What is the very first step in the evaluation of health education activities?",
+                options: ["Collecting credible data", "Selecting evaluation methods", "Involving people to participate", "Describing the activities"],
+                correct: 2,
+                rationale: "Step 1 is to involve people to participate in the activities, such as community members or key informants."
+            },
+            {
+                id: 6,
+                question: "When documenting patient teaching, which ink color is recommended for legal and reproduction purposes?",
+                options: ["Red or black ink", "Black or blue ink", "Blue or green ink", "Any legible color"],
+                correct: 1,
+                rationale: "The document specifies writing in black or blue ink for legal and reproduction purposes."
+            },
+            {
+                id: 7,
+                question: "Outcome evaluation focuses on long-term changes, such as decreases in mortality or morbidity rates.",
+                options: ["True", "False"],
+                correct: 0,
+                rationale: "'Outcome' usually refers to long-term changes like decreases in mortality, morbidity, or disease prevalence."
+            },
+            {
+                id: 8,
+                question: "Which term describes the systematic collection, analysis, and reporting of information about health education activities?",
+                options: ["Evaluation", "Implementation", "Monitoring", "Diagnosis"],
+                correct: 0,
+                rationale: "This is the verbatim definition of Evaluation provided in the text."
+            },
+            {
+                id: 9,
+                question: "Process evaluation is best described as assessing which aspect of a health program?",
+                options: ["The long-term impact on mortality rates", "The immediate change in patient attitude", "How the implementation work takes place", "The final cost-benefit ratio"],
+                correct: 2,
+                rationale: "Process evaluation is concerned with assessing the process of health education implementation and how the work takes place."
+            },
+            {
+                id: 10,
+                question: "Evaluating your own work guarantees an unbiased assessment of your performance.",
+                options: ["True", "False"],
+                correct: 1,
+                rationale: "The text warns that evaluating your own work may lead to over-appreciating performance and underestimating weaknesses, creating bias."
+            },
+            {
+                id: 11,
+                question: "Which step in the evaluation process involves presenting collected information in a way that gives it meaning?",
+                options: ["Step 2: Describe the activities", "Step 3: Select methods", "Step 5: Analyze the data", "Step 6: Learn from evaluation"],
+                correct: 2,
+                rationale: "Step 5 is 'Analyze the data', which involves presenting the information collected in such a way that it gives meaning."
+            },
+            {
+                id: 12,
+                question: "What is a primary reason for conducting 'process evaluation' while activities are still ongoing?",
+                options: ["To punish staff for poor performance", "To measure long-term mortality rates", "To take corrective action immediately", "To finalize the project budget"],
+                correct: 2,
+                rationale: "Process evaluation provides feedback and the ability to take corrective action while activities are still going on."
+            },
+            {
+                id: 13,
+                question: "Which of the following is listed as a valid method for documenting patient teaching?",
+                options: ["Verbal confirmation only", "Flow-charts and checklists", "Post-it notes on files", "Memory recall"],
+                correct: 1,
+                rationale: "Methods of documentation listed include flow-charts, checklists, care plans, traditional progress notes, or computerized documentation."
+            },
+            {
+                id: 14,
+                question: "Monitoring is typically conducted by external agencies who were not involved in the implementation.",
+                options: ["True", "False"],
+                correct: 1,
+                rationale: "Monitoring is usually conducted by those who carry out the activities, whereas evaluation can be conducted by external bodies."
+            },
+            {
+                id: 15,
+                question: "What is the definition of 'efficiency' in the evaluation process?",
+                options: ["Achieving objectives with available resources", "Achieving the highest possible impact", "Completing the project ahead of schedule", "Gathering the most amount of data"],
+                correct: 0,
+                rationale: "Efficiency means the extent to which you have achieved your objectives with the available amount of resources."
+            },
+            {
+                id: 16,
+                question: "Which action is required to ensure documentation is legally valid and accurate?",
+                options: ["Signing each entry", "Using pencil for corrections", "Writing subjectively", " omitting dates"],
+                correct: 0,
+                rationale: "The 'How to document' section explicitly states to 'Sign each entry'."
+            },
+            {
+                id: 17,
+                question: "Evaluation is a one-time event that occurs only at the end of a program.",
+                options: ["True", "False"],
+                correct: 1,
+                rationale: "The introduction states that evaluation is 'not a one-time event' but a 'continuous process'."
+            },
+            {
+                id: 18,
+                question: "Which data collection method is suggested as potentially more reliable for checking household mosquito net usage?",
+                options: ["Direct observation", "Mailed surveys", "Phone interviews", "Focus groups"],
+                correct: 0,
+                rationale: "The text notes that for mosquito net usage, direct observation might be more reliable than asking someone else."
+            },
+            {
+                id: 19,
+                question: "What is the main focus of the final step (Step 6) in the evaluation of health education activities?",
+                options: ["Selecting the target audience", "Judging achievements and learning", "Collecting raw statistical data", "Planning future budgets"],
+                correct: 1,
+                rationale: "Step 6 is 'Learn from evaluation', which deals with judging achievements and understanding reasons for success or failure."
+            },
+            {
+                id: 20,
+                question: "Why might outcome evaluation be difficult to conduct for a local health educator?",
+                options: ["It requires no external resources", "It relies on measuring long-term changes", "It focuses only on immediate feedback", "It is identical to process evaluation"],
+                correct: 1,
+                rationale: "Outcome evaluation relies on measuring long-term changes (like disease eradication) which can take years and be difficult to track."
+            }
+        ];
+
+        // --- 2. SHUFFLE & RENDER LOGIC (DO NOT EDIT) ---
+        const quizData = rawQuizData.map(q => {
+            const opts = q.options.map((text, i) => ({ text, isCorrect: i === q.correct }));
+            for (let i = opts.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [opts[i], opts[j]] = [opts[j], opts[i]];
+            }
+            return { ...q, options: opts.map(o => o.text), correct: opts.findIndex(o => o.isCorrect) };
+        });
+
+        const container = document.getElementById('quiz-container');
+        let score = 0; let answeredCount = 0;
+
+        function renderQuiz() {
+            document.getElementById('total-display').innerText = `/ ${quizData.length}`;
+            container.innerHTML = quizData.map((q, index) => {
+                return `
+                <div class="card bg-white rounded-xl p-6 mb-6 border border-gray-100">
+                    <div class="flex justify-between items-center mb-4 border-b border-gray-50 pb-3">
+                        <span class="bg-blue-100 text-blue-800 text-xs font-bold px-3 py-1 rounded-full">Question ${index + 1}</span>
+                         ${q.options.length === 2 ? '<span class="bg-purple-100 text-purple-800 text-xs font-bold px-2 py-1 rounded-md">True/False</span>' : ''}
+                    </div>
+                    <h3 class="text-gray-800 font-bold mb-6 text-lg leading-relaxed font-cairo" style="direction: ltr; text-align: left;">${q.question}</h3>
+                    <div class="grid gap-3 ${q.options.length === 2 ? 'grid-cols-2' : ''}">
+                        ${q.options.map((opt, i) => `<button onclick="checkAnswer(${index}, ${i})" class="option-btn option-btn-${index} w-full text-left px-5 py-4 rounded-xl border border-gray-200 hover:bg-blue-50 hover:border-blue-300 focus:outline-none flex items-center justify-between group bg-white"><span class="font-medium text-gray-700 group-hover:text-blue-700 font-sans">${opt}</span></button>`).join('')}
+                    </div>
+                    <div id="feedback-${index}" class="hidden-content mt-6 bg-blue-50 rounded-xl p-5 border border-blue-100 animate-fade-in text-left">
+                        <p class="text-blue-800 text-sm leading-relaxed"><strong>Rationale:</strong> ${q.rationale}</p>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        window.checkAnswer = function(qIndex, optIndex) {
+            const q = quizData[qIndex];
+            const feedback = document.getElementById(`feedback-${qIndex}`);
+            const btns = document.querySelectorAll(`.option-btn-${qIndex}`);
+            if (!feedback.classList.contains('hidden-content')) return;
+            feedback.classList.remove('hidden-content');
+            btns.forEach((btn, i) => {
+                btn.disabled = true;
+                if (i === q.correct) { btn.classList.add('correct-answer'); btn.innerHTML += '<i class="fas fa-check float-right"></i>'; }
+                else if (i === optIndex) { btn.classList.add('wrong-answer'); btn.innerHTML += '<i class="fas fa-times float-right"></i>'; }
+                else { btn.classList.add('opacity-50'); }
+            });
+            if (optIndex === q.correct) score++;
+            answeredCount++;
+            if (answeredCount === quizData.length) {
+                document.getElementById('result-summary').classList.remove('hidden-content');
+                document.getElementById('score-display').innerText = score;
+                document.getElementById('score-message').innerText = (score/quizData.length*100) >= 50 ? "Good Job!" : "Keep Studying";
+                setTimeout(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }), 500);
+            }
+        };
+        renderQuiz();
+    </script>
+</body>
+</html>

@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Noto+Sans:wght@400;600;700&display=swap');
+        body { font-family: 'Noto Sans', 'Cairo', sans-serif; background-color: #f8fafc; }
+        .card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .card:hover { transform: translateY(-4px); box-shadow: 0 12px 20px -5px rgba(0, 0, 0, 0.1); }
+        .correct-answer { background-color: #dcfce7 !important; border-color: #22c55e !important; color: #15803d !important; }
+        .wrong-answer { background-color: #fee2e2 !important; border-color: #ef4444 !important; color: #b91c1c !important; }
+        .hidden-content { display: none; }
+        .option-btn { transition: all 0.2s; }
+        .option-btn:disabled { cursor: default; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
+    </style>
+</head>
+<body class="pb-12 bg-gray-50">
+    <div class="max-w-3xl mx-auto px-4 py-8">
+        <div class="bg-white rounded-2xl shadow-sm p-8 mb-8 text-center border-t-4 border-blue-600 relative overflow-hidden">
+            <div class="absolute top-0 right-0 p-4 opacity-10"><i class="fas fa-user-md text-8xl text-blue-600"></i></div>
+            
+            <h1 class="text-3xl font-bold text-gray-800 mb-2 font-cairo text-center" dir="auto">Health and Human Behaviour</h1>
+            
+            <div class="flex items-center justify-center gap-2 text-green-600 font-semibold bg-green-50 w-fit mx-auto px-4 py-1 rounded-full text-sm">
+                <i class="fas fa-check-circle"></i> "تم صنع هذا الامتحان بواسطة عبدالحليم رزق"
+            </div>
+        </div>
+        <div id="quiz-container"></div>
+        <div id="result-summary" class="hidden-content bg-white rounded-2xl shadow-lg p-8 text-center mt-8 border border-gray-100">
+            <h2 class="text-2xl font-bold text-gray-800">Exam Completed</h2>
+            <div class="mt-4 text-4xl font-bold text-blue-600 mb-2">
+                <span id="score-display">0</span> <span class="text-xl text-gray-400" id="total-display"></span>
+            </div>
+            <p id="score-message" class="text-gray-500 mb-6"></p>
+            <button onclick="location.reload()" class="bg-blue-600 text-white px-8 py-3 rounded-xl hover:bg-blue-700 transition shadow-lg hover:shadow-blue-200">
+                <i class="fas fa-redo mr-2"></i> Restart Exam
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. QUESTIONS ARRAY (GENERATE 50 QUESTIONS HERE) ---
+        const rawQuizData = [
+            {
+                id: 1,
+                question: "What historical event precipitated the development of the Health Belief Model?",
+                options: ["The failure of a free tuberculosis screening program", "The sudden outbreak of the HIV AIDS epidemic", "The need for better diabetic care strategies", "The success of a national immunization campaign"],
+                correct: 0,
+                rationale: "The text states the model was developed in response to the failure of a free tuberculosis (TB) health screening program."
+            },
+            {
+                id: 2,
+                question: "Which domain of behavior is primarily responsible for encoding and storing information?",
+                options: ["The cognitive domain", "The affective domain", "The psychomotor domain", "The physiological domain"],
+                correct: 0,
+                rationale: "The cognitive domain involves knowledge and perception, and functions to encode, store, retrieve, and process information."
+            },
+            {
+                id: 3,
+                question: "Which activity is an example of secondary prevention?",
+                options: ["Using rubber gloves to prevent infection", "Performing a Pap smear for early detection", "Providing rehabilitation for stroke victims", "Teaching a patient how to use insulin"],
+                correct: 1,
+                rationale: "Secondary prevention involves screening interventions that detect asymptomatic disease, such as Pap smears."
+            },
+            {
+                id: 4,
+                question: "When do reinforcing factors typically occur in relation to a behavior?",
+                options: ["Before the behavior takes place", "Subsequent to the behavior", "During the planning phase", "At the initial onset of motivation"],
+                correct: 1,
+                rationale: "Reinforcing factors come subsequent to the behavior and are important for its persistence or repetition."
+            },
+            {
+                id: 5,
+                question: "How does the Health Belief Model define perceived susceptibility?",
+                options: ["One's belief in the efficacy of an advised action", "One's opinion on the tangible costs of an action", "One's perception of the risk of contracting a problem", "One's confidence in their ability to take action"],
+                correct: 2,
+                rationale: "Perceived susceptibility refers to the individual's perception of the risk of contracting a health problem."
+            },
+            {
+                id: 6,
+                question: "Which three elements characterize a specific behavior according to the text?",
+                options: ["Frequency duration and purpose", "Intensity emotion and cognition", "Motivation skill and resources", "Knowledge attitude and belief"],
+                correct: 0,
+                rationale: "Behavior is an action that has specific frequency, duration, and purpose."
+            },
+            {
+                id: 7,
+                question: "Which of the following is considered an enabling factor?",
+                options: ["Personal beliefs about disease", "Availability of health resources", "Feedback from family members", "Attitudes toward health providers"],
+                correct: 1,
+                rationale: "Enabling factors are characteristics of the environment like availability and accessibility of health resources."
+            },
+            {
+                id: 8,
+                question: "What does self-efficacy refer to within the context of health behavior?",
+                options: ["The fear of serious disease consequences", "The confidence in one's ability to take action", "The external reminders to perform a behavior", "The belief that a specific action is beneficial"],
+                correct: 1,
+                rationale: "Self-efficacy is defined as confidence in one's ability to take action."
+            },
+            {
+                id: 9,
+                question: "What is the primary goal of tertiary prevention?",
+                options: ["To forestall the onset of disease", "To detect disease before symptoms appear", "To limit disability from an irreversible condition", "To promote general health through nutrition"],
+                correct: 2,
+                rationale: "Tertiary prevention seeks to limit disability or complication arising from an irreversible condition."
+            },
+            {
+                id: 10,
+                question: "How are values described in the context of predisposing factors?",
+                options: ["As specific rules for daily conduct", "As broad ideas regarding what is desirable", "As verifiable facts about the universe", "As biological determinants of health"],
+                correct: 1,
+                rationale: "Values are broad ideas and widely held assumptions regarding what are desirable, correct, and good."
+            },
+            {
+                id: 11,
+                question: "Why are health education models considered important for program planners?",
+                options: ["They provide a framework for development", "They guarantee funding for health programs", "They eliminate the need for evaluation", "They replace the need for medical intervention"],
+                correct: 0,
+                rationale: "Models can provide a framework for program planners to develop health education programming."
+            },
+            {
+                id: 12,
+                question: "What is the main function of predisposing factors?",
+                options: ["To provide the rationale or motivation", "To facilitate the environmental resources", "To reward the behavior after it occurs", "To remove physical barriers to action"],
+                correct: 0,
+                rationale: "Predisposing factors provide the rationale or motivation for the behavior to occur."
+            },
+            {
+                id: 13,
+                question: "Which of the following represents a perceived barrier in the Health Belief Model?",
+                options: ["Understanding the severity of a disease", "Receiving a reminder postcard from a doctor", "Evaluating the financial cost of a treatment", "Believing that a treatment will be effective"],
+                correct: 2,
+                rationale: "Perceived barriers include tangible and psychological costs, such as financial cost or side effects."
+            },
+            {
+                id: 14,
+                question: "What constitutes the affective domain of behavior?",
+                options: ["Cognition combined with feeling", "Voluntary muscle movement", "Manipulation of information", "Storage of factual knowledge"],
+                correct: 0,
+                rationale: "The affective domain is described as cognition plus feeling, involving attitudes and beliefs."
+            },
+            {
+                id: 15,
+                question: "Which action is classified as primary prevention?",
+                options: ["Administration of tetanus vaccination", "Daily insulin injection for diabetes", "Blood pressure assessment screening", "Use of disability aids for mobility"],
+                correct: 0,
+                rationale: "Primary prevention involves activities to keep people healthy, such as immunizing against specific diseases like tetanus."
+            },
+            {
+                id: 16,
+                question: "What is the purpose of cues to action in the Health Belief Model?",
+                options: ["To reduce the cost of the behavior", "To activate readiness to change", "To increase the severity of the threat", "To analyze demographic variables"],
+                correct: 1,
+                rationale: "Cues to action are strategies used to activate readiness, such as providing how-to information or reminders."
+            },
+            {
+                id: 17,
+                question: "What is the definition of healthy behaviors provided in the text?",
+                options: ["Actions taken to diagnose disease early", "Actions undertaken to prevent disease", "Actions focused solely on treating illness", "Actions that are always unconscious"],
+                correct: 1,
+                rationale: "Healthy behaviors are actions that healthy people undertake to keep themselves or others healthy and prevent disease."
+            },
+            {
+                id: 18,
+                question: "What do social norms specify in a given situation?",
+                options: ["The legal consequences of actions", "The appropriate and inappropriate behavior", "The personal values of an individual", "The biological needs of a community"],
+                correct: 1,
+                rationale: "Norms are social rules that specify appropriate and inappropriate behavior in given situations."
+            },
+            {
+                id: 19,
+                question: "What defines perceived benefits?",
+                options: ["The belief in the efficacy of the advised action", "The conviction that a phenomenon is true", "The understanding of personal susceptibility", "The awareness of disease seriousness"],
+                correct: 0,
+                rationale: "Perceived benefit includes the belief in the efficacy of the advised action to reduce risk."
+            },
+            {
+                id: 20,
+                question: "How are attitudes defined?",
+                options: ["As objective facts about the world", "As evaluative feelings of like or dislike", "As external environmental constraints", "As biologically determined reflexes"],
+                correct: 1,
+                rationale: "Attitudes are evaluative feelings and reflect our likes and dislikes toward an object, person, or situation."
+            },
+            {
+                id: 21,
+                question: "What is the general definition of a model in health education?",
+                options: ["A diagrammatic representation of a phenomenon", "A statistical analysis of population data", "A legal document outlining health policy", "A strict set of rules for medical procedure"],
+                correct: 0,
+                rationale: "A model is defined as the representation of the interaction among concepts or a diagrammatic representation of a phenomenon."
+            },
+            {
+                id: 22,
+                question: "From where is knowledge often derived?",
+                options: ["Exclusively from genetic inheritance", "Collection of information or experience", "Instinctual biological drives", "Unconscious emotional reactions"],
+                correct: 1,
+                rationale: "Knowledge is the collection and storage of information or experience and comes from teachers, books, etc."
+            },
+            {
+                id: 23,
+                question: "What is the focus of the psychomotor domain?",
+                options: ["Analytical thinking skills", "Voluntary muscle action", "Emotional regulation", "Social interaction norms"],
+                correct: 1,
+                rationale: "The psychomotor domain relates to voluntary muscle action (Psycho-mind, Motor-action)."
+            },
+            {
+                id: 24,
+                question: "Perceived severity refers to an individual's perception of what?",
+                options: ["The financial cost of treatment", "The seriousness of a condition", "The likelihood of infection", "The availability of cures"],
+                correct: 1,
+                rationale: "Perceived severity refers to an individual's perception on the potential seriousness of the condition."
+            },
+            {
+                id: 25,
+                question: "Who are listed as key sources of reinforcing factors?",
+                options: ["Genetic ancestors", "Family peers and teachers", "Historical figures", "Anonymous strangers"],
+                correct: 1,
+                rationale: "Important reinforcing factors include family, peers, teachers, employers, and health providers."
+            },
+            {
+                id: 26,
+                question: "According to the text behavior must always be a conscious action to be defined as such.",
+                options: ["True", "False"],
+                correct: 1,
+                rationale: "The text states behavior is an action that has specific frequency, duration, and purpose, whether conscious or unconscious."
+            },
+            {
+                id: 27,
+                question: "Enabling factors are required for a motivation to be realized into action.",
+                options: ["True", "False"],
+                correct: 0,
+                rationale: "The text states that enabling factors are required for a motivation to be realized."
+            },
+            {
+                id: 28,
+                question: "Values explicitly specify exactly which behaviors are acceptable and which are not.",
+                options: ["True", "False"],
+                correct: 1,
+                rationale: "Values are so general and abstract that they do not explicitly specify which behaviors are acceptable."
+            },
+            {
+                id: 29,
+                question: "One aim of the Health Belief Model is to predict patient compliance with therapeutic regimens.",
+                options: ["True", "False"],
+                correct: 0,
+                rationale: "The text lists 'Predict patient compliance with therapeutic regimens' as one of the aims of the model."
+            },
+            {
+                id: 30,
+                question: "Rehabilitation services are considered a component of secondary prevention.",
+                options: ["True", "False"],
+                correct: 1,
+                rationale: "Rehabilitation services are part of tertiary prevention, which seeks to limit disability from established disease."
+            }
+        ];
+
+        // --- 2. SHUFFLE & RENDER LOGIC (DO NOT EDIT) ---
+        const quizData = rawQuizData.map(q => {
+            const opts = q.options.map((text, i) => ({ text, isCorrect: i === q.correct }));
+            for (let i = opts.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [opts[i], opts[j]] = [opts[j], opts[i]];
+            }
+            return { ...q, options: opts.map(o => o.text), correct: opts.findIndex(o => o.isCorrect) };
+        });
+
+        const container = document.getElementById('quiz-container');
+        let score = 0; let answeredCount = 0;
+
+        function renderQuiz() {
+            document.getElementById('total-display').innerText = `/ ${quizData.length}`;
+            container.innerHTML = quizData.map((q, index) => {
+                return `
+                <div class="card bg-white rounded-xl p-6 mb-6 border border-gray-100">
+                    <div class="flex justify-between items-center mb-4 border-b border-gray-50 pb-3">
+                        <span class="bg-blue-100 text-blue-800 text-xs font-bold px-3 py-1 rounded-full">Question ${index + 1}</span>
+                         ${q.options.length === 2 ? '<span class="bg-purple-100 text-purple-800 text-xs font-bold px-2 py-1 rounded-md">True/False</span>' : ''}
+                    </div>
+                    <h3 class="text-gray-800 font-bold mb-6 text-lg leading-relaxed font-cairo" style="direction: ltr; text-align: left;">${q.question}</h3>
+                    <div class="grid gap-3 ${q.options.length === 2 ? 'grid-cols-2' : ''}">
+                        ${q.options.map((opt, i) => `<button onclick="checkAnswer(${index}, ${i})" class="option-btn option-btn-${index} w-full text-left px-5 py-4 rounded-xl border border-gray-200 hover:bg-blue-50 hover:border-blue-300 focus:outline-none flex items-center justify-between group bg-white"><span class="font-medium text-gray-700 group-hover:text-blue-700 font-sans">${opt}</span></button>`).join('')}
+                    </div>
+                    <div id="feedback-${index}" class="hidden-content mt-6 bg-blue-50 rounded-xl p-5 border border-blue-100 animate-fade-in text-left">
+                        <p class="text-blue-800 text-sm leading-relaxed"><strong>Rationale:</strong> ${q.rationale}</p>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        window.checkAnswer = function(qIndex, optIndex) {
+            const q = quizData[qIndex];
+            const feedback = document.getElementById(`feedback-${qIndex}`);
+            const btns = document.querySelectorAll(`.option-btn-${qIndex}`);
+            if (!feedback.classList.contains('hidden-content')) return;
+            feedback.classList.remove('hidden-content');
+            btns.forEach((btn, i) => {
+                btn.disabled = true;
+                if (i === q.correct) { btn.classList.add('correct-answer'); btn.innerHTML += '<i class="fas fa-check float-right"></i>'; }
+                else if (i === optIndex) { btn.classList.add('wrong-answer'); btn.innerHTML += '<i class="fas fa-times float-right"></i>'; }
+                else { btn.classList.add('opacity-50'); }
+            });
+            if (optIndex === q.correct) score++;
+            answeredCount++;
+            if (answeredCount === quizData.length) {
+                document.getElementById('result-summary').classList.remove('hidden-content');
+                document.getElementById('score-display').innerText = score;
+                document.getElementById('score-message').innerText = (score/quizData.length*100) >= 50 ? "Good Job!" : "Keep Studying";
+                setTimeout(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }), 500);
+            }
+        };
+        renderQuiz();
+    </script>
+</body>
+</html>

@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Noto+Sans:wght@400;600;700&display=swap');
+        body { font-family: 'Noto Sans', 'Cairo', sans-serif; background-color: #f8fafc; }
+        .card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .card:hover { transform: translateY(-4px); box-shadow: 0 12px 20px -5px rgba(0, 0, 0, 0.1); }
+        .correct-answer { background-color: #dcfce7 !important; border-color: #22c55e !important; color: #15803d !important; }
+        .wrong-answer { background-color: #fee2e2 !important; border-color: #ef4444 !important; color: #b91c1c !important; }
+        .hidden-content { display: none; }
+        .option-btn { transition: all 0.2s; }
+        .option-btn:disabled { cursor: default; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
+    </style>
+</head>
+<body class="pb-12 bg-gray-50">
+    <div class="max-w-3xl mx-auto px-4 py-8">
+        <div class="bg-white rounded-2xl shadow-sm p-8 mb-8 text-center border-t-4 border-blue-600 relative overflow-hidden">
+            <div class="absolute top-0 right-0 p-4 opacity-10"><i class="fas fa-user-md text-8xl text-blue-600"></i></div>
+            
+            <h1 class="text-3xl font-bold text-gray-800 mb-2 font-cairo text-center" dir="auto">Ethical Dilemma in Nursing</h1>
+            
+            <div class="flex items-center justify-center gap-2 text-green-600 font-semibold bg-green-50 w-fit mx-auto px-4 py-1 rounded-full text-sm">
+                <i class="fas fa-check-circle"></i> "تم صنع هذا الامتحان بواسطة عبدالحليم رزق"
+            </div>
+        </div>
+        <div id="quiz-container"></div>
+        <div id="result-summary" class="hidden-content bg-white rounded-2xl shadow-lg p-8 text-center mt-8 border border-gray-100">
+            <h2 class="text-2xl font-bold text-gray-800">Exam Completed</h2>
+            <div class="mt-4 text-4xl font-bold text-blue-600 mb-2">
+                <span id="score-display">0</span> <span class="text-xl text-gray-400" id="total-display"></span>
+            </div>
+            <p id="score-message" class="text-gray-500 mb-6"></p>
+            <button onclick="location.reload()" class="bg-blue-600 text-white px-8 py-3 rounded-xl hover:bg-blue-700 transition shadow-lg hover:shadow-blue-200">
+                <i class="fas fa-redo mr-2"></i> Restart Exam
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. QUESTIONS ARRAY (40 COMPREHENSIVE QUESTIONS) ---
+        const rawQuizData = [
+            {
+                "question": "What is the primary definition of a dilemma?",
+                "options": [
+                    "A problem requiring a choice between two equally unfavorable options",
+                    "A situation where a clear legal rule dictates the action",
+                    "A conflict between a nurse and a physician regarding care",
+                    "A problem that has a single satisfactory solution"
+                ],
+                "correct": 0,
+                "rationale": "A dilemma is defined as a problem that requires a choice between two options that are equally unfavorable and mutually exclusive."
+            },
+            {
+                "question": "An ethical dilemma often results in which emotional state for nurses?",
+                "options": [
+                    "Moral distress",
+                    "Professional pride",
+                    "Administrative relief",
+                    "Cognitive dissonance"
+                ],
+                "correct": 0,
+                "rationale": "Ethical dilemmas are often accompanied by moral distress, where nurses know the correct action but cannot act due to constraints."
+            },
+            {
+                "question": "Which characteristic of an ethical dilemma involves tension between professional obligations?",
+                "options": [
+                    "Conflict of values",
+                    "Lack of resources",
+                    "External pressure",
+                    "Legal ambiguity"
+                ],
+                "correct": 0,
+                "rationale": "Conflict of values involves tension between professional obligations, such as beneficence and patient autonomy."
+            },
+            {
+                "question": "Uncertainty about what is ethically right or wrong often arises from what?",
+                "options": [
+                    "Insufficient information or unclear policies",
+                    "Excessive staffing and resources",
+                    "Clear and rigid hospital rules",
+                    "Patient compliance with treatment"
+                ],
+                "correct": 0,
+                "rationale": "Uncertainty can arise from insufficient information, unclear policies, or conflicting ethical standards."
+            },
+            {
+                "question": "Which of the following is considered a personal cause of ethical dilemmas?",
+                "options": [
+                    "Lack of knowledge and experience",
+                    "Ineffective leadership style",
+                    "Lack of rules and regulations",
+                    "Staffing shortages"
+                ],
+                "correct": 0,
+                "rationale": "Personal causes include lack of knowledge, experience, inability to take decisions, and ignorance of ethical principles."
+            },
+            {
+                "question": "Lack of resources and stressful work conditions are classified as what type of cause?",
+                "options": [
+                    "Environmental causes",
+                    "Personal causes",
+                    "Administrative causes",
+                    "Specific causes"
+                ],
+                "correct": 0,
+                "rationale": "Environmental causes include lack of resources, culture differences, and stressful work conditions."
+            },
+            {
+                "question": "Ineffective leadership style is an example of which cause category?",
+                "options": [
+                    "Administrative causes",
+                    "Personal causes",
+                    "Environmental causes",
+                    "External causes"
+                ],
+                "correct": 0,
+                "rationale": "Administrative causes include lack of rules, ineffective policy, poor communication, and ineffective leadership style."
+            },
+            {
+                "question": "What defines an internal dilemma?",
+                "options": [
+                    "An issue interfering with the individual's own beliefs",
+                    "A conflict involving the patient's family",
+                    "A problem caused by hospital equipment failure",
+                    "A disagreement between two departments"
+                ],
+                "correct": 0,
+                "rationale": "Internal dilemmas occur when an issue interferes with the individual's own beliefs and practices."
+            },
+            {
+                "question": "External dilemmas typically involve conflict with whom?",
+                "options": [
+                    "Individuals other than the nurse and patient",
+                    "The nurse's own conscience",
+                    "The patient's internal physiology",
+                    "The equipment manufacturers"
+                ],
+                "correct": 0,
+                "rationale": "External dilemmas arise when other individuals apart from the nurse and patient, such as family or friends, are involved."
+            },
+            {
+                "question": "Which organizational factor can force nurses to make quick decisions under pressure?",
+                "options": [
+                    "Workload and staffing shortages",
+                    "Excessive training programs",
+                    "Clear communication channels",
+                    "Strict safety protocols"
+                ],
+                "correct": 0,
+                "rationale": "Workload and staffing shortages can force nurses to make quick decisions under pressure, compromising ethical standards."
+            },
+            {
+                "question": "How do cultural factors influence ethical dilemmas?",
+                "options": [
+                    "Family-centered decisions may conflict with autonomy",
+                    "They always simplify the decision-making process",
+                    "They eliminate the need for informed consent",
+                    "They prevent legal liability issues"
+                ],
+                "correct": 0,
+                "rationale": "Family-centered decision-making in some cultures may conflict with the principle of patient autonomy."
+            },
+            {
+                "question": "Fear of legal liability may lead nurses to prioritize what?",
+                "options": [
+                    "Self-protection over patient advocacy",
+                    "Patient needs over hospital policy",
+                    "Ethical theory over practical law",
+                    "Speed over accuracy"
+                ],
+                "correct": 0,
+                "rationale": "Fear of legal liability may lead some nurses to prioritize self-protection over patient advocacy."
+            },
+            {
+                "question": "Physician-assisted suicide is consistent with the philosophy of nursing according to the ANA.",
+                "options": [
+                    "True",
+                    "False"
+                ],
+                "correct": 1,
+                "rationale": "The American Nurses Association has taken a firm stand that physician-assisted suicide is not consistent with the philosophy of nursing."
+            },
+            {
+                "question": "What allows patients to convey their wishes for end-of-life care?",
+                "options": [
+                    "Advanced directives",
+                    "Hospital bylaws",
+                    "Insurance policies",
+                    "Admission forms"
+                ],
+                "correct": 0,
+                "rationale": "Advanced directives allow people to convey their wishes for end-of-life care."
+            },
+            {
+                "question": "What does a DNR order explicitly instruct?",
+                "options": [
+                    "No measures are to be taken only to sustain life",
+                    "No medication should be administered",
+                    "Patient should be discharged immediately",
+                    "Family members cannot visit"
+                ],
+                "correct": 0,
+                "rationale": "DNR means no measures are to be taken only to sustain the life (do not resuscitate)."
+            },
+            {
+                "question": "Can a nurse ethically refuse to treat a patient based on discrimination (e.g., HIV status)?",
+                "options": [
+                    "No, they must treat all patients",
+                    "Yes, if they fear infection",
+                    "Yes, if they disagree with the lifestyle",
+                    "No, unless the manager agrees"
+                ],
+                "correct": 0,
+                "rationale": "As per nursing ethical principles, a nurse is supposed to provide care for all patients without discrimination."
+            },
+            {
+                "question": "Informed consent is often used as what type of evidence?",
+                "options": [
+                    "Legal evidence",
+                    "Clinical evidence",
+                    "Statistical evidence",
+                    "Financial evidence"
+                ],
+                "correct": 0,
+                "rationale": "Informed consent is a formal permission obtained from the patient and can be used as legal evidence."
+            },
+            {
+                "question": "What is the nurse's duty regarding patient privacy and society's protection?",
+                "options": [
+                    "Maintain patient confidentiality",
+                    "Post details on social media",
+                    "Share records with neighbors",
+                    "Prioritize curiosity over privacy"
+                ],
+                "correct": 0,
+                "rationale": "It is the duty of the nurse to guard the patient's privacy and keep all records confidential."
+            },
+            {
+                "question": "What ethical issue arises in research involving children?",
+                "options": [
+                    "Participation without valid consent",
+                    "Overpayment for participation",
+                    "Excessive medical benefits",
+                    "Too much information given"
+                ],
+                "correct": 0,
+                "rationale": "Ethical issues arise when children are used as subjects without their consent or clear information."
+            },
+            {
+                "question": "The dilemma of 'Patient Freedom Versus Nurse Control' typically involves what scenario?",
+                "options": [
+                    "Patient rejects medical advice causing harm",
+                    "Patient demands expensive treatment",
+                    "Nurse wants to discharge patient early",
+                    "Family wants to visit after hours"
+                ],
+                "correct": 0,
+                "rationale": "This dilemma arises when a patient rejects medical advice and makes a decision that may result in less optimal outcomes."
+            },
+            {
+                "question": "Which document provides direction for ethical decisions by emphasizing professional obligations?",
+                "options": [
+                    "Code of Ethics",
+                    "Nuremberg Code",
+                    "Job description",
+                    "Shift schedule"
+                ],
+                "correct": 0,
+                "rationale": "The Code of Ethics provides direction for ethical decisions and behavior by emphasizing obligations."
+            },
+            {
+                "question": "The Patient's Bill of Rights is enforceable by law.",
+                "options": [
+                    "True",
+                    "False"
+                ],
+                "correct": 0,
+                "rationale": "Observing the Patient's Bill of Rights is not only the right thing to do but is enforceable by law."
+            },
+            {
+                "question": "The Nuremberg Code was established to address what area of ethics?",
+                "options": [
+                    "Research ethics",
+                    "Hospital billing",
+                    "Nursing education",
+                    "Home care rules"
+                ],
+                "correct": 0,
+                "rationale": "It is a set of research ethics principles for human experimentation set because of the Nuremberg trials."
+            },
+            {
+                "question": "Which of the following is a function of the Nursing Ethics Committee?",
+                "options": [
+                    "Identification and resolution of ethical issues",
+                    "Calculating staff payroll",
+                    "Ordering surgical supplies",
+                    "Designing hospital uniforms"
+                ],
+                "correct": 0,
+                "rationale": "Functions include identification, exploration, and resolution of ethical issues in nursing practice."
+            },
+            {
+                "question": "The Nursing Ethics Committee serves as a forum for nurses to do what?",
+                "options": [
+                    "Verbalize viewpoints",
+                    "Complain about salary",
+                    "Plan social events",
+                    "Diagnose patients"
+                ],
+                "correct": 0,
+                "rationale": "It provides a forum for nurses to verbalize their viewpoints without infringing on the views of others."
+            },
+            {
+                "question": "What is the first step in processing an ethical dilemma?",
+                "options": [
+                    "Identify the Ethical Dilemma",
+                    "Make the Decision",
+                    "Gather Information",
+                    "Evaluate Outcome"
+                ],
+                "correct": 0,
+                "rationale": "The first step is to recognize that an ethical issue exists (Identify the Ethical Dilemma)."
+            },
+            {
+                "question": "Which step involves collecting clinical data, patient preferences, and legal standards?",
+                "options": [
+                    "Gather Relevant Information",
+                    "Identify Stakeholders",
+                    "Implement Decision",
+                    "Make Decision"
+                ],
+                "correct": 0,
+                "rationale": "Gathering relevant information includes collecting facts, data, preferences, and policies."
+            },
+            {
+                "question": "Identifying stakeholders involves determining what?",
+                "options": [
+                    "Who will be affected by the decision",
+                    "Who pays the hospital bills",
+                    "Who is the senior doctor",
+                    "Who wrote the policy"
+                ],
+                "correct": 0,
+                "rationale": "Determine who will be affected by the decision-patients, families, healthcare staff, and the institution."
+            },
+            {
+                "question": "Which ethical principle refers to being truthful and faithful to commitments?",
+                "options": [
+                    "Fidelity and Veracity",
+                    "Beneficence",
+                    "Nonmaleficence",
+                    "Justice"
+                ],
+                "correct": 0,
+                "rationale": "Fidelity and Veracity refer to being truthful and faithful to commitments."
+            },
+            {
+                "question": "Evaluating the possible courses of action involves collaboration with whom?",
+                "options": [
+                    "Healthcare team and ethics committee",
+                    "Local media and press",
+                    "Financial auditors",
+                    "Competitor hospitals"
+                ],
+                "correct": 0,
+                "rationale": "Collaboration with the healthcare team, ethics committee, and possibly legal advisors helps clarify complex issues."
+            },
+            {
+                "question": "Making the decision requires selecting the option that aligns with what?",
+                "options": [
+                    "Professional nursing standards",
+                    "Easiest path for staff",
+                    "Lowest financial cost",
+                    "Most popular opinion"
+                ],
+                "correct": 0,
+                "rationale": "The decision should align with professional nursing standards, organizational values, and patient-centered care."
+            },
+            {
+                "question": "What is the purpose of evaluating the outcome after implementation?",
+                "options": [
+                    "To assess results and learn for future practice",
+                    "To assign blame for errors",
+                    "To calculate financial profit",
+                    "To close the patient file permanently"
+                ],
+                "correct": 0,
+                "rationale": "Reflective evaluation strengthens moral reasoning skills and determines if the desired outcome was achieved."
+            },
+            {
+                "question": "Managers should act as role models for ethical decision making.",
+                "options": [
+                    "True",
+                    "False"
+                ],
+                "correct": 0,
+                "rationale": "One manager role is to be a role model for ethical decision making, congruent with the ANA Code of Ethics."
+            },
+            {
+                "question": "Managers should recognize and reward what type of conduct?",
+                "options": [
+                    "Ethical conduct of subordinates",
+                    "Fastest completion of tasks",
+                    "Most overtime hours worked",
+                    "Blind obedience to orders"
+                ],
+                "correct": 0,
+                "rationale": "Managers should recognize and reward ethical conduct of subordinates."
+            },
+            {
+                "question": "What should a manager do when subordinates use unethical conduct?",
+                "options": [
+                    "Take appropriate action",
+                    "Ignore it to avoid conflict",
+                    "Encourage it if profitable",
+                    "Blame the patients"
+                ],
+                "correct": 0,
+                "rationale": "Managers must take appropriate action when subordinates use unethical conduct."
+            },
+            {
+                "question": "Managers must demonstrate what behavior in ethical decision making?",
+                "options": [
+                    "Risk taking",
+                    "Risk avoidance",
+                    "Indecisiveness",
+                    "Secrecy"
+                ],
+                "correct": 0,
+                "rationale": "Managers should demonstrate risk taking in ethical decision making."
+            },
+            {
+                "question": "Managers should advocate for which three groups?",
+                "options": [
+                    "Clients, subordinates, and the profession",
+                    "Doctors, administration, and investors",
+                    "Media, politicians, and public",
+                    "Suppliers, pharmacists, and cleaners"
+                ],
+                "correct": 0,
+                "rationale": "Managers actively advocate for clients, subordinates, and the profession."
+            },
+            {
+                "question": "What is the manager's role regarding policy?",
+                "options": [
+                    "Setting clear policy and procedure",
+                    "Ignoring outdated policies",
+                    "Hiding policies from staff",
+                    "Changing policies daily"
+                ],
+                "correct": 0,
+                "rationale": "Manager roles include setting clear policy and procedure."
+            },
+            {
+                "question": "Reproductive rights dilemmas are often based on what?",
+                "options": [
+                    "Individual core values and beliefs",
+                    "Strict hospital financial goals",
+                    "Universal global agreement",
+                    "Lack of medical technology"
+                ],
+                "correct": 0,
+                "rationale": "The pro-choice vs. pro-life argument is an intensely personal one based on an individual's core set of values and beliefs."
+            },
+            {
+                "question": "The Home Care Bill of Rights includes ethical conduct for whom?",
+                "options": [
+                    "Home care agencies and employees",
+                    "Hospital surgeons only",
+                    "Emergency room staff",
+                    "Pharmacy technicians"
+                ],
+                "correct": 0,
+                "rationale": "It includes ethical conduct expected from home care agencies and their employees when they are in the home."
+            }
+        ];
+
+        // --- 2. SHUFFLE & RENDER LOGIC (DO NOT EDIT) ---
+        const quizData = rawQuizData.map(q => {
+            const opts = q.options.map((text, i) => ({ text, isCorrect: i === q.correct }));
+            for (let i = opts.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [opts[i], opts[j]] = [opts[j], opts[i]];
+            }
+            return { ...q, options: opts.map(o => o.text), correct: opts.findIndex(o => o.isCorrect) };
+        });
+
+        const container = document.getElementById('quiz-container');
+        let score = 0; let answeredCount = 0;
+
+        function renderQuiz() {
+            document.getElementById('total-display').innerText = `/ ${quizData.length}`;
+            container.innerHTML = quizData.map((q, index) => {
+                return `
+                <div class="card bg-white rounded-xl p-6 mb-6 border border-gray-100">
+                    <div class="flex justify-between items-center mb-4 border-b border-gray-50 pb-3">
+                        <span class="bg-blue-100 text-blue-800 text-xs font-bold px-3 py-1 rounded-full">Question ${index + 1}</span>
+                         ${q.options.length === 2 ? '<span class="bg-purple-100 text-purple-800 text-xs font-bold px-2 py-1 rounded-md">True/False</span>' : ''}
+                    </div>
+                    <h3 class="text-gray-800 font-bold mb-6 text-lg leading-relaxed font-cairo" style="direction: ltr; text-align: left;">${q.question}</h3>
+                    <div class="grid gap-3 ${q.options.length === 2 ? 'grid-cols-2' : ''}">
+                        ${q.options.map((opt, i) => `<button onclick="checkAnswer(${index}, ${i})" class="option-btn option-btn-${index} w-full text-left px-5 py-4 rounded-xl border border-gray-200 hover:bg-blue-50 hover:border-blue-300 focus:outline-none flex items-center justify-between group bg-white"><span class="font-medium text-gray-700 group-hover:text-blue-700 font-sans">${opt}</span></button>`).join('')}
+                    </div>
+                    <div id="feedback-${index}" class="hidden-content mt-6 bg-blue-50 rounded-xl p-5 border border-blue-100 animate-fade-in text-left">
+                        <p class="text-blue-800 text-sm leading-relaxed"><strong>Rationale:</strong> ${q.rationale}</p>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        window.checkAnswer = function(qIndex, optIndex) {
+            const q = quizData[qIndex];
+            const feedback = document.getElementById(`feedback-${qIndex}`);
+            const btns = document.querySelectorAll(`.option-btn-${qIndex}`);
+            if (!feedback.classList.contains('hidden-content')) return;
+            feedback.classList.remove('hidden-content');
+            btns.forEach((btn, i) => {
+                btn.disabled = true;
+                if (i === q.correct) { btn.classList.add('correct-answer'); btn.innerHTML += '<i class="fas fa-check float-right"></i>'; }
+                else if (i === optIndex) { btn.classList.add('wrong-answer'); btn.innerHTML += '<i class="fas fa-times float-right"></i>'; }
+                else { btn.classList.add('opacity-50'); }
+            });
+            if (optIndex === q.correct) score++;
+            answeredCount++;
+            if (answeredCount === quizData.length) {
+                document.getElementById('result-summary').classList.remove('hidden-content');
+                document.getElementById('score-display').innerText = score;
+                document.getElementById('score-message').innerText = (score/quizData.length*100) >= 50 ? "Good Job!" : "Keep Studying";
+                setTimeout(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }), 500);
+            }
+        };
+        renderQuiz();
+    </script>
+</body>
+</html>

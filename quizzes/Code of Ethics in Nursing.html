@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Noto+Sans:wght@400;600;700&display=swap');
+        body { font-family: 'Noto Sans', 'Cairo', sans-serif; background-color: #f8fafc; }
+        .card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .card:hover { transform: translateY(-4px); box-shadow: 0 12px 20px -5px rgba(0, 0, 0, 0.1); }
+        .correct-answer { background-color: #dcfce7 !important; border-color: #22c55e !important; color: #15803d !important; }
+        .wrong-answer { background-color: #fee2e2 !important; border-color: #ef4444 !important; color: #b91c1c !important; }
+        .hidden-content { display: none; }
+        .option-btn { transition: all 0.2s; }
+        .option-btn:disabled { cursor: default; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
+    </style>
+</head>
+<body class="pb-12 bg-gray-50">
+    <div class="max-w-3xl mx-auto px-4 py-8">
+        <div class="bg-white rounded-2xl shadow-sm p-8 mb-8 text-center border-t-4 border-blue-600 relative overflow-hidden">
+            <div class="absolute top-0 right-0 p-4 opacity-10"><i class="fas fa-user-md text-8xl text-blue-600"></i></div>
+            
+            <h1 class="text-3xl font-bold text-gray-800 mb-2 font-cairo text-center" dir="auto">Code of Ethics in Nursing</h1>
+            
+            <div class="flex items-center justify-center gap-2 text-green-600 font-semibold bg-green-50 w-fit mx-auto px-4 py-1 rounded-full text-sm">
+                <i class="fas fa-check-circle"></i> "تم صنع هذا الامتحان بواسطة عبدالحليم رزق"
+            </div>
+        </div>
+        <div id="quiz-container"></div>
+        <div id="result-summary" class="hidden-content bg-white rounded-2xl shadow-lg p-8 text-center mt-8 border border-gray-100">
+            <h2 class="text-2xl font-bold text-gray-800">Exam Completed</h2>
+            <div class="mt-4 text-4xl font-bold text-blue-600 mb-2">
+                <span id="score-display">0</span> <span class="text-xl text-gray-400" id="total-display"></span>
+            </div>
+            <p id="score-message" class="text-gray-500 mb-6"></p>
+            <button onclick="location.reload()" class="bg-blue-600 text-white px-8 py-3 rounded-xl hover:bg-blue-700 transition shadow-lg hover:shadow-blue-200">
+                <i class="fas fa-redo mr-2"></i> Restart Exam
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. QUESTIONS ARRAY (40 COMPREHENSIVE QUESTIONS) ---
+        const rawQuizData = [
+            // Definitions & Principles
+            { id: 1, question: "What is the primary function of Nursing Ethics?", options: ["To punish illegal acts", "To guide moral decisions and protect dignity", "To manage hospital budgets", "To create medical laws"], correct: 1, rationale: "Nursing ethics is a fundamental branch that guides nurses in making moral decisions and providing care that respects human dignity." },
+            { id: 2, question: "Which ethical principle obligates the nurse to prevent harm?", options: ["Beneficence", "Non-maleficence", "Veracity", "Justice"], correct: 1, rationale: "Non-maleficence specifically refers to the duty to prevent harm to patients." },
+            { id: 3, question: "True or False: 'Fidelity' in nursing ethics refers to truth-telling.", options: ["True", "False"], correct: 1, rationale: "Fidelity refers to keeping promises and maintaining trust; 'Veracity' is truth-telling." },
+            { id: 4, question: "Which principle promotes fairness and equality in healthcare delivery?", options: ["Autonomy", "Justice", "Fidelity", "Beneficence"], correct: 1, rationale: "Justice is the principle that ensures care is delivered fairly and promotes equality." },
+
+            // History & Development
+            { id: 5, question: "In which year was the Nightingale Pledge created?", options: ["1893", "1950", "1926", "2015"], correct: 0, rationale: "The Nightingale Pledge was created in 1893 as an early informal statement of nursing ethics." },
+            { id: 6, question: "When did the ANA adopt the first formal Code for Professional Nurses?", options: ["1926", "1950", "1968", "1975"], correct: 1, rationale: "The first formal Code for Professional Nurses was adopted by the ANA in 1950." },
+            { id: 7, question: "True or False: The 2025 ANA Code revision added a specific provision regarding global and environmental responsibility.", options: ["True", "False"], correct: 0, rationale: "Provision 10, addressing global health and environmental sustainability, was added in the 2025 revision." },
+            
+            // Structure of the Code
+            { id: 8, question: "What is the purpose of 'interpretive statements' in the Code of Ethics?", options: ["To list penalties", "To clarify how provisions apply in practice", "To summarize the history", "To replace the main provisions"], correct: 1, rationale: "Interpretive statements explain how the main provisions apply in real-life practice and offer guidance for decision-making." },
+            { id: 9, question: "Which characteristic describes the Code as applicable across all specialties and cultures?", options: ["Dynamic", "Hierarchical", "Universal", "Specific"], correct: 2, rationale: "Universal means the code applies across all specialties, cultures, and healthcare systems." },
+
+            // ICN Code Elements
+            { id: 10, question: "Which ICN element focuses on the nurse's primary professional responsibility to people requiring care?", options: ["Nurses and Practice", "Nurses and People", "Nurses and Co-workers", "Nurses and the Profession"], correct: 1, rationale: "The element 'Nurses and People' states the nurse's primary professional responsibility is to people requiring nursing care." },
+            { id: 11, question: "Under 'Nurses and Practice' in the ICN Code, what is the nurse's responsibility regarding technology?", options: ["Ensure it is cost-effective", "Ensure it is compatible with safety and dignity", "Avoid using it", "Develop new devices"], correct: 1, rationale: "The nurse must ensure that the use of technology and scientific advances is compatible with the safety, dignity, and rights of people." },
+            { id: 12, question: "True or False: The ICN element 'Nurses and Co-workers' requires nurses to support co-workers even if they endanger a patient.", options: ["True", "False"], correct: 1, rationale: "The nurse must take appropriate action to safeguard individuals when their health is endangered by a co-worker." },
+            { id: 13, question: "Which ICN element involves creating safe, equitable social and economic working conditions?", options: ["Nurses and Practice", "Nurses and the Profession", "Nurses and People", "Nurses and Co-workers"], correct: 1, rationale: "Under 'Nurses and the Profession', the nurse participates in creating safe and equitable working conditions." },
+
+            // ANA Provisions 1-3 (Values & Patient)
+            { id: 14, question: "What does Provision 1 of the ANA Code emphasize?", options: ["Research advancement", "Compassion and respect for human dignity", "Delegation of tasks", "Global health"], correct: 1, rationale: "Provision 1 states the nurse practices with compassion and respect for the inherent dignity and worth of every person." },
+            { id: 15, question: "According to Provision 2, who is the nurse's primary commitment to?", options: ["The physician", "The patient", "The institution", "The licensing board"], correct: 1, rationale: "Provision 2 states the nurse's primary commitment is to the patient (individual, family, group, or community)." },
+            { id: 16, question: "Provision 3 states the nurse promotes and advocates for what?", options: ["Hospital profits", "The rights, health, and safety of the patient", "Political parties", "Insurance companies"], correct: 1, rationale: "Provision 3 focuses on promoting, advocating for, and protecting the rights, health, and safety of the patient." },
+
+            // ANA Provisions 4-6 (Duty & Accountability)
+            { id: 17, question: "What is the focus of Provision 4?", options: ["Self-care", "Accountability and delegation", "Environment", "Research"], correct: 1, rationale: "Provision 4 states the nurse is responsible and accountable for individual nursing practice and determines appropriate delegation." },
+            { id: 18, question: "True or False: Provision 5 states the nurse owes the same duties to self as to others.", options: ["True", "False"], correct: 0, rationale: "Provision 5 explicitly states the nurse owes the same duties to self as to others, including health, safety, and integrity." },
+            { id: 19, question: "Provision 6 requires the nurse to improve what aspect of the workplace?", options: ["The physical layout", "The ethical environment", "The financial status", "The parking availability"], correct: 1, rationale: "Provision 6 focuses on establishing, maintaining, and improving the ethical environment of the workplace." },
+
+            // ANA Provisions 7-9 (Professional & Societal)
+            { id: 20, question: "How does the nurse advance the profession according to Provision 7?", options: ["By ignoring standards", "Through research and scholarly inquiry", "By working longer hours", "By avoiding education"], correct: 1, rationale: "Provision 7 states the nurse advances the profession through research, scholarly inquiry, and professional standards development." },
+            { id: 21, question: "Provision 8 calls for collaboration to reduce what?", options: ["Health disparities", "Medical staff", "Patient admission", "Treatment options"], correct: 0, rationale: "Provision 8 calls for collaboration to protect human rights, promote health diplomacy, and reduce health disparities." },
+            { id: 22, question: "What must the nursing profession integrate into nursing and health policy according to Provision 9?", options: ["Social justice", "Corporate profit", "Strict discipline", "Isolationism"], correct: 0, rationale: "Provision 9 states the profession must integrate social justice into nursing and health policy." },
+
+            // ANA Provision 10 (Global/Env)
+            { id: 23, question: "What is the key focus of the new Provision 10?", options: ["Digital ethics and environmental sustainability", "Local hospital administration", "Historical record keeping", "Salary negotiation"], correct: 0, rationale: "Provision 10 recognizes global health as a shared responsibility and promotes environmental sustainability and digital ethics." },
+
+            // Patient's Bill of Rights
+            { id: 24, question: "Under the 'Right to Know', what must the hospital provide if a patient does not understand English?", options: ["A dictionary", "An interpreter", "A discharge slip", "A bill"], correct: 1, rationale: "The hospital MUST provide assistance, including an interpreter, if the patient needs help understanding their rights." },
+            { id: 25, question: "True or False: Patients have the right to know the names and positions of the staff caring for them.", options: ["True", "False"], correct: 0, rationale: "The Right to Know includes knowing the names, positions, and functions of hospital staff involved in care." },
+            { id: 26, question: "What does the 'Right to Privacy' explicitly cover?", options: ["Confidentiality of all information and records", "A private room for everyone", "Free internet access", "Hidden cameras"], correct: 0, rationale: "It guarantees privacy while in the hospital and confidentiality of all information and records regarding care." },
+            { id: 27, question: "According to the 'Right to Treatment', care must be free of what?", options: ["Cost", "Unnecessary restraints", "Medicine", "Doctors"], correct: 1, rationale: "Patients have the right to considerate care in a safe environment free of unnecessary restraints." },
+            { id: 28, question: "If a patient refuses treatment, what right do they have regarding the consequences?", options: ["None", "To be told the medical effect of refusal", "To be discharged immediately", "To be forced to pay double"], correct: 1, rationale: "Patients have the right to refuse treatment and be told what effect this may have on their health." },
+
+            // Role of Nurse Manager & Ethics Committees
+            { id: 29, question: "What is the role of the nurse manager regarding the 'Ethical Climate'?", options: ["To create a supportive environment for ethical concerns", "To ignore staff complaints", "To prioritize speed over ethics", "To punish whistleblowers"], correct: 0, rationale: "Nurse managers are responsible for establishing a supportive work environment where nurses feel empowered to raise ethical concerns." },
+            { id: 30, question: "How does a nurse manager act as an 'Ethical Leader'?", options: ["By serving as a role model for integrity", "By delegating all ethical decisions", "By focusing only on budget", "By avoiding conflict"], correct: 0, rationale: "They serve as ethical role models, promoting professional integrity, respect, and fairness." },
+            { id: 31, question: "What is a primary function of Ethics Committees?", options: ["Performing surgery", "Consultation and policy guidance", "Hiring staff", "Billing patients"], correct: 1, rationale: "Ethics committees provide consultation, education, and policy guidance on ethical issues." },
+            { id: 32, question: "True or False: Ethics committees make the final decision for the patient.", options: ["True", "False"], correct: 1, rationale: "They provide consultation and guidance to assist decision-making, but they do not replace the patient's or team's decision-making authority." },
+            { id: 33, question: "Who collaborates to embed ethical standards into organizational policies?", options: ["Nurse managers and ethics committees", "Patients and families", "Insurance agents", "Technicians"], correct: 0, rationale: "Nurse managers and ethics committees work together to embed ethical standards into policies and culture." },
+            { id: 34, question: "Nurse managers play a key role in conflict resolution by using what?", options: ["Coin tosses", "Ethical decision-making models", "Strict authority", "Avoidance"], correct: 1, rationale: "They use ethical decision-making models to resolve dilemmas collaboratively and fairly." },
+
+            // General & Comprehensive
+            { id: 35, question: "What is the definition of 'Ethics'?", options: ["A legal statute", "A set of moral principles guiding behavior", "A hospital rulebook", "A technical skill"], correct: 1, rationale: "Ethics is defined as a set of moral principles that guide behavior and decision-making." },
+            { id: 36, question: "Which right allows a patient to receive an itemized bill?", options: ["Right to Treatment", "Right to Know", "Right to Privacy", "Right to Refuse"], correct: 1, rationale: "The Right to Know includes receiving an itemized bill and explanation of all charges." },
+            { id: 37, question: "True or False: Nursing ethics includes protecting the natural environment.", options: ["True", "False"], correct: 0, rationale: "Both the ICN Code and ANA Provision 10 explicitly include responsibility for protecting the natural environment." },
+            { id: 38, question: "What helps reduce 'moral distress' in nursing?", options: ["Ignoring the problem", "Ethical competence and principles", "Working faster", "Higher pay"], correct: 1, rationale: "Applying ethical principles helps reduce moral distress and enhances professional accountability." },
+            { id: 39, question: "Which ANA revision reduced the number of provisions from 17 to 10?", options: ["1950", "1960", "1968", "2015"], correct: 2, rationale: "The 1968 revision reduced the provisions from 17 to 10 and emphasized dignity and privacy." },
+            { id: 40, question: "True or False: A patient has the right to refuse to take part in research.", options: ["True", "False"], correct: 0, rationale: "The Right to Know explicitly states the patient has the right to refuse to take part in research." }
+        ];
+
+        // --- 2. SHUFFLE & RENDER LOGIC (DO NOT EDIT) ---
+        const quizData = rawQuizData.map(q => {
+            const opts = q.options.map((text, i) => ({ text, isCorrect: i === q.correct }));
+            for (let i = opts.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [opts[i], opts[j]] = [opts[j], opts[i]];
+            }
+            return { ...q, options: opts.map(o => o.text), correct: opts.findIndex(o => o.isCorrect) };
+        });
+
+        const container = document.getElementById('quiz-container');
+        let score = 0; let answeredCount = 0;
+
+        function renderQuiz() {
+            document.getElementById('total-display').innerText = `/ ${quizData.length}`;
+            container.innerHTML = quizData.map((q, index) => {
+                return `
+                <div class="card bg-white rounded-xl p-6 mb-6 border border-gray-100">
+                    <div class="flex justify-between items-center mb-4 border-b border-gray-50 pb-3">
+                        <span class="bg-blue-100 text-blue-800 text-xs font-bold px-3 py-1 rounded-full">Question ${index + 1}</span>
+                         ${q.options.length === 2 ? '<span class="bg-purple-100 text-purple-800 text-xs font-bold px-2 py-1 rounded-md">True/False</span>' : ''}
+                    </div>
+                    <h3 class="text-gray-800 font-bold mb-6 text-lg leading-relaxed font-cairo" style="direction: ltr; text-align: left;">${q.question}</h3>
+                    <div class="grid gap-3 ${q.options.length === 2 ? 'grid-cols-2' : ''}">
+                        ${q.options.map((opt, i) => `<button onclick="checkAnswer(${index}, ${i})" class="option-btn option-btn-${index} w-full text-left px-5 py-4 rounded-xl border border-gray-200 hover:bg-blue-50 hover:border-blue-300 focus:outline-none flex items-center justify-between group bg-white"><span class="font-medium text-gray-700 group-hover:text-blue-700 font-sans">${opt}</span></button>`).join('')}
+                    </div>
+                    <div id="feedback-${index}" class="hidden-content mt-6 bg-blue-50 rounded-xl p-5 border border-blue-100 animate-fade-in text-left">
+                        <p class="text-blue-800 text-sm leading-relaxed"><strong>Rationale:</strong> ${q.rationale}</p>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        window.checkAnswer = function(qIndex, optIndex) {
+            const q = quizData[qIndex];
+            const feedback = document.getElementById(`feedback-${qIndex}`);
+            const btns = document.querySelectorAll(`.option-btn-${qIndex}`);
+            if (!feedback.classList.contains('hidden-content')) return;
+            feedback.classList.remove('hidden-content');
+            btns.forEach((btn, i) => {
+                btn.disabled = true;
+                if (i === q.correct) { btn.classList.add('correct-answer'); btn.innerHTML += '<i class="fas fa-check float-right"></i>'; }
+                else if (i === optIndex) { btn.classList.add('wrong-answer'); btn.innerHTML += '<i class="fas fa-times float-right"></i>'; }
+                else { btn.classList.add('opacity-50'); }
+            });
+            if (optIndex === q.correct) score++;
+            answeredCount++;
+            if (answeredCount === quizData.length) {
+                document.getElementById('result-summary').classList.remove('hidden-content');
+                document.getElementById('score-display').innerText = score;
+                document.getElementById('score-message').innerText = (score/quizData.length*100) >= 50 ? "Good Job!" : "Keep Studying";
+                setTimeout(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }), 500);
+            }
+        };
+        renderQuiz();
+    </script>
+</body>
+</html>

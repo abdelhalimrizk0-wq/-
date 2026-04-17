@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Noto+Sans:wght@400;600;700&display=swap');
+        body { font-family: 'Noto Sans', 'Cairo', sans-serif; background-color: #f8fafc; }
+        .card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .card:hover { transform: translateY(-4px); box-shadow: 0 12px 20px -5px rgba(0, 0, 0, 0.1); }
+        .correct-answer { background-color: #dcfce7 !important; border-color: #22c55e !important; color: #15803d !important; }
+        .wrong-answer { background-color: #fee2e2 !important; border-color: #ef4444 !important; color: #b91c1c !important; }
+        .hidden-content { display: none; }
+        .option-btn { transition: all 0.2s; }
+        .option-btn:disabled { cursor: default; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
+    </style>
+</head>
+<body class="pb-12 bg-gray-50">
+    <div class="max-w-3xl mx-auto px-4 py-8">
+        <div class="bg-white rounded-2xl shadow-sm p-8 mb-8 text-center border-t-4 border-blue-600 relative overflow-hidden">
+            <div class="absolute top-0 right-0 p-4 opacity-10"><i class="fas fa-user-md text-8xl text-blue-600"></i></div>
+            
+            <h1 class="text-3xl font-bold text-gray-800 mb-2 font-cairo text-center" dir="auto">Ethical Principles and Concepts in Nursing Practice</h1>
+            
+            <div class="flex items-center justify-center gap-2 text-green-600 font-semibold bg-green-50 w-fit mx-auto px-4 py-1 rounded-full text-sm">
+                <i class="fas fa-check-circle"></i> "تم صنع هذا الامتحان بواسطة عبدالحليم رزق"
+            </div>
+        </div>
+        <div id="quiz-container"></div>
+        <div id="result-summary" class="hidden-content bg-white rounded-2xl shadow-lg p-8 text-center mt-8 border border-gray-100">
+            <h2 class="text-2xl font-bold text-gray-800">Exam Completed</h2>
+            <div class="mt-4 text-4xl font-bold text-blue-600 mb-2">
+                <span id="score-display">0</span> <span class="text-xl text-gray-400" id="total-display"></span>
+            </div>
+            <p id="score-message" class="text-gray-500 mb-6"></p>
+            <button onclick="location.reload()" class="bg-blue-600 text-white px-8 py-3 rounded-xl hover:bg-blue-700 transition shadow-lg hover:shadow-blue-200">
+                <i class="fas fa-redo mr-2"></i> Restart Exam
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. QUESTIONS ARRAY (40 COMPREHENSIVE QUESTIONS) ---
+        const rawQuizData = [
+            // True/False Questions (6)
+            { id: 1, question: "Ethics provides a formal process for answering questions about what one ought to do.", options: ["True", "False"], correct: 0, rationale: "Ethics offers a formal process for answering the question about what one ought to do in a given situation." },
+            { id: 2, question: "Accountability is a defining feature of professionalism.", options: ["True", "False"], correct: 0, rationale: "The text explicitly states that accountability is a defining feature of professionalism." },
+            { id: 3, question: "Autonomy implies the freedom to make choices without outside control.", options: ["True", "False"], correct: 0, rationale: "Autonomy is the patient's right to self-determination without outside control." },
+            { id: 4, question: "Beneficence requires nurses to actively do good for patients.", options: ["True", "False"], correct: 0, rationale: "Beneficence is the duty to actively do good for patients." },
+            { id: 5, question: "Confidentiality can never be violated under any circumstances.", options: ["True", "False"], correct: 1, rationale: "Confidentiality may be violated if clients indicate harm to themselves/others or give permission." },
+            { id: 6, question: "Justice requires treating individuals differently based on socioeconomic status.", options: ["True", "False"], correct: 1, rationale: "Justice means every individual must be treated equally without regard to variables like socioeconomic status." },
+
+            // Multiple Choice Questions (34)
+            { id: 7, question: "What term refers to the basic standard for what is considered right and wrong based on social influences?", options: ["Ethics", "Moral", "Values", "Law"], correct: 1, rationale: "A moral is based on religious beliefs and social influences and refers to the basic standard for right and wrong." },
+            { id: 8, question: "The term 'Ethics' is derived from which Greek word?", options: ["Ethos", "Autos", "Nomia", "Pathos"], correct: 0, rationale: "Ethics is derived from the Greek term ethos." },
+            { id: 9, question: "Beliefs that are considered very important and influence behavior are known as:", options: ["Laws", "Facts", "Values", "Rights"], correct: 2, rationale: "Values are beliefs that are considered very important and frequently influence an individual's behavior." },
+            { id: 10, question: "What occurs when one must choose between two important things?", options: ["Moral uncertainty", "Values conflict", "Ethical distress", "Legal dispute"], correct: 1, rationale: "Values conflict occurs when one must choose between two things, both of which are important." },
+            { id: 11, question: "The process of considering approaches to resolve ethical issues is called:", options: ["Moral reasoning", "Moral distress", "Ethical indifference", "Legal judgment"], correct: 0, rationale: "Moral reasoning is a process of considering and selecting approaches to resolve ethical issues." },
+            { id: 12, question: "When an individual is unsure which moral principles apply, this is called:", options: ["Moral certainty", "Moral uncertainty", "Ethical clarity", "Value neutrality"], correct: 1, rationale: "Moral uncertainty exists when the individual is unsure which moral principles or values apply." },
+            { id: 13, question: "What is an 'Ethical Situation'?", options: ["A clear legal violation", "A conflict regarding the right thing to do", "A medical emergency", "A standard nursing procedure"], correct: 1, rationale: "An ethical situation occurs when an individual perceives that there is a conflict regarding the right things to do." },
+            { id: 14, question: "A written list of a profession's values and standards of conduct is called:", options: ["Legal statute", "Hospital policy", "Ethics code", "Moral compass"], correct: 2, rationale: "An ethics code is a written list of a profession's values and standards of conduct." },
+            { id: 15, question: "Which concept means that an action or decision can be defended professionally?", options: ["Responsibility", "Accountability", "Authority", "Liability"], correct: 1, rationale: "Accountability means that an action or decision can be defended professionally." },
+            { id: 16, question: "Responsibility is defined as:", options: ["The ability to punish", "An obligation to accomplish a task", "The right to command", "Freedom from duty"], correct: 1, rationale: "Responsibility can be defined as an obligation to accomplish a task." },
+            { id: 17, question: "Speaking on behalf of patients to respect their rights is known as:", options: ["Paternalism", "Advocacy", "Supervision", "Management"], correct: 1, rationale: "Advocacy refers to speaking on behalf of patients to respect their rights." },
+            { id: 18, question: "Which advocacy model views the nurse as a defender of patient rights?", options: ["The right protection model", "The value based decision model", "The respect for patient model", "The bureaucratic model"], correct: 0, rationale: "The right protection model views the nurse as a defender of patients' rights." },
+            { id: 19, question: "Which model helps the patient discuss needs, interests, and choices?", options: ["Right protection model", "Value based decision model", "Paternalistic model", "Legalistic model"], correct: 1, rationale: "The Value based decision model helps the patient discuss needs, interests, and choices." },
+            { id: 20, question: "The 'Respect for Patient Model' emphasizes protecting the patient's:", options: ["Financial assets", "Significant values", "Insurance status", "Social standing"], correct: 1, rationale: "The nurse assumes responsibility for the way in which the patient's significant values are protected." },
+            { id: 21, question: "What is 'Cooperation' in nursing?", options: ["Working alone efficiently", "Active participation with others", "Obeying orders silently", "Ignoring colleagues"], correct: 1, rationale: "Cooperation includes active participation with others to obtain quality care for patient." },
+            { id: 22, question: "Caring is described as what kind of force in nursing?", options: ["Disruptive", "Integrative", "Secondary", "Optional"], correct: 1, rationale: "Caring is considered as an integrative force that organizes and binds all available resources." },
+            { id: 23, question: "Basic laws that guide conduct and behavior are called:", options: ["Suggestions", "Principles", "Options", "Preferences"], correct: 1, rationale: "Principles are basic laws that guide conduct and behavior." },
+            { id: 24, question: "Autonomy comes from 'autos' and 'nomia', meaning:", options: ["Self-rule", "Self-love", "Law-abiding", "Other-ruled"], correct: 0, rationale: "The word autonomy is derived from the Greek autos and nomia, and means self-rule." },
+            { id: 25, question: "Which group is generally thought of as unable to make informed choices?", options: ["The elderly", "The mentally impaired", "The wealthy", "The educated"], correct: 1, rationale: "Children, fetuses, and the mentally impaired are among these groups." },
+            { id: 26, question: "Respect acknowledges the rights of others to:", options: ["Obey commands", "Make their own decisions", "Be silent", "Be superior"], correct: 1, rationale: "It acknowledges the rights of others to make their own decision and to live by their decisions." },
+            { id: 27, question: "The Principle of Utility prioritizes:", options: ["The individual", "The common good", "The wealthy", "The provider"], correct: 1, rationale: "Utility indicates that what is best for the common good outweighs what is best for the individual." },
+            { id: 28, question: "Which principle limits freedom of choice?", options: ["Autonomy", "Paternalism", "Veracity", "Fidelity"], correct: 1, rationale: "Paternalism allows one to make decisions for another, limits freedom of choice." },
+            { id: 29, question: "Paternalism is justified only to:", options: ["Save money", "Keep another person from harm", "Save time", "Enforce rules"], correct: 1, rationale: "Most see it as justified only to keep another person from harm." },
+            { id: 30, question: "Beneficence is the duty to:", options: ["Do no harm", "Actively do good", "Tell the truth", "Be fair"], correct: 1, rationale: "Beneficence is the duty to actively do good for patients." },
+            { id: 31, question: "Non-maleficence is the duty to:", options: ["Do good", "Prevent or avoid doing harm", "Tell the truth", "Keep promises"], correct: 1, rationale: "Non-maleficence is the duty to prevent or avoid doing harm, whether intentional or unintentional." },
+            { id: 32, question: "Treating every individual equally regardless of variables is:", options: ["Beneficence", "Justice", "Autonomy", "Fidelity"], correct: 1, rationale: "Justice: Every individual must be treated equally without regard to age, socioeconomic status, or other variables." },
+            { id: 33, question: "Fidelity implies:", options: ["Loyalty", "Secrecy", "Charity", "Authority"], correct: 0, rationale: "Fidelity: Loyalty: The promise to fulfill all commitments." },
+            { id: 34, question: "Confidentiality means information must:", options: ["Be published", "Remain private", "Be shared with family", "Be destroyed"], correct: 1, rationale: "Anything stated to nurses or health-care providers must remain confidential." },
+            { id: 35, question: "Veracity is the duty to:", options: ["Be kind", "Tell the truth", "Be fast", "Be strong"], correct: 1, rationale: "Veracity: The duty to tell the truth." },
+            { id: 36, question: "Veracity is important for building:", options: ["Wealth", "Trusting relationships", "Hospitals", "Careers"], correct: 1, rationale: "It is an important component of building trusting relationships." },
+            { id: 37, question: "Moral obligation refers to a duty based on:", options: ["Conscience", "Law", "Contract", "Money"], correct: 0, rationale: "Refers to a duty that a person feels they should do based on their own conscience." },
+            { id: 38, question: "In the moral obligation perspective, individuals look at:", options: ["Results", "Intent", "Cost", "Time"], correct: 1, rationale: "He looks at what that person's intent was and not at the results of the action." },
+            { id: 39, question: "Consent must be:", options: ["Coerced", "Voluntary", "Hidden", "Expensive"], correct: 1, rationale: "Consent: A voluntary uncoerced decision." },
+            { id: 40, question: "Informed consent assures protection of the patient's right to:", options: ["Free medicine", "Personal autonomy", "Quick service", "Comfort"], correct: 1, rationale: "It assures the legal protection of a patient's right to personal autonomy." }
+        ];
+
+        // --- 2. SHUFFLE & RENDER LOGIC (DO NOT EDIT) ---
+        const quizData = rawQuizData.map(q => {
+            const opts = q.options.map((text, i) => ({ text, isCorrect: i === q.correct }));
+            for (let i = opts.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [opts[i], opts[j]] = [opts[j], opts[i]];
+            }
+            return { ...q, options: opts.map(o => o.text), correct: opts.findIndex(o => o.isCorrect) };
+        });
+
+        const container = document.getElementById('quiz-container');
+        let score = 0; let answeredCount = 0;
+
+        function renderQuiz() {
+            document.getElementById('total-display').innerText = `/ ${quizData.length}`;
+            container.innerHTML = quizData.map((q, index) => {
+                return `
+                <div class="card bg-white rounded-xl p-6 mb-6 border border-gray-100">
+                    <div class="flex justify-between items-center mb-4 border-b border-gray-50 pb-3">
+                        <span class="bg-blue-100 text-blue-800 text-xs font-bold px-3 py-1 rounded-full">Question ${index + 1}</span>
+                         ${q.options.length === 2 ? '<span class="bg-purple-100 text-purple-800 text-xs font-bold px-2 py-1 rounded-md">True/False</span>' : ''}
+                    </div>
+                    <h3 class="text-gray-800 font-bold mb-6 text-lg leading-relaxed font-cairo" style="direction: ltr; text-align: left;">${q.question}</h3>
+                    <div class="grid gap-3 ${q.options.length === 2 ? 'grid-cols-2' : ''}">
+                        ${q.options.map((opt, i) => `<button onclick="checkAnswer(${index}, ${i})" class="option-btn option-btn-${index} w-full text-left px-5 py-4 rounded-xl border border-gray-200 hover:bg-blue-50 hover:border-blue-300 focus:outline-none flex items-center justify-between group bg-white"><span class="font-medium text-gray-700 group-hover:text-blue-700 font-sans">${opt}</span></button>`).join('')}
+                    </div>
+                    <div id="feedback-${index}" class="hidden-content mt-6 bg-blue-50 rounded-xl p-5 border border-blue-100 animate-fade-in text-left">
+                        <p class="text-blue-800 text-sm leading-relaxed"><strong>Rationale:</strong> ${q.rationale}</p>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        window.checkAnswer = function(qIndex, optIndex) {
+            const q = quizData[qIndex];
+            const feedback = document.getElementById(`feedback-${qIndex}`);
+            const btns = document.querySelectorAll(`.option-btn-${qIndex}`);
+            if (!feedback.classList.contains('hidden-content')) return;
+            feedback.classList.remove('hidden-content');
+            btns.forEach((btn, i) => {
+                btn.disabled = true;
+                if (i === q.correct) { btn.classList.add('correct-answer'); btn.innerHTML += '<i class="fas fa-check float-right"></i>'; }
+                else if (i === optIndex) { btn.classList.add('wrong-answer'); btn.innerHTML += '<i class="fas fa-times float-right"></i>'; }
+                else { btn.classList.add('opacity-50'); }
+            });
+            if (optIndex === q.correct) score++;
+            answeredCount++;
+            if (answeredCount === quizData.length) {
+                document.getElementById('result-summary').classList.remove('hidden-content');
+                document.getElementById('score-display').innerText = score;
+                document.getElementById('score-message').innerText = (score/quizData.length*100) >= 50 ? "Good Job!" : "Keep Studying";
+                setTimeout(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }), 500);
+            }
+        };
+        renderQuiz();
+    </script>
+</body>
+</html>

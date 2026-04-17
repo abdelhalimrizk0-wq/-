@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Noto+Sans:wght@400;600;700&display=swap');
+        body { font-family: 'Noto Sans', 'Cairo', sans-serif; background-color: #f8fafc; }
+        .card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .card:hover { transform: translateY(-4px); box-shadow: 0 12px 20px -5px rgba(0, 0, 0, 0.1); }
+        .correct-answer { background-color: #dcfce7 !important; border-color: #22c55e !important; color: #15803d !important; }
+        .wrong-answer { background-color: #fee2e2 !important; border-color: #ef4444 !important; color: #b91c1c !important; }
+        .hidden-content { display: none; }
+        .option-btn { transition: all 0.2s; }
+        .option-btn:disabled { cursor: default; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
+    </style>
+</head>
+<body class="pb-12 bg-gray-50">
+    <div class="max-w-3xl mx-auto px-4 py-8">
+        <div class="bg-white rounded-2xl shadow-sm p-8 mb-8 text-center border-t-4 border-blue-600 relative overflow-hidden">
+            <div class="absolute top-0 right-0 p-4 opacity-10"><i class="fas fa-user-md text-8xl text-blue-600"></i></div>
+            
+            <h1 class="text-3xl font-bold text-gray-800 mb-2 font-cairo text-center" dir="auto">Unethical & Illegal Aspects in Nursing Practice</h1>
+            
+            <div class="flex items-center justify-center gap-2 text-green-600 font-semibold bg-green-50 w-fit mx-auto px-4 py-1 rounded-full text-sm">
+                <i class="fas fa-check-circle"></i> "تم صنع هذا الامتحان بواسطة عبدالحليم رزق"
+            </div>
+        </div>
+        <div id="quiz-container"></div>
+        <div id="result-summary" class="hidden-content bg-white rounded-2xl shadow-lg p-8 text-center mt-8 border border-gray-100">
+            <h2 class="text-2xl font-bold text-gray-800">Exam Completed</h2>
+            <div class="mt-4 text-4xl font-bold text-blue-600 mb-2">
+                <span id="score-display">0</span> <span class="text-xl text-gray-400" id="total-display"></span>
+            </div>
+            <p id="score-message" class="text-gray-500 mb-6"></p>
+            <button onclick="location.reload()" class="bg-blue-600 text-white px-8 py-3 rounded-xl hover:bg-blue-700 transition shadow-lg hover:shadow-blue-200">
+                <i class="fas fa-redo mr-2"></i> Restart Exam
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. QUESTIONS ARRAY (40 COMPREHENSIVE QUESTIONS) ---
+        const rawQuizData = [
+    {
+        "question": "What is the primary definition of 'Laws' provided in the text?",
+        "options": [
+            "Rules to punish criminals strictly",
+            "Rules to protect people and keep society functioning",
+            "Guidelines for hospital administration only",
+            "Ethical suggestions for medical staff"
+        ],
+        "correct": 1,
+        "rationale": "Laws are defined as the rules to protect people & keep society functioning."
+    },
+    {
+        "question": "Which term describes a wrong committed against a person or property that is also considered a wrong against the public?",
+        "options": [
+            "Tort",
+            "Crime",
+            "Civil dispute",
+            "Contract breach"
+        ],
+        "correct": 1,
+        "rationale": "A crime is a wrong against a person or his property, but the act is considered to be against the public as well."
+    },
+    {
+        "question": "How is a felony punishable according to the classification of crimes?",
+        "options": [
+            "Imprisonment for less than 1 year",
+            "Fines only",
+            "Imprisonment for more than 1 year",
+            "Community service only"
+        ],
+        "correct": 2,
+        "rationale": "A felony is punishable by imprisonment for more than 1 year."
+    },
+    {
+        "question": "Which of the following is an example of a misdemeanor?",
+        "options": [
+            "Rape",
+            "Murder",
+            "A less serious crime punishable by fines or short imprisonment",
+            "A capital offense"
+        ],
+        "correct": 2,
+        "rationale": "Misdemeanors are commonly punishable with fines, with imprisonment for less than 1 year, or both."
+    },
+    {
+        "question": "Civil law is primarily concerned with:",
+        "options": [
+            "Wrongs against the public",
+            "Violation of an individual's rights",
+            "State security matters",
+            "International trade agreements"
+        ],
+        "correct": 1,
+        "rationale": "Civil law relates to legal disputes between private parties and is concerned with violation of individual's rights."
+    },
+    {
+        "question": "Which situation allows for a nurse to be involved under criminal law?",
+        "options": [
+            "Following all hospital policies",
+            "Renewing license on time",
+            "Illegal diversion of drugs",
+            "Accurate documentation"
+        ],
+        "correct": 2,
+        "rationale": "Nurses become involved under criminal law for illegal diversion of drugs, intentional/unintentional deaths, or not renewing licenses."
+    },
+    {
+        "question": "What is a 'Tort'?",
+        "options": [
+            "A criminal act against the government",
+            "A civil wrong committed by one person against another",
+            "A type of nursing contract",
+            "A strict hospital policy"
+        ],
+        "correct": 1,
+        "rationale": "Torts are civil wrongs committed by one person against another."
+    },
+    {
+        "question": "True or False: Intentional torts occur when the outcome was planned, even if the person didn't believe it would be harmful.",
+        "options": [
+            "True",
+            "False"
+        ],
+        "correct": 0,
+        "rationale": "In intentional torts, the outcome was planned, although the person involved may not have believed that the intended outcome would be harmful."
+    },
+    {
+        "question": "Which of the following is classified as an intentional tort?",
+        "options": [
+            "Negligence",
+            "Malpractice",
+            "Invasion of privacy",
+            "Accidental injury"
+        ],
+        "correct": 2,
+        "rationale": "Intentional torts include Assault, Battery, Invasion of privacy, Defamation of character, and False imprisonment."
+    },
+    {
+        "question": "The intentional touching of another person without their consent is defined as:",
+        "options": [
+            "Assault",
+            "Battery",
+            "Defamation",
+            "Negligence"
+        ],
+        "correct": 1,
+        "rationale": "Battery is the intentional touching of another person without his consents."
+    },
+    {
+        "question": "If a nurse threatens to perform a procedure without consent, this is considered:",
+        "options": [
+            "Battery",
+            "Assault",
+            "Libel",
+            "Slander"
+        ],
+        "correct": 1,
+        "rationale": "Assault is the suggestion or threat of battery."
+    },
+    {
+        "question": "Holding a client in a hospital because they cannot pay their bill is an example of:",
+        "options": [
+            "Standard procedure",
+            "False imprisonment",
+            "Invasion of privacy",
+            "Defamation"
+        ],
+        "correct": 1,
+        "rationale": "False imprisonment... may arise... when client is held in a hospital because he cannot pay his bill."
+    },
+    {
+        "question": "Invasion of privacy involves:",
+        "options": [
+            "Touching a patient without consent",
+            "Releasing confidential information without consent",
+            "Threatening a patient",
+            "Failing to renew a license"
+        ],
+        "correct": 1,
+        "rationale": "Invasion of privacy is a wrong in which information given in confidence is released without the knowledge or consent of the client."
+    },
+    {
+        "question": "Defamation of character is defined as:",
+        "options": [
+            "Physical harm to a patient",
+            "Giving out false and injurious information about a client",
+            "Forgetting to document a procedure",
+            "Restraining a patient for safety"
+        ],
+        "correct": 1,
+        "rationale": "The giving out of false and injurious information about a client is called defamation of character."
+    },
+    {
+        "question": "The most common cause of an unintentional tort is:",
+        "options": [
+            "Assault",
+            "Battery",
+            "Negligence",
+            "False imprisonment"
+        ],
+        "correct": 2,
+        "rationale": "The most common cause of an unintentional tort is negligence and malpractice."
+    },
+    {
+        "question": "Negligence is best described as:",
+        "options": [
+            "Intentional harm",
+            "Carelessness or failure to act as a reasonable person would",
+            "Malicious conduct",
+            "A criminal felony"
+        ],
+        "correct": 1,
+        "rationale": "Negligence is the unintentional failure of an individual to perform or not act that a reasonable person would... (Negligence is carelessness)."
+    },
+    {
+        "question": "Which type of negligence results in the death of the patient?",
+        "options": [
+            "Gross negligence",
+            "Criminal negligence",
+            "Contributory negligence",
+            "Minor negligence"
+        ],
+        "correct": 1,
+        "rationale": "Criminal negligence: Occurs when negligence result in death of the patient."
+    },
+    {
+        "question": "What is 'Gross negligence'?",
+        "options": [
+            "Patient contributing to their own injury",
+            "Failure to exercise any care to protect the patient",
+            "A minor administrative error",
+            "Lack of specialized skills"
+        ],
+        "correct": 1,
+        "rationale": "Gross negligence: Occurs when nurse fail to exercise any care to protect patient."
+    },
+    {
+        "question": "Malpractice is specifically defined as negligence by:",
+        "options": [
+            "A layperson",
+            "A specially trained or educated person (professional)",
+            "A criminal",
+            "A minor"
+        ],
+        "correct": 1,
+        "rationale": "Malpractice is the term used to describe negligence by nurses (specially trained persons) in the performance of their duties."
+    },
+    {
+        "question": "Which of the following is a characteristic required to prove negligence?",
+        "options": [
+            "Intent to harm",
+            "Breach of duty",
+            "Criminal background",
+            "Malice"
+        ],
+        "correct": 1,
+        "rationale": "Breach of duty must present that is failure to fulfill the duty according to the standards of the profession."
+    },
+    {
+        "question": "One way to prevent malpractice is 'Self awareness', which means:",
+        "options": [
+            "Ignoring personal weaknesses",
+            "Identifying own deficiencies and improving practice",
+            "Comparing oneself to others constantly",
+            "Avoiding all complex tasks"
+        ],
+        "correct": 1,
+        "rationale": "Self awareness: Through identifying own deficiencies in practice and improving it through self-development."
+    },
+    {
+        "question": "When accepting an assignment, a nurse should:",
+        "options": [
+            "Accept any task given by a doctor",
+            "Assume duties that are within her competence",
+            "Refuse all new tasks",
+            "Perform tasks without training"
+        ],
+        "correct": 1,
+        "rationale": "The nurse should assume duties that are within her competence."
+    },
+    {
+        "question": "Why is documentation essential for legal protection?",
+        "options": [
+            "It looks professional",
+            "Observations and actions not recorded are considered not to have occurred",
+            "It is required for insurance billing only",
+            "It saves time during shifts"
+        ],
+        "correct": 1,
+        "rationale": "For legal purpose, observations and actions that are not recorded consider that it didn't occur."
+    },
+    {
+        "question": "Good documentation should be:",
+        "options": [
+            "Written in pencil",
+            "Subjective and opinionated",
+            "Legible, clear, and signed with full name",
+            "Written using personal abbreviations"
+        ],
+        "correct": 2,
+        "rationale": "Characteristics of good documentation: Based on facts, legible, clearly understood... Signed by full name, dated and timed."
+    },
+    {
+        "question": "True or False: A contract must involve the real consent of the parties.",
+        "options": [
+            "True",
+            "False"
+        ],
+        "correct": 0,
+        "rationale": "A contract must involve real consent of the parties, a valid consideration, a lawful purpose, etc."
+    },
+    {
+        "question": "What is 'Collective Bargaining'?",
+        "options": [
+            "A process where employees negotiate with employers about wages and conditions",
+            "A method of conflict resolution between patients",
+            "A type of nursing shift schedule",
+            "A criminal court procedure"
+        ],
+        "correct": 0,
+        "rationale": "Collective bargaining is a legal process in which representatives of organized employees negotiate with employers about such matters as wages, hours, and conditions."
+    },
+    {
+        "question": "Licensure is a credential that:",
+        "options": [
+            "Guarantees a job",
+            "Authorizes a qualified individual to perform designated skills",
+            "Is optional for nurses",
+            "Is issued by the hospital"
+        ],
+        "correct": 1,
+        "rationale": "Licensure is types of credential provided for by state statues that authorizes qualified individual to perform designated skills."
+    },
+    {
+        "question": "The Occupational Safety and Health Act requires employers to:",
+        "options": [
+            "Pay for all employee meals",
+            "Provide a place of employment free from recognized physical harm",
+            "Hire only licensed staff",
+            "Provide legal defense for staff"
+        ],
+        "correct": 1,
+        "rationale": "This... legislation addresses the requirements of the employer to provide a place of employment that is free from recognized physical harm."
+    },
+    {
+        "question": "The Patient's Bill of Rights protects basic rights such as:",
+        "options": [
+            "Free parking",
+            "Privacy, confidentiality, and informed consent",
+            "Selecting their own nurse",
+            "Unlimited visiting hours"
+        ],
+        "correct": 1,
+        "rationale": "Patient's bill of rights is designed to protect such basic rights as privacy, confidentiality, informed consent, and refusal of treatment."
+    },
+    {
+        "question": "Informed consent requires that:",
+        "options": [
+            "Consent is voluntary and the individual has capacity to consent",
+            "The family consents for the patient always",
+            "The doctor decides what is best",
+            "Consent is obtained after the procedure"
+        ],
+        "correct": 0,
+        "rationale": "Informed consent: the individual has the capacity to consent, consent is voluntary, and the individual receives information."
+    },
+    {
+        "question": "Confidentiality refers to:",
+        "options": [
+            "The right to refuse treatment",
+            "The right to privacy of patient's records",
+            "The right to have visitors",
+            "The right to a second opinion"
+        ],
+        "correct": 1,
+        "rationale": "Confidentiality is the right to privacy of patient's records."
+    },
+    {
+        "question": "What is 'Extended liability' often related to in nursing?",
+        "options": [
+            "Working overtime",
+            "Product liability (equipment)",
+            "Supervising students",
+            "Transporting patients"
+        ],
+        "correct": 1,
+        "rationale": "Extended liability... involves product liability. Equipment and other products fall within the scope of nursing responsibility."
+    },
+    {
+        "question": "Who is primarily responsible for applying legal controls and monitoring employee practice?",
+        "options": [
+            "The patient",
+            "Managers",
+            "The government",
+            "The medical students"
+        ],
+        "correct": 1,
+        "rationale": "Managers are responsible for applying those controls in their own professional practice for monitoring the practice of employees."
+    },
+    {
+        "question": "Common acts of negligence by nurses include:",
+        "options": [
+            "Burns and falls",
+            "Proper medication administration",
+            "Detailed documentation",
+            "Following physician orders"
+        ],
+        "correct": 0,
+        "rationale": "Some of the most common acts of negligence by nurses involve burns, falls, and wrong dosages."
+    },
+    {
+        "question": "True or False: Nursing students are personally liable for their actions in cases of negligence.",
+        "options": [
+            "True",
+            "False"
+        ],
+        "correct": 0,
+        "rationale": "Nursing students are accountable and personally liable for their actions in cases involving alleged negligence."
+    },
+    {
+        "question": "When a student nurse performs an action, the court evaluates it against:",
+        "options": [
+            "The student's grades",
+            "The standard of care",
+            "The hospital's reputation",
+            "The patient's opinion"
+        ],
+        "correct": 1,
+        "rationale": "The court will try to establish the standard of care against which the student's actions will be evaluated."
+    },
+    {
+        "question": "Contributory negligence occurs when:",
+        "options": [
+            "The nurse is at fault",
+            "The hospital is at fault",
+            "The patient contributes to their own injury",
+            "The equipment fails"
+        ],
+        "correct": 2,
+        "rationale": "Contributory negligence: Occur when patient is contributed to his own injury by his own negligence."
+    },
+    {
+        "question": "Which of the following creates liability for defamation of character?",
+        "options": [
+            "Documenting facts accurately",
+            "Discussing a client maliciously with other health care workers",
+            "Reporting a crime",
+            "Testifying in court"
+        ],
+        "correct": 1,
+        "rationale": "A nurse... who discusses a client maliciously with other health care workers... would be liable to a defamation of character suit."
+    },
+    {
+        "question": "True or False: A nurse can share patient information with anyone they choose.",
+        "options": [
+            "True",
+            "False"
+        ],
+        "correct": 1,
+        "rationale": "The nurse must not share it with anyone except other health care workers treating the same client."
+    },
+    {
+        "question": "Which is a key responsibility regarding policies and procedures?",
+        "options": [
+            "Ignoring them to save time",
+            "Working toward keeping them up to date",
+            "Creating new ones daily without approval",
+            "Hiding them from patients"
+        ],
+        "correct": 1,
+        "rationale": "Part of nurse responsibility... is to work toward keeping all of policies and procedures up to date."
+    }
+];
+
+        // --- 2. SHUFFLE & RENDER LOGIC (DO NOT EDIT) ---
+        const quizData = rawQuizData.map(q => {
+            const opts = q.options.map((text, i) => ({ text, isCorrect: i === q.correct }));
+            for (let i = opts.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [opts[i], opts[j]] = [opts[j], opts[i]];
+            }
+            return { ...q, options: opts.map(o => o.text), correct: opts.findIndex(o => o.isCorrect) };
+        });
+
+        const container = document.getElementById('quiz-container');
+        let score = 0; let answeredCount = 0;
+
+        function renderQuiz() {
+            document.getElementById('total-display').innerText = `/ ${quizData.length}`;
+            container.innerHTML = quizData.map((q, index) => {
+                return `
+                <div class="card bg-white rounded-xl p-6 mb-6 border border-gray-100">
+                    <div class="flex justify-between items-center mb-4 border-b border-gray-50 pb-3">
+                        <span class="bg-blue-100 text-blue-800 text-xs font-bold px-3 py-1 rounded-full">Question ${index + 1}</span>
+                         ${q.options.length === 2 ? '<span class="bg-purple-100 text-purple-800 text-xs font-bold px-2 py-1 rounded-md">True/False</span>' : ''}
+                    </div>
+                    <h3 class="text-gray-800 font-bold mb-6 text-lg leading-relaxed font-cairo" style="direction: ltr; text-align: left;">${q.question}</h3>
+                    <div class="grid gap-3 ${q.options.length === 2 ? 'grid-cols-2' : ''}">
+                        ${q.options.map((opt, i) => `<button onclick="checkAnswer(${index}, ${i})" class="option-btn option-btn-${index} w-full text-left px-5 py-4 rounded-xl border border-gray-200 hover:bg-blue-50 hover:border-blue-300 focus:outline-none flex items-center justify-between group bg-white"><span class="font-medium text-gray-700 group-hover:text-blue-700 font-sans">${opt}</span></button>`).join('')}
+                    </div>
+                    <div id="feedback-${index}" class="hidden-content mt-6 bg-blue-50 rounded-xl p-5 border border-blue-100 animate-fade-in text-left">
+                        <p class="text-blue-800 text-sm leading-relaxed"><strong>Rationale:</strong> ${q.rationale}</p>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        window.checkAnswer = function(qIndex, optIndex) {
+            const q = quizData[qIndex];
+            const feedback = document.getElementById(`feedback-${qIndex}`);
+            const btns = document.querySelectorAll(`.option-btn-${qIndex}`);
+            if (!feedback.classList.contains('hidden-content')) return;
+            feedback.classList.remove('hidden-content');
+            btns.forEach((btn, i) => {
+                btn.disabled = true;
+                if (i === q.correct) { btn.classList.add('correct-answer'); btn.innerHTML += '<i class="fas fa-check float-right"></i>'; }
+                else if (i === optIndex) { btn.classList.add('wrong-answer'); btn.innerHTML += '<i class="fas fa-times float-right"></i>'; }
+                else { btn.classList.add('opacity-50'); }
+            });
+            if (optIndex === q.correct) score++;
+            answeredCount++;
+            if (answeredCount === quizData.length) {
+                document.getElementById('result-summary').classList.remove('hidden-content');
+                document.getElementById('score-display').innerText = score;
+                document.getElementById('score-message').innerText = (score/quizData.length*100) >= 50 ? "Good Job!" : "Keep Studying";
+                setTimeout(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }), 500);
+            }
+        };
+        // Shuffle the array of questions to mix topics
+        for (let i = rawQuizData.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [rawQuizData[i], rawQuizData[j]] = [rawQuizData[j], rawQuizData[i]];
+        }
+        renderQuiz();
+    </script>
+</body>
+</html>

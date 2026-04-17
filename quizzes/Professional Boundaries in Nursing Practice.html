@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Noto+Sans:wght@400;600;700&display=swap');
+        body { font-family: 'Noto Sans', 'Cairo', sans-serif; background-color: #f8fafc; }
+        .card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .card:hover { transform: translateY(-4px); box-shadow: 0 12px 20px -5px rgba(0, 0, 0, 0.1); }
+        .correct-answer { background-color: #dcfce7 !important; border-color: #22c55e !important; color: #15803d !important; }
+        .wrong-answer { background-color: #fee2e2 !important; border-color: #ef4444 !important; color: #b91c1c !important; }
+        .hidden-content { display: none; }
+        .option-btn { transition: all 0.2s; }
+        .option-btn:disabled { cursor: default; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
+    </style>
+</head>
+<body class="pb-12 bg-gray-50">
+    <div class="max-w-3xl mx-auto px-4 py-8">
+        <div class="bg-white rounded-2xl shadow-sm p-8 mb-8 text-center border-t-4 border-blue-600 relative overflow-hidden">
+            <div class="absolute top-0 right-0 p-4 opacity-10"><i class="fas fa-user-md text-8xl text-blue-600"></i></div>
+            
+            <h1 class="text-3xl font-bold text-gray-800 mb-2 font-cairo text-center" dir="auto">Professional Boundaries in Nursing Practice</h1>
+            
+            <div class="flex items-center justify-center gap-2 text-green-600 font-semibold bg-green-50 w-fit mx-auto px-4 py-1 rounded-full text-sm">
+                <i class="fas fa-check-circle"></i> "تم صنع هذا الامتحان بواسطة عبدالحليم رزق"
+            </div>
+        </div>
+        <div id="quiz-container"></div>
+        <div id="result-summary" class="hidden-content bg-white rounded-2xl shadow-lg p-8 text-center mt-8 border border-gray-100">
+            <h2 class="text-2xl font-bold text-gray-800">Exam Completed</h2>
+            <div class="mt-4 text-4xl font-bold text-blue-600 mb-2">
+                <span id="score-display">0</span> <span class="text-xl text-gray-400" id="total-display"></span>
+            </div>
+            <p id="score-message" class="text-gray-500 mb-6"></p>
+            <button onclick="location.reload()" class="bg-blue-600 text-white px-8 py-3 rounded-xl hover:bg-blue-700 transition shadow-lg hover:shadow-blue-200">
+                <i class="fas fa-redo mr-2"></i> Restart Exam
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. QUESTIONS ARRAY (GENERATE 40 QUESTIONS HERE) ---
+        const rawQuizData = [
+            { id: 1, question: "What is defined as 'the spaces between the nurse's power and the client's vulnerability'?", options: ["Professional boundaries", "Clinical pathways", "Hospital administration", "Legal statutes"], correct: 0, rationale: "Professional boundaries are defined as the spaces between the nurse's power and the client's vulnerability." },
+            { id: 2, question: "Which term describes the structured, goal-oriented interaction between a nurse and a patient?", options: ["Therapeutic relationship", "Social acquaintance", "Personal friendship", "Casual interaction"], correct: 0, rationale: "The professional-patient relationship (therapeutic relationship) is a structured, goal-oriented interaction." },
+            { id: 3, question: "True or False: Professional boundaries are static and never change.", options: ["True", "False"], correct: 1, rationale: "Professional boundaries are dynamic rather than fixed; they can be crossed unintentionally or violated deliberately." },
+            { id: 4, question: "What is a key distinction between caring and over-involvement?", options: ["Objectivity vs. emotional dependence", "Documentation vs. verbal report", "Day shift vs. night shift", "Inpatient vs. outpatient"], correct: 0, rationale: "Caring maintains objectivity and professional distance, while over-involvement allows emotional dependence or favoritism." },
+            { id: 5, question: "Which behavior is a clear sign of over-involvement?", options: ["Sharing personal secrets", "Explaining a diagnosis", "Listening to concerns", "Providing medication"], correct: 0, rationale: "Frequent or personal self-disclosure and sharing private details are signs of over-involvement." },
+            { id: 6, question: "The 2025 ANA Code of Ethics Provision 1 emphasizes practicing with what?", options: ["Compassion and respect", "Speed and authority", "Distance and silence", "Judgment and criticism"], correct: 0, rationale: "Provision 1 underscores practicing with compassion and respect for every individual." },
+            { id: 7, question: "Which ethical principle involves respecting patient choices?", options: ["Autonomy", "Justice", "Veracity", "Fidelity"], correct: 0, rationale: "Autonomy supports boundary setting by respecting patient choices." },
+            { id: 8, question: "What is the primary consequence of violating confidentiality?", options: ["Breach of trust", "Improved safety", "Better communication", "Faster discharge"], correct: 0, rationale: "Violation of confidentiality is a serious boundary breach that jeopardizes trust and may lead to legal consequences." },
+            { id: 9, question: "True or False: Touch in nursing is always considered a boundary violation.", options: ["True", "False"], correct: 1, rationale: "Touch can be therapeutic (e.g., a comforting hand), but it must be respectful and culturally sensitive." },
+            { id: 10, question: "Which of the following describes a 'dual relationship'?", options: ["Nurse acting as a patient's financial advisor", "Nurse consulting a doctor", "Nurse teaching a student", "Nurse reporting to a manager"], correct: 0, rationale: "A dual relationship occurs when a nurse has another role in the patient's life (e.g., neighbor, financial advisor), which should be avoided." },
+            { id: 11, question: "What is the general rule regarding gifts from patients?", options: ["Accept only modest token gifts", "Accept cash only", "Accept everything to be polite", "Never accept anything"], correct: 0, rationale: "Guidelines suggest accepting only modest, token gifts (with documentation) and refusing large gifts or money." },
+            { id: 12, question: "True or False: It is acceptable to lend money to a patient in need.", options: ["True", "False"], correct: 1, rationale: "Financial boundaries strictly prohibit lending money or accepting repayment from patients." },
+            { id: 13, question: "How should a nurse handle a social media 'friend' request from a patient?", options: ["Decline it", "Accept it immediately", "Accept if they are nice", "Ask the charge nurse"], correct: 0, rationale: "Nurses should decline social media 'friend' requests to maintain professional social boundaries." },
+            { id: 14, question: "Constantly thinking about a patient while off-duty is a sign of which boundary issue?", options: ["Emotional boundary", "Physical boundary", "Financial boundary", "Digital boundary"], correct: 0, rationale: "Constantly thinking about a particular patient beyond work is a sign of emotional boundary issues." },
+            { id: 15, question: "What does 'boundary creep' usually start with?", options: ["Personal disclosure", "Clinical assessment", "Hand hygiene", "Staff meetings"], correct: 0, rationale: "Hungerford's analysis notes that boundary creep often starts via social media or personal disclosure." },
+            { id: 16, question: "Which factor increases the risk of boundary crossing in the work environment?", options: ["High stress and burnout", "Adequate staffing", "Clear policies", "Strong leadership"], correct: 0, rationale: "High workloads, staffing shortages, time pressures, and burnout increase the risk of boundary crossing." },
+            { id: 17, question: "Patient vulnerability creates a power imbalance that places the ethical burden on whom?", options: ["The nurse", "The patient", "The family", "The insurance company"], correct: 0, rationale: "The inherent power imbalance places the ethical burden on the nurse to protect boundaries." },
+            { id: 18, question: "True or False: Cultural norms have no impact on what is considered a boundary violation.", options: ["True", "False"], correct: 1, rationale: "Cultural norms heavily influence what is considered acceptable regarding closeness and communication." },
+            { id: 19, question: "What is a potential legal consequence of a serious boundary violation?", options: ["License revocation", "Written warning", "Transfer to another unit", "Mandatory vacation"], correct: 0, rationale: "Violations can lead to license suspension or revocation and liability for malpractice." },
+            { id: 20, question: "How does a boundary violation affect the patient's trust?", options: ["It undermines trust", "It strengthens trust", "It has no effect", "It builds friendship"], correct: 0, rationale: "Patients may feel betrayed or unsafe, and once trust is broken, it is hard to rebuild." },
+            { id: 21, question: "Which strategy helps a nurse recognize their own emotional triggers?", options: ["Self-awareness and reflection", "Ignoring feelings", "Working double shifts", "Socializing with patients"], correct: 0, rationale: "Regularly reflecting on emotions, triggers, and stress levels helps maintain boundaries." },
+            { id: 22, question: "Who should a nurse consult when in doubt about a boundary situation?", options: ["A supervisor or mentor", "The patient", "The patient's family", "A friend outside work"], correct: 0, rationale: "Seek guidance from mentors, peers, or supervisors when in doubt." },
+            { id: 23, question: "What role does the Nurse Manager play regarding boundaries?", options: ["Modeling appropriate behavior", "Encouraging social connections", "Ignoring minor breaches", "Delegating all ethics"], correct: 0, rationale: "Nurse managers must model appropriate boundary behavior and support staff." },
+            { id: 24, question: "True or False: Ethics guide what should be done, while law enforces what must not be done.", options: ["True", "False"], correct: 0, rationale: "This is a key distinction: ethics provide the 'should', and law provides the prohibition." },
+            { id: 25, question: "Which principle focuses on 'doing good'?", options: ["Beneficence", "Nonmaleficence", "Veracity", "Justice"], correct: 0, rationale: "Beneficence is the ethical principle of acting for the good of the patient." },
+            { id: 26, question: "What is the foundation of the therapeutic relationship?", options: ["Trust", "Sympathy", "Authority", "Efficiency"], correct: 0, rationale: "Trust is explicitly stated as the foundation of the therapeutic relationship." },
+            { id: 27, question: "Keeping patient information within the care team allows for what?", options: ["Safe and trusting care", "Public knowledge", "Social gossip", "Marketing opportunities"], correct: 0, rationale: "Confidentiality ensures a safe, trusting relationship where patients can share sensitive info." },
+            { id: 28, question: "Favoritism involves caring more deeply for whom?", options: ["One specific patient", "All patients equally", "The most critical patient", "The quietest patient"], correct: 0, rationale: "Favoritism is an emotional boundary breach where one patient receives preferential attention." },
+            { id: 29, question: "What should a nurse do if they feel their objectivity is compromised?", options: ["Seek supervision", "Hide it", "Work harder", "Tell the patient"], correct: 0, rationale: "Maintaining boundaries requires reflecting when involvement shifts objectivity and seeking supervision." },
+            { id: 30, question: "Avoiding personal errands for patients protects which boundary?", options: ["Financial/Professional", "Physical", "Digital", "Clinical"], correct: 0, rationale: "Doing personal errands goes beyond the nursing role and risks financial/exploitation issues." },
+            { id: 31, question: "True or False: It is acceptable to message patients on personal social media if it is about their health.", options: ["True", "False"], correct: 1, rationale: "Communications should be kept within institutional platforms; personal messaging is a violation." },
+            { id: 32, question: "What creates pressure to 'shortcut' boundary protocols?", options: ["Chaotic clinical environments", "Strict policies", "Slow days", "Audits"], correct: 0, rationale: "High acuity units and chaotic shifts may push nurses to shortcut boundary protocols." },
+            { id: 33, question: "What helps prevent burnout, thereby reducing boundary risks?", options: ["Self-care and time management", "Overtime", "Skipping breaks", "Isolation"], correct: 0, rationale: "Managing workload, ensuring rest, and self-care prevent exhaustion which makes violations more likely." },
+            { id: 34, question: "Institutional policies should clearly define rules regarding what?", options: ["Gifts and social media", "Lunch menus", "Parking spots", "Uniform color"], correct: 0, rationale: "Organizations must have clear policies on gifts, social media, dual relationships, and confidentiality." },
+            { id: 35, question: "The nurse acts as an advocate. What does this mean?", options: ["Protecting patient rights", "Making decisions for them", "ignoring their wishes", "Controlling their money"], correct: 0, rationale: "In the professional relationship, the nurse assumes the role of advocate for the patient." },
+            { id: 36, question: "What is 'veracity'?", options: ["Truthfulness", "Fairness", "Harm", "Loyalty"], correct: 0, rationale: "Veracity is the ethical principle of being truthful." },
+            { id: 37, question: "Why should nurses avoid visiting patients socially after discharge?", options: ["To prevent role confusion", "It is illegal", "Hospitals forbid it", "Patients dislike it"], correct: 0, rationale: "Social visits can blur the lines between professional and personal relationships." },
+            { id: 38, question: "What helps nurses anticipate boundary challenges?", options: ["Recognizing influencing factors", "Ignoring the context", "Avoiding training", "Working alone"], correct: 0, rationale: "Recognizing factors like stress, values, and vulnerability helps nurses anticipate and prevent issues." },
+            { id: 39, question: "True or False: A nurse's reputation is the only thing damaged by a violation.", options: ["True", "False"], correct: 1, rationale: "Violations damage the nurse's reputation, the institution's reputation, and the profession as a whole." },
+            { id: 40, question: "What promotes a culture where nurses feel safe reporting boundary concerns?", options: ["Psychological safety", "Punitive measures", "Strict hierarchy", "Secrecy"], correct: 0, rationale: "A supportive culture includes psychological safety so nurses feel safe speaking up about potential violations." }
+        ];
+
+        // --- 2. SHUFFLE & RENDER LOGIC (DO NOT EDIT) ---
+        const quizData = rawQuizData.map(q => {
+            const opts = q.options.map((text, i) => ({ text, isCorrect: i === q.correct }));
+            for (let i = opts.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [opts[i], opts[j]] = [opts[j], opts[i]];
+            }
+            return { ...q, options: opts.map(o => o.text), correct: opts.findIndex(o => o.isCorrect) };
+        });
+
+        const container = document.getElementById('quiz-container');
+        let score = 0; let answeredCount = 0;
+
+        function renderQuiz() {
+            document.getElementById('total-display').innerText = `/ ${quizData.length}`;
+            container.innerHTML = quizData.map((q, index) => {
+                return `
+                <div class="card bg-white rounded-xl p-6 mb-6 border border-gray-100">
+                    <div class="flex justify-between items-center mb-4 border-b border-gray-50 pb-3">
+                        <span class="bg-blue-100 text-blue-800 text-xs font-bold px-3 py-1 rounded-full">Question ${index + 1}</span>
+                         ${q.options.length === 2 ? '<span class="bg-purple-100 text-purple-800 text-xs font-bold px-2 py-1 rounded-md">True/False</span>' : ''}
+                    </div>
+                    <h3 class="text-gray-800 font-bold mb-6 text-lg leading-relaxed font-cairo" style="direction: ltr; text-align: left;">${q.question}</h3>
+                    <div class="grid gap-3 ${q.options.length === 2 ? 'grid-cols-2' : ''}">
+                        ${q.options.map((opt, i) => `<button onclick="checkAnswer(${index}, ${i})" class="option-btn option-btn-${index} w-full text-left px-5 py-4 rounded-xl border border-gray-200 hover:bg-blue-50 hover:border-blue-300 focus:outline-none flex items-center justify-between group bg-white"><span class="font-medium text-gray-700 group-hover:text-blue-700 font-sans">${opt}</span></button>`).join('')}
+                    </div>
+                    <div id="feedback-${index}" class="hidden-content mt-6 bg-blue-50 rounded-xl p-5 border border-blue-100 animate-fade-in text-left">
+                        <p class="text-blue-800 text-sm leading-relaxed"><strong>Rationale:</strong> ${q.rationale}</p>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        window.checkAnswer = function(qIndex, optIndex) {
+            const q = quizData[qIndex];
+            const feedback = document.getElementById(`feedback-${qIndex}`);
+            const btns = document.querySelectorAll(`.option-btn-${qIndex}`);
+            if (!feedback.classList.contains('hidden-content')) return;
+            feedback.classList.remove('hidden-content');
+            btns.forEach((btn, i) => {
+                btn.disabled = true;
+                if (i === q.correct) { btn.classList.add('correct-answer'); btn.innerHTML += '<i class="fas fa-check float-right"></i>'; }
+                else if (i === optIndex) { btn.classList.add('wrong-answer'); btn.innerHTML += '<i class="fas fa-times float-right"></i>'; }
+                else { btn.classList.add('opacity-50'); }
+            });
+            if (optIndex === q.correct) score++;
+            answeredCount++;
+            if (answeredCount === quizData.length) {
+                document.getElementById('result-summary').classList.remove('hidden-content');
+                document.getElementById('score-display').innerText = score;
+                document.getElementById('score-message').innerText = (score/quizData.length*100) >= 50 ? "Good Job!" : "Keep Studying";
+                setTimeout(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }), 500);
+            }
+        };
+        renderQuiz();
+    </script>
+</body>
+</html>

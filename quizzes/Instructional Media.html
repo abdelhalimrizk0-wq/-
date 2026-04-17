@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Noto+Sans:wght@400;600;700&display=swap');
+        body { font-family: 'Noto Sans', 'Cairo', sans-serif; background-color: #f8fafc; }
+        .card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .card:hover { transform: translateY(-4px); box-shadow: 0 12px 20px -5px rgba(0, 0, 0, 0.1); }
+        .correct-answer { background-color: #dcfce7 !important; border-color: #22c55e !important; color: #15803d !important; }
+        .wrong-answer { background-color: #fee2e2 !important; border-color: #ef4444 !important; color: #b91c1c !important; }
+        .hidden-content { display: none; }
+        .option-btn { transition: all 0.2s; }
+        .option-btn:disabled { cursor: default; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
+    </style>
+</head>
+<body class="pb-12 bg-gray-50">
+    <div class="max-w-3xl mx-auto px-4 py-8">
+        <div class="bg-white rounded-2xl shadow-sm p-8 mb-8 text-center border-t-4 border-blue-600 relative overflow-hidden">
+            <div class="absolute top-0 right-0 p-4 opacity-10"><i class="fas fa-user-md text-8xl text-blue-600"></i></div>
+            
+            <h1 class="text-3xl font-bold text-gray-800 mb-2 font-cairo text-center" dir="auto">Instructional Media</h1>
+            
+            <div class="flex items-center justify-center gap-2 text-green-600 font-semibold bg-green-50 w-fit mx-auto px-4 py-1 rounded-full text-sm">
+                <i class="fas fa-check-circle"></i> "تم صنع هذا الامتحان بواسطة عبدالحليم رزق"
+            </div>
+        </div>
+        <div id="quiz-container"></div>
+        <div id="result-summary" class="hidden-content bg-white rounded-2xl shadow-lg p-8 text-center mt-8 border border-gray-100">
+            <h2 class="text-2xl font-bold text-gray-800">Exam Completed</h2>
+            <div class="mt-4 text-4xl font-bold text-blue-600 mb-2">
+                <span id="score-display">0</span> <span class="text-xl text-gray-400" id="total-display"></span>
+            </div>
+            <p id="score-message" class="text-gray-500 mb-6"></p>
+            <button onclick="location.reload()" class="bg-blue-600 text-white px-8 py-3 rounded-xl hover:bg-blue-700 transition shadow-lg hover:shadow-blue-200">
+                <i class="fas fa-redo mr-2"></i> Restart Exam
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. QUESTIONS ARRAY (GENERATE 30 QUESTIONS HERE) ---
+        const rawQuizData = [
+            {
+                id: 1,
+                question: "Which of the following best describes the primary purpose of instructional media in a classroom setting?",
+                options: ["To replace the teacher entirely", "To facilitate student achievement of objectives", "To entertain students during breaks", "To reduce the amount of content taught"],
+                correct: 1,
+                rationale: "Instructional media encompasses materials and physical means used to implement instruction and facilitate students' achievement of instructional objectives."
+            },
+            {
+                id: 2,
+                question: "What is a key disadvantage of using audio media for revision purposes?",
+                options: ["It is expensive to produce", "It is hard to rewind to specific parts", "It requires a dark room", "It is heavy to transport"],
+                correct: 1,
+                rationale: "A specific disadvantage of audio media is that it is hard to revise or rewind to specific parts, unlike written materials where scanning is easier."
+            },
+            {
+                id: 3,
+                question: "Multimedia is strictly limited to the use of text and audio content.",
+                options: ["True", "False"],
+                correct: 1,
+                rationale: "Multimedia combines five basic types of media: text, video, sound, graphics, and animation."
+            },
+            {
+                id: 4,
+                question: "Which category of media includes items such as globes, models, and puppets?",
+                options: ["Projected still media", "Visual non-projected three-dimensional media", "Visual non-projected two-dimensional media", "Audio-visual projected motion media"],
+                correct: 1,
+                rationale: "Models, mock-ups, globes, and puppets are classified as visual non-projected three-dimensional media."
+            },
+            {
+                id: 5,
+                question: "Which of the following is considered an advantage of using visual media over text alone?",
+                options: ["It costs significantly less", "It is easier to edit", "It increases retention rates", "It requires less preparation time"],
+                correct: 2,
+                rationale: "Visual media increases retention because information presented in a visual format has a greater chance of being remembered than text alone."
+            },
+            {
+                id: 6,
+                question: "What is a common characteristic of projected media?",
+                options: ["It requires a light source for projection", "It is always three-dimensional", "It relies solely on auditory senses", "It does not require any hardware"],
+                correct: 0,
+                rationale: "Projected media are usually a combination of software and hardware that require a light source for projection onto a screen or wall."
+            },
+            {
+                id: 7,
+                question: "Which emerging media technology allows for the creation of physical objects from digital designs?",
+                options: ["Augmented Reality", "Holographic Displays", "3D Printing", "Machine Learning"],
+                correct: 2,
+                rationale: "3D Printing is listed as a new emerging media that allows for the creation of physical objects."
+            },
+            {
+                id: 8,
+                question: "Audio media is an effective tool for students with hearing impairments.",
+                options: ["True", "False"],
+                correct: 1,
+                rationale: "Audio media is not suitable for students with hearing impairments, creating an accessibility barrier."
+            },
+            {
+                id: 9,
+                question: "How does instructional media help with concepts that are distant in space or time?",
+                options: ["It brings them into the classroom", "It makes them irrelevant to the curriculum", "It replaces them with abstract theory", "It delays the need to study them"],
+                correct: 0,
+                rationale: "One of the benefits of media is that it brings things which are far either in space or time to the classroom."
+            },
+            {
+                id: 10,
+                question: "Which of the following is an example of print media?",
+                options: ["Filmstrips", "Workbooks", "Slides", "Television"],
+                correct: 1,
+                rationale: "Print media includes books, journals, magazines, newspapers, workbooks, and textbooks."
+            },
+            {
+                id: 11,
+                question: "What is a potential negative consequence of overreliance on audio-visual aids?",
+                options: ["Students become too independent", "Teachers may neglect other teaching methods", "The equipment becomes cheaper", "Classroom discipline improves automatically"],
+                correct: 1,
+                rationale: "A disadvantage is overreliance, where teachers may rely too heavily on AV aids rather than using a balanced approach."
+            },
+            {
+                id: 12,
+                question: "Which specific skill does audio media help to sharpen?",
+                options: ["Writing skills", "Listening skills", "Drawing skills", "Reading speed"],
+                correct: 1,
+                rationale: "Audio media helps sharpen students' listening skills by training them to focus and understand spoken information."
+            },
+            {
+                id: 13,
+                question: "Projected media always requires a screen or wall for display.",
+                options: ["True", "False"],
+                correct: 0,
+                rationale: "Projected media belong to a group of instructional resources which can only be accessed by means of projecting their content on a screen or wall."
+            },
+            {
+                id: 14,
+                question: "Which of the following represents a 'multimedia package'?",
+                options: ["A single textbook", "A silent filmstrip", "Slide plus tape plus workbook", "A solitary audio cassette"],
+                correct: 2,
+                rationale: "Multimedia packages combine more than one sense or media type, such as 'Slide + tape + workbook'."
+            },
+            {
+                id: 15,
+                question: "What differentiates educational media from general media?",
+                options: ["It is always digital", "It carries messages with an instructional purpose", "It is only used for entertainment", "It does not use any technology"],
+                correct: 1,
+                rationale: "Educational media refers to channels of communication that carry messages with an instructional purpose."
+            },
+            {
+                id: 16,
+                question: "Which of the following is a disadvantage of creating high-quality visuals?",
+                options: ["They are difficult to transport", "They reduce student engagement", "They can be costly and time-consuming", "They are incompatible with textbooks"],
+                correct: 2,
+                rationale: "Creating high-quality visuals can be costly and time-consuming, especially for organizations with limited resources."
+            },
+            {
+                id: 17,
+                question: "The term 'Radio vision' refers to which combination of media?",
+                options: ["Radio and television", "Radio and slides or posters", "Radio and workbook", "Radio and computer software"],
+                correct: 1,
+                rationale: "Radio vision is classified as a multimedia package consisting of Radio + slide or posters."
+            },
+            {
+                id: 18,
+                question: "Visual media helps to improve clarity by reinforcing the message.",
+                options: ["True", "False"],
+                correct: 0,
+                rationale: "Using visuals to reinforce a message improves clarity and ensures viewers understand the point being made."
+            },
+            {
+                id: 19,
+                question: "Which type of media appeals to the auditory sense alone?",
+                options: ["Visual media", "Audio media", "Audio-visual media", "Projected media"],
+                correct: 1,
+                rationale: "Audio media are teaching-learning devices that appeal to the auditory sense and carry sounds."
+            },
+            {
+                id: 20,
+                question: "What is a major benefit of audio media regarding the location of learning?",
+                options: ["It requires a specialized laboratory", "It makes learning portable", "It restricts learning to the classroom", "It requires large equipment"],
+                correct: 1,
+                rationale: "Audio media makes learning portable, allowing students to learn anywhere and anytime."
+            },
+            {
+                id: 21,
+                question: "Which of the following is an example of visual non-projected two-dimensional media?",
+                options: ["A globe", "A puppet", "A poster", "A slide"],
+                correct: 2,
+                rationale: "Posters, charts, and graphs are examples of visual non-projected two-dimensional media."
+            },
+            {
+                id: 22,
+                question: "Audio-visual aids are immune to technical malfunctions.",
+                options: ["True", "False"],
+                correct: 1,
+                rationale: "A disadvantage of AV aids is that equipment can be prone to malfunctions or technical issues."
+            },
+            {
+                id: 23,
+                question: "Which device is used to present projected-still visuals?",
+                options: ["Record player", "Overhead projector", "Radio", "Gramophone"],
+                correct: 1,
+                rationale: "Overhead transparencies and slides are projected-still visuals that require projection equipment."
+            },
+            {
+                id: 24,
+                question: "Which of the following best defines 'Multimedia'?",
+                options: ["A single form of media used repeatedly", "A combination of text, audio, images, and video", "A method of printing books rapidly", "A system for audio recording only"],
+                correct: 1,
+                rationale: "Multimedia includes a combination of text, audio, still images, animation, video, or interactivity content forms."
+            },
+            {
+                id: 25,
+                question: "What is a disadvantage of audio media regarding sensory engagement?",
+                options: ["It overloads the visual sense", "It engages only the auditory sense", "It requires tactile interaction", "It distracts from listening"],
+                correct: 1,
+                rationale: "Audio media engages only the auditory sense, leaving out visual or tactile learning experiences."
+            },
+            {
+                id: 26,
+                question: "Which media type includes television and video cassettes?",
+                options: ["Visual projected-still", "Audio-visual projected-motion", "Visual non-projected", "Audio media"],
+                correct: 1,
+                rationale: "Television and video cassettes are classified under Audio-visual (projected-motion) media."
+            },
+            {
+                id: 27,
+                question: "How does the use of media affect teaching efficiency?",
+                options: ["It decreases efficiency by adding steps", "It improves efficiency through illustrating points", "It has no impact on efficiency", "It complicates the lesson unnecessarily"],
+                correct: 1,
+                rationale: "One of the benefits of using media is that it improves the efficiency of teaching through illustrating points."
+            },
+            {
+                id: 28,
+                question: "Non-projected media requires a light source to be viewed.",
+                options: ["True", "False"],
+                correct: 1,
+                rationale: "Non-projected media do not require any projection on a screen and do not require a light source."
+            },
+            {
+                id: 29,
+                question: "Which of the following is NOT listed as a benefit of using media?",
+                options: ["Saves teaching time", "Helps memory", "Eliminates the need for a teacher", "Arouses interest"],
+                correct: 2,
+                rationale: "Eliminating the need for a teacher is not a benefit; media is a tool used *by* teachers to facilitate instruction."
+            },
+            {
+                id: 30,
+                question: "Which emerging media allows users to experience a simulated environment?",
+                options: ["Social Networks", "Virtual Reality", "Tablet Computing", "3D Printing"],
+                correct: 1,
+                rationale: "Virtual Reality (and Augmented Reality) is listed as a new emerging media for simulated experiences."
+            }
+        ];
+
+        // --- 2. SHUFFLE & RENDER LOGIC (DO NOT EDIT) ---
+        const quizData = rawQuizData.map(q => {
+            const opts = q.options.map((text, i) => ({ text, isCorrect: i === q.correct }));
+            for (let i = opts.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [opts[i], opts[j]] = [opts[j], opts[i]];
+            }
+            return { ...q, options: opts.map(o => o.text), correct: opts.findIndex(o => o.isCorrect) };
+        });
+
+        const container = document.getElementById('quiz-container');
+        const totalDisplay = document.getElementById('total-display');
+        let score = 0; let answeredCount = 0;
+
+        function renderQuiz() {
+            totalDisplay.innerText = `/ ${quizData.length}`;
+            container.innerHTML = quizData.map((q, index) => {
+                return `
+                <div class="card bg-white rounded-xl p-6 mb-6 border border-gray-100">
+                    <div class="flex justify-between items-center mb-4 border-b border-gray-50 pb-3">
+                        <span class="bg-blue-100 text-blue-800 text-xs font-bold px-3 py-1 rounded-full">Question ${index + 1}</span>
+                         ${q.options.length === 2 ? '<span class="bg-purple-100 text-purple-800 text-xs font-bold px-2 py-1 rounded-md">True/False</span>' : ''}
+                    </div>
+                    <h3 class="text-gray-800 font-bold mb-6 text-lg leading-relaxed font-cairo" style="direction: ltr; text-align: left;">${q.question}</h3>
+                    <div class="grid gap-3 ${q.options.length === 2 ? 'grid-cols-2' : ''}">
+                        ${q.options.map((opt, i) => `<button onclick="checkAnswer(${index}, ${i})" class="option-btn option-btn-${index} w-full text-left px-5 py-4 rounded-xl border border-gray-200 hover:bg-blue-50 hover:border-blue-300 focus:outline-none flex items-center justify-between group bg-white"><span class="font-medium text-gray-700 group-hover:text-blue-700 font-sans">${opt}</span></button>`).join('')}
+                    </div>
+                    <div id="feedback-${index}" class="hidden-content mt-6 bg-blue-50 rounded-xl p-5 border border-blue-100 animate-fade-in text-left">
+                        <p class="text-blue-800 text-sm leading-relaxed"><strong>Rationale:</strong> ${q.rationale}</p>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        window.checkAnswer = function(qIndex, optIndex) {
+            const q = quizData[qIndex];
+            const feedback = document.getElementById(`feedback-${qIndex}`);
+            const btns = document.querySelectorAll(`.option-btn-${qIndex}`);
+            if (!feedback.classList.contains('hidden-content')) return;
+            feedback.classList.remove('hidden-content');
+            btns.forEach((btn, i) => {
+                btn.disabled = true;
+                if (i === q.correct) { btn.classList.add('correct-answer'); btn.innerHTML += '<i class="fas fa-check float-right"></i>'; }
+                else if (i === optIndex) { btn.classList.add('wrong-answer'); btn.innerHTML += '<i class="fas fa-times float-right"></i>'; }
+                else { btn.classList.add('opacity-50'); }
+            });
+            if (optIndex === q.correct) score++;
+            answeredCount++;
+            if (answeredCount === quizData.length) {
+                document.getElementById('result-summary').classList.remove('hidden-content');
+                document.getElementById('score-display').innerText = score;
+                document.getElementById('score-message').innerText = (score/quizData.length*100) >= 50 ? "Good Job!" : "Keep Studying";
+                setTimeout(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }), 500);
+            }
+        };
+        renderQuiz();
+    </script>
+</body>
+</html>

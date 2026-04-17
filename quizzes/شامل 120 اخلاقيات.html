@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Noto+Sans:wght@400;600;700&display=swap');
+        body { font-family: 'Noto Sans', 'Cairo', sans-serif; background-color: #f8fafc; }
+        .card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .card:hover { transform: translateY(-4px); box-shadow: 0 12px 20px -5px rgba(0, 0, 0, 0.1); }
+        .correct-answer { background-color: #dcfce7 !important; border-color: #22c55e !important; color: #15803d !important; }
+        .wrong-answer { background-color: #fee2e2 !important; border-color: #ef4444 !important; color: #b91c1c !important; }
+        .hidden-content { display: none; }
+        .option-btn { transition: all 0.2s; }
+        .option-btn:disabled { cursor: default; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
+    </style>
+</head>
+<body class="pb-12 bg-gray-50">
+    <div class="max-w-3xl mx-auto px-4 py-8">
+        <div class="bg-white rounded-2xl shadow-sm p-8 mb-8 text-center border-t-4 border-blue-600 relative overflow-hidden">
+            <div class="absolute top-0 right-0 p-4 opacity-10"><i class="fas fa-user-md text-8xl text-blue-600"></i></div>
+            
+            <h1 class="text-3xl font-bold text-gray-800 mb-2 font-cairo text-center" dir="auto"> Ethics شامل</h1>
+            
+            <div class="flex items-center justify-center gap-2 text-green-600 font-semibold bg-green-50 w-fit mx-auto px-4 py-1 rounded-full text-sm">
+                <i class="fas fa-check-circle"></i> "تم صنع هذا الامتحان بواسطة عبدالحليم رزق"
+            </div>
+        </div>
+        <div id="quiz-container"></div>
+        <div id="result-summary" class="hidden-content bg-white rounded-2xl shadow-lg p-8 text-center mt-8 border border-gray-100">
+            <h2 class="text-2xl font-bold text-gray-800">Exam Completed</h2>
+            <div class="mt-4 text-4xl font-bold text-blue-600 mb-2">
+                <span id="score-display">0</span> <span class="text-xl text-gray-400" id="total-display"></span>
+            </div>
+            <p id="score-message" class="text-gray-500 mb-6"></p>
+            <button onclick="location.reload()" class="bg-blue-600 text-white px-8 py-3 rounded-xl hover:bg-blue-700 transition shadow-lg hover:shadow-blue-200">
+                <i class="fas fa-redo mr-2"></i> Restart Exam
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. QUESTIONS ARRAY (GENERATE 120 QUESTIONS HERE) ---
+        const rawQuizData = [
+            // --- MCQs (100 Questions) ---
+            { id: 1, question: "What is the primary definition of ethics in the context of healthcare?", options: ["A system of moral principles governing behavior", "A set of laws created by the government", "A collection of cultural traditions", "A guide for maximizing financial profit"], correct: 0, rationale: "Ethics is defined as a system of moral principles that includes ideas about right and wrong and how people should behave." },
+            { id: 2, question: "Which ethical principle refers to the duty to do good for patients?", options: ["Non-maleficence", "Beneficence", "Veracity", "Justice"], correct: 1, rationale: "Beneficence is the duty to actively do good for patients and assist them in meeting their needs." },
+            { id: 3, question: "What term describes the space between a nurse's power and a client's vulnerability?", options: ["Professional boundary", "Ethical dilemma", "Legal precedent", "Cultural diversity"], correct: 0, rationale: "Professional boundaries are defined as the spaces between the nurse's power and the client's vulnerability." },
+            { id: 4, question: "Which dimension of diversity includes inborn differences like age and race?", options: ["Primary dimension", "Secondary dimension", "Tertiary dimension", "Quaternary dimension"], correct: 0, rationale: "Primary dimensions of diversity include inborn differences that have an impact throughout one's life, such as age, ethnicity, and race." },
+            { id: 5, question: "What is the first step in the ethical decision-making process?", options: ["Gather information", "Identify the decision", "Weigh the evidence", "Take action"], correct: 1, rationale: "The first step is to identify the decision, clarifying the problem or opportunity where a decision is needed." },
+            { id: 6, question: "Which tort involves the intentional touching of another person without consent?", options: ["Assault", "Battery", "Negligence", "Defamation"], correct: 1, rationale: "Battery is the intentional touching of another person without their consent." },
+            { id: 7, question: "Who is often referred to as the founder of modern nursing ethics?", options: ["Clara Barton", "Florence Nightingale", "Dorothea Dix", "Mary Breckinridge"], correct: 1, rationale: "The history of nursing ethics can be traced back to the work of Florence Nightingale." },
+            { id: 8, question: "Which ethical principle implies the freedom to make choices about one's own care?", options: ["Fidelity", "Autonomy", "Utility", "Justice"], correct: 1, rationale: "Autonomy implies the freedom to make choices and decisions about one's own care without interference." },
+            { id: 9, question: "What type of law relates to legal disputes between private parties?", options: ["Criminal law", "Civil law", "Martial law", "International law"], correct: 1, rationale: "Civil law relates to legal disputes between private parties and is concerned with the violation of individual rights." },
+            { id: 10, question: "Which organization developed the Code of Ethics for Nurses?", options: ["World Health Organization", "American Medical Association", "American Nurses Association", "Red Cross"], correct: 2, rationale: "The American Nurses Association (ANA) developed the Code of Ethics to guide the nursing profession." },
+            { id: 11, question: "What constitutes a 'felony' in legal terms?", options: ["A crime punishable by imprisonment for more than 1 year", "A crime punishable by fines only", "A minor traffic violation", "A civil dispute between neighbors"], correct: 0, rationale: "A felony is a serious crime punishable by imprisonment for more than 1 year." },
+            { id: 12, question: "What is the term for a situation where one must choose between two equally unfavorable options?", options: ["Dilemma", "Opportunity", "Resolution", "Advantage"], correct: 0, rationale: "A dilemma is a problem that requires a choice between two options that are equally unfavorable and mutually exclusive." },
+            { id: 13, question: "Which concept refers to speaking on behalf of patients to respect their rights?", options: ["Accountability", "Advocacy", "Confidentiality", "Veracity"], correct: 1, rationale: "Advocacy refers to speaking on behalf of patients to respect their rights and help them obtain needed services." },
+            { id: 14, question: "What is 'moral distress' in nursing?", options: ["Knowing the right action but being unable to act due to constraints", "Not knowing which ethical principle applies", "Feeling physically tired after a shift", "Disliking a specific patient"], correct: 0, rationale: "Moral distress occurs when nurses know the ethically correct action but are unable to act due to constraints." },
+            { id: 15, question: "Which element is considered a secondary dimension of diversity?", options: ["Race", "Gender", "Education", "Age"], correct: 2, rationale: "Secondary dimensions include elements that can be acquired or changed, such as education and socioeconomic status." },
+            { id: 16, question: "What does 'non-maleficence' mean?", options: ["Duty to do good", "Duty to do no harm", "Duty to tell the truth", "Duty to be fair"], correct: 1, rationale: "Non-maleficence is the duty to prevent or avoid doing harm, whether intentional or unintentional." },
+            { id: 17, question: "What is 'libel' a form of?", options: ["Assault", "Defamation of character", "Invasion of privacy", "False imprisonment"], correct: 1, rationale: "Defamation includes libel (written) and slander (spoken); it involves giving out false and injurious information." },
+            { id: 18, question: "Which model of advocacy views the nurse as a defender of patients' rights?", options: ["Value based decision model", "Respect for patient model", "Rights protection model", "Paternalistic model"], correct: 2, rationale: "The rights protection model views the nurse as a defender of patients' rights within the healthcare system." },
+            { id: 19, question: "What does 'fidelity' require a nurse to do?", options: ["Tell the truth always", "Keep promises and fulfill commitments", "Distribute resources equally", "Make decisions for the patient"], correct: 1, rationale: "Fidelity is the duty to be faithful to commitments and keep promises." },
+            { id: 20, question: "Which factor creates an 'external' ethical dilemma?", options: ["Personal beliefs conflicting with practice", "Involvement of family members with conflicting ideas", "Internal moral uncertainty", "Lack of personal knowledge"], correct: 1, rationale: "External dilemmas arise when other individuals, such as family members, are involved and have conflicting ideas." },
+            { id: 21, question: "What is the role of an ethics committee?", options: ["To punish nurses for mistakes", "To provide consultation and education on ethical issues", "To manage hospital finances", "To hire new staff"], correct: 1, rationale: "Ethics committees provide consultation, education, and policy guidance on ethical issues." },
+            { id: 22, question: "Which action is a potential sign of 'over-involvement' with a patient?", options: ["Providing evidence-based care", "Sharing personal phone numbers", "Documenting vital signs", "Explaining medication side effects"], correct: 1, rationale: "Sharing personal contact information like a phone number is a sign of crossing boundaries into over-involvement." },
+            { id: 23, question: "What does 'veracity' mean?", options: ["Fairness", "Truthfulness", "Loyalty", "Privacy"], correct: 1, rationale: "Veracity is the duty to tell the truth." },
+            { id: 24, question: "Which term describes negligence by a professional person?", options: ["Misdemeanor", "Malpractice", "Felony", "Assault"], correct: 1, rationale: "Malpractice is the term used to describe negligence by professionals, such as nurses, in the performance of their duties." },
+            { id: 25, question: "What is 'paternalism' in healthcare?", options: ["Respecting patient autonomy", "Making decisions for another person", "Treating everyone equally", "Avoiding harm"], correct: 1, rationale: "Paternalism allows one to make decisions for another, limiting freedom of choice." },
+            { id: 26, question: "Which step follows 'Weigh the evidence' in the decision-making process?", options: ["Identify the decision", "Choose the best alternative", "Review the outcome", "Gather information"], correct: 1, rationale: "After weighing the evidence, the next step is to choose the best alternative." },
+            { id: 27, question: "What is a 'misdemeanor'?", options: ["A serious crime like murder", "A crime punishable by less than 1 year imprisonment", "A civil dispute", "A violation of hospital policy"], correct: 1, rationale: "A misdemeanor is a crime commonly punishable by fines or imprisonment for less than 1 year." },
+            { id: 28, question: "What is 'culture' in the context of ethics?", options: ["A written code of laws", "Moral principles determining right and wrong", "Moral and ethical standards of how people interact", "A professional license"], correct: 2, rationale: "Culture reflects the moral and ethical standards of how people should interact with each other." },
+            { id: 29, question: "Which provision was added to the ANA Code of Ethics in 2025?", options: ["Duty to self", "Global and Environmental Responsibility", "Patient privacy", "Collaboration"], correct: 1, rationale: "Provision 10, regarding Global and Environmental Responsibility, was added in the 2025 revision." },
+            { id: 30, question: "What is 'informed consent'?", options: ["A verbal agreement to be nice", "Voluntary permission given after understanding risks and benefits", "A signature on a blank form", "A mandatory order from a doctor"], correct: 1, rationale: "Informed consent is a voluntary decision made by a patient after being informed of possible outcomes, alternatives, and risks." },
+            { id: 31, question: "Which type of law involves 'torts'?", options: ["Criminal law", "Civil law", "Administrative law", "Martial law"], correct: 1, rationale: "Torts are civil wrongs committed by one person against another." },
+            { id: 32, question: "What is 'defamation of character' involving spoken words called?", options: ["Libel", "Slander", "Battery", "Assault"], correct: 1, rationale: "Defamation is classified as libel (written) or slander (spoken)." },
+            { id: 33, question: "Which principle requires nurses to be nonjudgmental regarding a patient's status?", options: ["Justice", "Autonomy", "Veracity", "Utility"], correct: 0, rationale: "Justice requires that every individual be treated equally without regard to status, requiring nurses to be nonjudgmental." },
+            { id: 34, question: "What does 'accountability' imply?", options: ["Doing tasks only when asked", "Being able to defend one's actions professionally", "Ignoring mistakes", "Blaming others for errors"], correct: 1, rationale: "Accountability means that an action or decision can be defended professionally." },
+            { id: 35, question: "Which of the following is an unintentional tort?", options: ["Assault", "Battery", "Negligence", "False imprisonment"], correct: 2, rationale: "Negligence is the most common cause of an unintentional tort." },
+            { id: 36, question: "What defines 'gross negligence'?", options: ["A minor mistake", "Failure to exercise any care to protect the patient", "Intentional harm", "A calculation error"], correct: 1, rationale: "Gross negligence occurs when a nurse fails to exercise any care to protect the patient." },
+            { id: 37, question: "Which concept involves the active participation with others to obtain quality care?", options: ["Cooperation", "Autonomy", "Paternalism", "Segregation"], correct: 0, rationale: "Cooperation includes active participation with others to obtain quality care for the patient." },
+            { id: 38, question: "What is 'assault'?", options: ["Physical contact without consent", "The suggestion or threat of battery", "Written defamation", "Unintentional harm"], correct: 1, rationale: "Assault is the suggestion or threat of battery." },
+            { id: 39, question: "Which factor creates an 'internal' ethical dilemma?", options: ["Conflict between family members", "Conflict between personal beliefs and professional duty", "Institutional policy changes", "Legal restrictions"], correct: 1, rationale: "Internal dilemmas occur when an individual faces an issue that interferes with their own beliefs and practices." },
+            { id: 40, question: "What is the 'Nightingale Pledge'?", options: ["A modern law", "An early informal statement of nursing ethics", "A hospital policy", "A government regulation"], correct: 1, rationale: "The Nightingale Pledge (1893) is regarded as an early informal statement of nursing ethics." },
+            { id: 41, question: "Which right is protected by 'confidentiality'?", options: ["Right to refuse treatment", "Right to privacy", "Right to informed consent", "Right to emergency care"], correct: 1, rationale: "Confidentiality protects the patient's right to privacy regarding their personal information." },
+            { id: 42, question: "What is a 'values conflict'?", options: ["Choosing between two unimportant things", "Choosing between two important things", "Disagreeing with a law", "Ignoring a rule"], correct: 1, rationale: "Values conflict occurs when one must choose between two things, both of which are important." },
+            { id: 43, question: "Which dimension of diversity includes work style and education?", options: ["Primary", "Secondary", "Tertiary", "Core"], correct: 1, rationale: "Secondary dimensions include work style, education, and socioeconomic status." },
+            { id: 44, question: "What is 'false imprisonment'?", options: ["Holding a person without sufficient cause", "Locking a medication cabinet", "Restricting diet", "Isolating an infectious patient"], correct: 0, rationale: "False imprisonment is a charge that a person has been held without sufficient cause." },
+            { id: 45, question: "What is the primary goal of the 'Value based decision model' of advocacy?", options: ["To defend rights legally", "To help patients discuss needs and choices", "To impose the nurse's values", "To ignore patient preferences"], correct: 1, rationale: "This model helps the patient discuss needs, interests, and choices." },
+            { id: 46, question: "What does 'utility' indicate?", options: ["Individual good outweighs common good", "Common good outweighs individual good", "Rules are absolute", "Consequences do not matter"], correct: 1, rationale: "Utility indicates that what is best for the common good outweighs what is best for the individual." },
+            { id: 47, question: "Which action is an example of 'boundary crossing'?", options: ["Administering medication", "Visiting a patient socially after discharge", "Documenting care", "Reporting a safety issue"], correct: 1, rationale: "Visiting a patient socially is a violation of social boundaries." },
+            { id: 48, question: "What is 'criminal negligence'?", options: ["Negligence resulting in death", "Minor carelessness", "Forgetting a signature", "Being late to work"], correct: 0, rationale: "Criminal negligence occurs when negligence results in the death of the patient." },
+            { id: 49, question: "Which principle is violated if a nurse reveals patient information without consent?", options: ["Justice", "Confidentiality", "Veracity", "Beneficence"], correct: 1, rationale: "Revealing information without consent is a violation of confidentiality." },
+            { id: 50, question: "What is the final step in the ethical decision-making process?", options: ["Take action", "Review", "Identify alternatives", "Gather data"], correct: 1, rationale: "The final step is to review and evaluate the outcome of the decision." },
+            { id: 51, question: "Which term refers to beliefs considered very important that influence behavior?", options: ["Laws", "Values", "Facts", "Data"], correct: 1, rationale: "Values are beliefs that are considered very important and frequently influence an individual's behavior." },
+            { id: 52, question: "What is a key role of nurse managers regarding ethics?", options: ["To ignore ethical issues", "To be an ethical role model", "To increase profits", "To avoid conflict"], correct: 1, rationale: "Nurse managers serve as ethical role models and promote professional integrity." },
+            { id: 53, question: "What is 'metaethics' concerned with?", options: ["Practical moral problems", "The nature of ethical judgments and theories", "Establishing norms of conduct", "Medical procedures"], correct: 1, rationale: "Metaethics is concerned with the nature of ethical judgments and theories." },
+            { id: 54, question: "Which of the following is a 'primary' dimension of diversity?", options: ["Income", "Religion", "Physical ability", "Marital status"], correct: 2, rationale: "Physical abilities are considered a primary dimension of diversity." },
+            { id: 55, question: "What constitutes 'active listening'?", options: ["Planning what to say next", "Listening to hear and validate the speaker", "Interrupting frequently", "Looking at the translator"], correct: 1, rationale: "Active listening involves listening to hear, consider, and validate the person speaking." },
+            { id: 56, question: "Which ethical theory judges actions based on consequences?", options: ["Deontological", "Consequentialist", "Intuitionism", "Naturalism"], correct: 1, rationale: "Consequentialist theories judge actions as right or wrong based on their consequences." },
+            { id: 57, question: "What is the 'right protection model' of advocacy?", options: ["Nurse acts as a defender of patient rights", "Nurse makes decisions for the patient", "Nurse ignores legal rights", "Nurse prioritizes hospital policy"], correct: 0, rationale: "The right protection model views the nurse as a defender of patients' rights." },
+            { id: 58, question: "What is 'slander'?", options: ["Written defamation", "Spoken defamation", "Physical assault", "Trespassing"], correct: 1, rationale: "Slander is the term for defamation of character involving spoken words." },
+            { id: 59, question: "Which concept refers to a duty based on conscience rather than law?", options: ["Legal obligation", "Moral obligation", "Contractual duty", "Civil duty"], correct: 1, rationale: "Moral obligation refers to a duty a person feels they should do based on their own conscience." },
+            { id: 60, question: "What defines 'applied ethics'?", options: ["Theoretical study of metaethics", "Application of normative theories to practical problems", "Study of historical customs", "Analysis of linguistic terms"], correct: 1, rationale: "Applied ethics consists of the application of normative ethical theories to practical moral problems." },
+            { id: 61, question: "Which action helps maintain professional boundaries?", options: ["Accepting large gifts", "Self-disclosure of personal problems", "Keeping secret meetings", "Self-awareness and reflection"], correct: 3, rationale: "Self-awareness and reflection are strategies to help maintain professional boundaries." },
+            { id: 62, question: "What is 'contributory negligence'?", options: ["Nurse is solely responsible", "Patient contributes to their own injury", "Doctor is solely responsible", "Hospital equipment fails"], correct: 1, rationale: "Contributory negligence occurs when the patient contributes to their own injury by their own negligence." },
+            { id: 63, question: "Which principle relates to 'fairness' in healthcare delivery?", options: ["Justice", "Autonomy", "Fidelity", "Veracity"], correct: 0, rationale: "Justice relates to fairness and treating every individual equally." },
+            { id: 64, question: "What is the 'Patient's Bill of Rights'?", options: ["A list of hospital charges", "A document ensuring basic rights like privacy and consent", "A textbook for nurses", "A government tax law"], correct: 1, rationale: "The Patient's Bill of Rights is designed to protect basic rights such as privacy, confidentiality, and informed consent." },
+            { id: 65, question: "Which is a challenge of workforce diversity?", options: ["Increased creativity", "Better decision making", "Increased conflict", "Broader range of skills"], correct: 2, rationale: "Increased conflict is a potential challenge or disadvantage of workforce diversity." },
+            { id: 66, question: "What is 'normative ethics'?", options: ["The study of ethical language", "Establishing norms or standards of conduct", "The history of ethics", "The psychology of morals"], correct: 1, rationale: "Normative ethics seeks to establish norms or standards of conduct." },
+            { id: 67, question: "Which action is an example of 'financial boundary' violation?", options: ["Accepting a thank you card", "Borrowing money from a patient", "Charging for services", "Giving a receipt"], correct: 1, rationale: "Borrowing money from a patient is a violation of financial boundaries." },
+            { id: 68, question: "What does 'DNR' stand for?", options: ["Do Not Record", "Do Not Resuscitate", "Daily Nurse Report", "Doctor Nurse Relationship"], correct: 1, rationale: "DNR stands for Do Not Resuscitate." },
+            { id: 69, question: "Which factor influences ethical decision making?", options: ["Decision criteria", "Weather conditions", "Office decor", "Lunch menu"], correct: 0, rationale: "Decision criteria are a factor established and used to evaluate alternative courses of action." },
+            { id: 70, question: "What is the main focus of 'deontological' ethics?", options: ["Consequences", "Conformity to moral rules", "Personal gain", "Emotional reaction"], correct: 1, rationale: "Deontological theories judge actions based on their conformity to moral rules." },
+            { id: 71, question: "Which is a 'tertiary' dimension of diversity?", options: ["Age", "Income", "Beliefs and assumptions", "Race"], correct: 2, rationale: "Tertiary dimensions include beliefs, assumptions, perceptions, attitudes, feelings, and values." },
+            { id: 72, question: "What does 'caring' in nursing involve?", options: ["Doing things to people", "Doing things with and for people", "Ignoring people", "Only medical procedures"], correct: 1, rationale: "Caring is done with people, for people, to people, and as people." },
+            { id: 73, question: "Which defines 'professionalism' in nursing?", options: ["Acting according to role expectations", "Doing whatever the patient wants", "Prioritizing personal needs", "Ignoring boundaries"], correct: 0, rationale: "Professionalism means the nurse acts in accordance with role expectations and maintains boundaries." },
+            { id: 74, question: "What is 'invasion of privacy'?", options: ["Releasing confidential information without consent", "Touching a patient", "Threatening a patient", "Making a mistake"], correct: 0, rationale: "Invasion of privacy involves releasing information given in confidence without knowledge or consent." },
+            { id: 75, question: "Which is a benefit of workforce diversity?", options: ["Higher turnover", "Miscommunication", "Increased creativity", "In-group bias"], correct: 2, rationale: "Increased workforce creativity is an opportunity or advantage of diversity." },
+            { id: 76, question: "What is 'moral uncertainty'?", options: ["Being sure of the right action", "Not knowing which moral principles apply", "Acting illegally", "Ignoring ethics"], correct: 1, rationale: "Moral uncertainty exists when the individual is unsure which moral principles or values apply." },
+            { id: 77, question: "Which principle supports the 'right to refuse treatment'?", options: ["Beneficence", "Autonomy", "Justice", "Utility"], correct: 1, rationale: "Autonomy supports the patient's right to self-determination, including the right to refuse treatment." },
+            { id: 78, question: "What is 'collective bargaining'?", options: ["Buying supplies in bulk", "Negotiating wages and conditions as a group", "Trading shifts", "Arguing with patients"], correct: 1, rationale: "Collective bargaining is a legal process where employees negotiate with employers about wages and conditions." },
+            { id: 79, question: "Which describes 'emotional boundaries'?", options: ["Physical touch", "Avoiding emotional dependence", "Financial exchange", "Social media use"], correct: 1, rationale: "Emotional boundaries guard against forming unhealthy emotional dependency." },
+            { id: 80, question: "What is the purpose of 'licensure'?", options: ["To collect taxes", "To authorize qualified individuals to practice", "To restricting hiring", "To limit education"], correct: 1, rationale: "Licensure authorizes qualified individuals to perform designated skills and services." },
+            { id: 81, question: "Which creates a 'conflict of values'?", options: ["Agreement on all points", "Tension between professional obligations and patient autonomy", "Clear legal rules", "Simple decisions"], correct: 1, rationale: "A conflict of values is a characteristic of an ethical dilemma, often between obligations like beneficence and autonomy." },
+            { id: 82, question: "What is 'physician-assisted suicide' considered by the ANA?", options: ["Recommended practice", "Inconsistent with nursing philosophy", "Mandatory duty", "A standard procedure"], correct: 1, rationale: "The ANA states that physician-assisted suicide is not consistent with the philosophy of nursing." },
+            { id: 83, question: "Which is a characteristic of good documentation?", options: ["Illegible handwriting", "Based on opinions", "Signed, dated, and timed", "Using pencil"], correct: 2, rationale: "Good documentation must be signed by full name, dated, and timed." },
+            { id: 84, question: "What is 'emotivism'?", options: ["A normative theory", "A metaethical theory", "A legal statute", "A nursing procedure"], correct: 1, rationale: "Emotivism is mentioned as a major metaethical theory." },
+            { id: 85, question: "Which action is advised to overcome language barriers?", options: ["Speaking louder", "Using a translator", "Ignoring the patient", "Guessing the meaning"], correct: 1, rationale: "Using a translator or translation technology is a key step to overcome language barriers." },
+            { id: 86, question: "What is 'distributive justice' related to?", options: ["Punishment", "Allocation of resources", "Truth telling", "Privacy"], correct: 1, rationale: "Justice, in this context, often refers to fairness in the allocation of resources." },
+            { id: 87, question: "Which provision of the ANA Code involves duty to self?", options: ["Provision 1", "Provision 2", "Provision 5", "Provision 9"], correct: 2, rationale: "Provision 5 states the nurse owes the same duties to self as to others." },
+            { id: 88, question: "What is 'in-group bias'?", options: ["Favoring those similar to oneself", "Disliking everyone", "Treating everyone equally", "Favoring outsiders"], correct: 0, rationale: "In-group bias leads to more positive attitudes toward members of the in-group over the out-group." },
+            { id: 89, question: "Which constitutes 'digital boundary' violation?", options: ["Using telehealth", "Friending patients on social media", "Electronic charting", "Emailing colleagues"], correct: 1, rationale: "Friending patients on personal social media accounts is a violation of digital boundaries." },
+            { id: 90, question: "What is 'battery' in a medical context?", options: ["Charging a device", "Performing a procedure without consent", "Insulting a patient", "Writing a false report"], correct: 1, rationale: "Battery is intentional touching without consent, such as performing a procedure without permission." },
+            { id: 91, question: "Which step in decision making involves 'brainstorming'?", options: ["Identify the decision", "Identify prospective alternatives", "Take action", "Review"], correct: 1, rationale: "Identifying prospective alternatives involves brainstorming to find options." },
+            { id: 92, question: "What is the 'Occupational Safety and Health Act'?", options: ["A law for patient rights", "Legislation for safe workplaces", "A nursing code", "A billing regulation"], correct: 1, rationale: "This legislation addresses the requirement to provide a place of employment free from recognized physical harm." },
+            { id: 93, question: "Which is a sign of 'under-involvement'?", options: ["Distancing oneself", "Excessive touching", "Sharing secrets", "Giving gifts"], correct: 0, rationale: "Under-involvement involves distancing and disengagement, the opposite of over-involvement." },
+            { id: 94, question: "What does 'prescriptivism' belong to?", options: ["Normative ethics", "Metaethics", "Applied ethics", "Bioethics"], correct: 1, rationale: "Prescriptivism is listed as a major metaethical theory." },
+            { id: 95, question: "Which action supports 'cultural awareness'?", options: ["Assuming everyone is the same", "Learning about other cultures", "Ignoring differences", "Enforcing one's own values"], correct: 1, rationale: "Learning about other cultures and overcoming assumptions supports cultural awareness." },
+            { id: 96, question: "What is 'breach of duty'?", options: ["Failure to fulfill duty according to standards", "Performing duty well", "Showing up on time", "Signing a contract"], correct: 0, rationale: "Breach of duty must be present for negligence; it is the failure to fulfill duty according to standards." },
+            { id: 97, question: "Which model of advocacy focuses on dignity and privacy?", options: ["Right protection model", "Value based decision model", "Respect for patient model", "Legal model"], correct: 2, rationale: "The respect for patient model focuses on respecting basic human characteristics like dignity and privacy." },
+            { id: 98, question: "What is 'extended liability' related to?", options: ["Personal actions", "Product liability", "Criminal intent", "Civil rights"], correct: 1, rationale: "Extended liability involves situations like product liability where equipment falls within nursing responsibility." },
+            { id: 99, question: "Which creates 'moral distress'?", options: ["Clear choices", "Institutional constraints preventing right action", "Lack of knowledge", "Patient cooperation"], correct: 1, rationale: "Moral distress is caused by knowing the right thing to do but being prevented by constraints." },
+            { id: 100, question: "What is the result of 'unresolved ethical dilemmas'?", options: ["Improved care", "Burnout", "Higher profits", "Better teamwork"], correct: 1, rationale: "Unresolved dilemmas can lead to burnout, decreased job satisfaction, and reduced quality of care." },
+
+            // --- True/False (20 Questions) ---
+            { id: 101, question: "Ethics comes from the Greek word 'ethos'.", options: ["True", "False"], correct: 0, rationale: "Ethics is derived from the Greek word ethos, meaning character." },
+            { id: 102, question: "Nurses are only responsible for their own actions, not for the actions of their subordinates.", options: ["True", "False"], correct: 1, rationale: "Nurse managers are responsible for monitoring the practice of employees under their charge." },
+            { id: 103, question: "Negligence is an intentional tort.", options: ["True", "False"], correct: 1, rationale: "Negligence is an unintentional tort." },
+            { id: 104, question: "The ANA Code of Ethics is legally binding in all countries.", options: ["True", "False"], correct: 1, rationale: "The ANA Code is a guide for the US; other countries have their own codes, though principles overlap." },
+            { id: 105, question: "Cultural diversity includes only race and ethnicity.", options: ["True", "False"], correct: 1, rationale: "Cultural diversity includes many dimensions like age, gender, education, and abilities." },
+            { id: 106, question: "A felony is a less serious crime than a misdemeanor.", options: ["True", "False"], correct: 1, rationale: "A felony is a more serious crime punishable by imprisonment for more than 1 year." },
+            { id: 107, question: "Veracity means the duty to tell the truth.", options: ["True", "False"], correct: 0, rationale: "Veracity implies truthfulness." },
+            { id: 108, question: "Nurses should accept expensive gifts from patients to build rapport.", options: ["True", "False"], correct: 1, rationale: "Nurses should refuse large gifts to maintain financial boundaries." },
+            { id: 109, question: "Informed consent can be given by a patient who does not understand the procedure.", options: ["True", "False"], correct: 1, rationale: "Informed consent requires the patient to have the capacity to understand the information." },
+            { id: 110, question: "Ethical dilemmas always have a clearly right and wrong answer.", options: ["True", "False"], correct: 1, rationale: "Ethical dilemmas involve choices between two or more justifiable options, often with no satisfactory resolution." },
+            { id: 111, question: "Assault involves actual physical contact.", options: ["True", "False"], correct: 1, rationale: "Assault is the threat; battery is the physical contact." },
+            { id: 112, question: "The first step in ethical decision making is to take action.", options: ["True", "False"], correct: 1, rationale: "The first step is to identify the decision." },
+            { id: 113, question: "Beneficence is the duty to do no harm.", options: ["True", "False"], correct: 1, rationale: "Beneficence is the duty to do good; non-maleficence is the duty to do no harm." },
+            { id: 114, question: "Confidentiality can be breached if a client indicates harm to self or others.", options: ["True", "False"], correct: 0, rationale: "This is a valid exception to confidentiality." },
+            { id: 115, question: "Civil law is concerned with offenses against the public.", options: ["True", "False"], correct: 1, rationale: "Civil law is concerned with disputes between private parties; criminal law concerns the public." },
+            { id: 116, question: "Paternalism is generally seen as an undesirable principle in modern healthcare.", options: ["True", "False"], correct: 0, rationale: "It limits freedom of choice and is justified only to prevent harm." },
+            { id: 117, question: "Documentation is not necessary for legal protection.", options: ["True", "False"], correct: 1, rationale: "Good documentation is a crucial legal safeguard for nurses." },
+            { id: 118, question: "Ethics committees strictly handle financial disputes.", options: ["True", "False"], correct: 1, rationale: "Ethics committees handle ethical issues, education, and policy." },
+            { id: 119, question: "A nurse can be held liable for following an incorrect order.", options: ["True", "False"], correct: 0, rationale: "Nurses are responsible for their actions and can be liable for carrying out incorrect orders." },
+            { id: 120, question: "Cultural sensitivity helps build trust with patients.", options: ["True", "False"], correct: 0, rationale: "Cultural sensitivity is essential for building trust and rapport." }
+        ];
+
+        // --- 2. SHUFFLE & RENDER LOGIC (DO NOT EDIT) ---
+        const quizData = rawQuizData.map(q => {
+            const opts = q.options.map((text, i) => ({ text, isCorrect: i === q.correct }));
+            for (let i = opts.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [opts[i], opts[j]] = [opts[j], opts[i]];
+            }
+            return { ...q, options: opts.map(o => o.text), correct: opts.findIndex(o => o.isCorrect) };
+        });
+
+        const container = document.getElementById('quiz-container');
+        let score = 0; let answeredCount = 0;
+
+        function renderQuiz() {
+            document.getElementById('total-display').innerText = `/ ${quizData.length}`;
+            container.innerHTML = quizData.map((q, index) => {
+                return `
+                <div class="card bg-white rounded-xl p-6 mb-6 border border-gray-100">
+                    <div class="flex justify-between items-center mb-4 border-b border-gray-50 pb-3">
+                        <span class="bg-blue-100 text-blue-800 text-xs font-bold px-3 py-1 rounded-full">Question ${index + 1}</span>
+                         ${q.options.length === 2 ? '<span class="bg-purple-100 text-purple-800 text-xs font-bold px-2 py-1 rounded-md">True/False</span>' : ''}
+                    </div>
+                    <h3 class="text-gray-800 font-bold mb-6 text-lg leading-relaxed font-cairo" style="direction: ltr; text-align: left;">${q.question}</h3>
+                    <div class="grid gap-3 ${q.options.length === 2 ? 'grid-cols-2' : ''}">
+                        ${q.options.map((opt, i) => `<button onclick="checkAnswer(${index}, ${i})" class="option-btn option-btn-${index} w-full text-left px-5 py-4 rounded-xl border border-gray-200 hover:bg-blue-50 hover:border-blue-300 focus:outline-none flex items-center justify-between group bg-white"><span class="font-medium text-gray-700 group-hover:text-blue-700 font-sans">${opt}</span></button>`).join('')}
+                    </div>
+                    <div id="feedback-${index}" class="hidden-content mt-6 bg-blue-50 rounded-xl p-5 border border-blue-100 animate-fade-in text-left">
+                        <p class="text-blue-800 text-sm leading-relaxed"><strong>Rationale:</strong> ${q.rationale}</p>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        window.checkAnswer = function(qIndex, optIndex) {
+            const q = quizData[qIndex];
+            const feedback = document.getElementById(`feedback-${qIndex}`);
+            const btns = document.querySelectorAll(`.option-btn-${qIndex}`);
+            if (!feedback.classList.contains('hidden-content')) return;
+            feedback.classList.remove('hidden-content');
+            btns.forEach((btn, i) => {
+                btn.disabled = true;
+                if (i === q.correct) { btn.classList.add('correct-answer'); btn.innerHTML += '<i class="fas fa-check float-right"></i>'; }
+                else if (i === optIndex) { btn.classList.add('wrong-answer'); btn.innerHTML += '<i class="fas fa-times float-right"></i>'; }
+                else { btn.classList.add('opacity-50'); }
+            });
+            if (optIndex === q.correct) score++;
+            answeredCount++;
+            if (answeredCount === quizData.length) {
+                document.getElementById('result-summary').classList.remove('hidden-content');
+                document.getElementById('score-display').innerText = score;
+                document.getElementById('score-message').innerText = (score/quizData.length*100) >= 50 ? "Good Job!" : "Keep Studying";
+                setTimeout(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }), 500);
+            }
+        };
+        renderQuiz();
+    </script>
+</body>
+</html>

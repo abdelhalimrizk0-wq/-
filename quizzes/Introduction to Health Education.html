@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Noto+Sans:wght@400;600;700&display=swap');
+        body { font-family: 'Noto Sans', 'Cairo', sans-serif; background-color: #f8fafc; }
+        .card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .card:hover { transform: translateY(-4px); box-shadow: 0 12px 20px -5px rgba(0, 0, 0, 0.1); }
+        .correct-answer { background-color: #dcfce7 !important; border-color: #22c55e !important; color: #15803d !important; }
+        .wrong-answer { background-color: #fee2e2 !important; border-color: #ef4444 !important; color: #b91c1c !important; }
+        .hidden-content { display: none; }
+        .option-btn { transition: all 0.2s; }
+        .option-btn:disabled { cursor: default; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
+    </style>
+</head>
+<body class="pb-12 bg-gray-50">
+    <div class="max-w-3xl mx-auto px-4 py-8">
+        <div class="bg-white rounded-2xl shadow-sm p-8 mb-8 text-center border-t-4 border-blue-600 relative overflow-hidden">
+            <div class="absolute top-0 right-0 p-4 opacity-10"><i class="fas fa-user-md text-8xl text-blue-600"></i></div>
+            
+            <h1 class="text-3xl font-bold text-gray-800 mb-2 font-cairo text-center" dir="auto">Introduction to Health Education</h1>
+            
+            <div class="flex items-center justify-center gap-2 text-green-600 font-semibold bg-green-50 w-fit mx-auto px-4 py-1 rounded-full text-sm">
+                <i class="fas fa-check-circle"></i> "تم صنع هذا الامتحان بواسطة عبدالحليم رزق"
+            </div>
+        </div>
+        <div id="quiz-container"></div>
+        <div id="result-summary" class="hidden-content bg-white rounded-2xl shadow-lg p-8 text-center mt-8 border border-gray-100">
+            <h2 class="text-2xl font-bold text-gray-800">Exam Completed</h2>
+            <div class="mt-4 text-4xl font-bold text-blue-600 mb-2">
+                <span id="score-display">0</span> <span class="text-xl text-gray-400" id="total-display"></span>
+            </div>
+            <p id="score-message" class="text-gray-500 mb-6"></p>
+            <button onclick="location.reload()" class="bg-blue-600 text-white px-8 py-3 rounded-xl hover:bg-blue-700 transition shadow-lg hover:shadow-blue-200">
+                <i class="fas fa-redo mr-2"></i> Restart Exam
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. QUESTIONS ARRAY (GENERATE 50 QUESTIONS HERE) ---
+        const rawQuizData = [
+            {
+                id: 1,
+                question: "Which term describes a personal action that has a specific frequency, duration, and purpose affecting health?",
+                options: ["Human biology", "Social environment", "Life style", "Health care organization"],
+                correct: 2,
+                rationale: "Lifestyle (Behavior) is defined as an action that has a specific frequency, duration, and purpose, such as cigarette smoking or eating habits."
+            },
+            {
+                id: 2,
+                question: "Which component of health is defined as the ability to express feelings like fear or happiness in an appropriate way?",
+                options: ["Mental health", "Social health", "Emotional health", "Spiritual health"],
+                correct: 2,
+                rationale: "Emotional health involves the ability to express emotions in an appropriate way where the response is congruent with the stimuli."
+            },
+            {
+                id: 3,
+                question: "Health education is generally considered to have very high prestige compared to other medical interventions.",
+                options: ["True", "False"],
+                correct: 1,
+                rationale: "The document lists 'Health education does not have high prestige' as one of the challenges in the field."
+            },
+            {
+                id: 4,
+                question: "Tertiary health education is primarily directed towards which specific group?",
+                options: ["Healthy individuals", "Patients with acute illness", "Patients with incurable conditions", "Community policy makers"],
+                correct: 2,
+                rationale: "Tertiary health education is used for patients whose ill-health cannot be completely cured, focusing on adjusting to chronic conditions."
+            },
+            {
+                id: 5,
+                question: "Which principle of health promotion states that initiatives should involve the collaboration of agencies from relevant sectors?",
+                options: ["Empowerment", "Inter-sectoral", "Equitable", "Sustainable"],
+                correct: 1,
+                rationale: "The Inter-sectoral principle states that health promotion initiatives should involve the collaboration of agencies from relevant sectors."
+            },
+            {
+                id: 6,
+                question: "How is health education defined specifically regarding decision making?",
+                options: ["A process to enforce strict health rules", "A systematic process to assist informed decisions", "A medical treatment plan for patients", "A government policy for hospital funding"],
+                correct: 1,
+                rationale: "Health education is defined as a systematic process of assisting individuals to act separately and collectively to make informed decisions related to health."
+            },
+            {
+                id: 7,
+                question: "What is one of the primary aims of health education regarding health services?",
+                options: ["To increase the financial cost of services", "To promote the wise use of available services", "To limit public access to services", "To privatize all community health services"],
+                correct: 1,
+                rationale: "One of the specific aims listed is to promote and wisely use the available health services."
+            },
+            {
+                id: 8,
+                question: "Social health is best described as the ability to do what?",
+                options: ["Perform routine physical tasks without restriction", "Think clearly and learn new concepts", "Maintain acceptable interaction with people", "Express emotions in a congruent manner"],
+                correct: 2,
+                rationale: "Social health is the ability to make and maintain acceptable and proper interaction and communication with other people."
+            },
+            {
+                id: 9,
+                question: "According to critics of the WHO definition, health should be viewed as a dynamic process rather than a static state.",
+                options: ["True", "False"],
+                correct: 0,
+                rationale: "Critics argue that health is a process rather than a state; it is a dynamic process with ever-changing stimuli and responses."
+            },
+            {
+                id: 10,
+                question: "Which of the following is considered a biological factor within the environmental determinants of health?",
+                options: ["Climate and rainfall", "Industrial wastes", "Microorganisms and toxins", "Income and access to care"],
+                correct: 2,
+                rationale: "Biological factors in the environment include microorganisms, toxins, and biological waste."
+            },
+            {
+                id: 11,
+                question: "Which element of health promotion focuses on making living conditions safe, stimulating, and enjoyable?",
+                options: ["Building healthy public policy", "Creating supportive environments", "Developing personal skills", "Reorienting health services"],
+                correct: 1,
+                rationale: "Creating supportive environments is an element of health promotion that refers to the condition of living conducive to health."
+            },
+            {
+                id: 12,
+                question: "Why is health education considered important for a health organization?",
+                options: ["It increases unnecessary operational costs", "It improves the quality of care provided", "It reduces client trust in the system", "It increases the burden on resources"],
+                correct: 1,
+                rationale: "For the organization, health education is important because it improves the quality of care and ensures proper management of resources."
+            },
+            {
+                id: 13,
+                question: "What is the primary aim of Primary Health Education?",
+                options: ["To cure existing diseases completely", "To prevent the occurrence of ill-health", "To rehabilitate chronic patients", "To manage hospital administration"],
+                correct: 1,
+                rationale: "Primary health education is directed at healthy people and the primary aim is to prevent the occurrence of ill-health."
+            },
+            {
+                id: 14,
+                question: "Physical health is defined as the biological integrity and physiological well-functioning of what?",
+                options: ["The human body", "The social community", "The cognitive mind", "The emotional state"],
+                correct: 0,
+                rationale: "Physical health is defined as the biological integrity and the physiological well-functioning of the human body."
+            },
+            {
+                id: 15,
+                question: "Health education was explicitly included as one of the components of Primary Health Care in the Alma Ata declaration.",
+                options: ["True", "False"],
+                correct: 0,
+                rationale: "At the time of the Alma Ata declaration of Primary Health Care in 1978, health education was put as one of the components of PHC."
+            },
+            {
+                id: 16,
+                question: "Which principle involves identifying behavioral and educational needs before starting a program?",
+                options: ["Principle of diagnosis", "Principle of reinforcement", "Principle of multiple methods", "Principle of participation"],
+                correct: 0,
+                rationale: "The Principle of diagnosis involves assessing the behavioral and educational needs (behavioral and educational diagnosis)."
+            },
+            {
+                id: 17,
+                question: "What does health literacy enable people to do with health information?",
+                options: ["Ignore and discard it immediately", "Access understand and appraise it", "Memorize and repeat it without thought", "Hide and secure it from others"],
+                correct: 1,
+                rationale: "Health literacy is the degree to which people are able to access, understand, appraise, and communicate information."
+            },
+            {
+                id: 18,
+                question: "How does health education specifically benefit the client?",
+                options: ["It decreases the client's responsibility", "It increases client dependency on doctors", "It helps acquire new knowledge and skills", "It prevents all future death and aging"],
+                correct: 2,
+                rationale: "For the client, health education helps him to acquire new knowledge, skills, and attitudes to assist in managing his health."
+            },
+            {
+                id: 19,
+                question: "Wellness is described as the realization of the fullest potential in which specific areas?",
+                options: ["Physical and financial potential only", "Physical psychological social spiritual and economical", "Social and political potential only", "Emotional and recreational potential only"],
+                correct: 1,
+                rationale: "Wellness involves the realization of the fullest physical, psychological, social, spiritual, and economical potential of an individual."
+            },
+            {
+                id: 20,
+                question: "What is a common challenge regarding the personnel often charged with health education programs?",
+                options: ["They are vastly overqualified", "They lack special training", "They are too expensive to hire", "They are too numerous to manage"],
+                correct: 1,
+                rationale: "A challenge listed is that people charged with health education programs often lack special training and are not qualified."
+            },
+            {
+                id: 21,
+                question: "Which determinant of health includes factors genetically transmitted from parents to offspring?",
+                options: ["Human Biology", "Social Environment", "Health Care Organization", "Physical Environment"],
+                correct: 0,
+                rationale: "Human Biology covers factors that are genetically transmitted from parents to offspring."
+            },
+            {
+                id: 22,
+                question: "Health promotion is defined as a combination of educational supports and what other type of supports?",
+                options: ["Financial supports", "Environmental supports", "Political supports", "Medical supports"],
+                correct: 1,
+                rationale: "Health Promotion is defined as a combination of educational and environmental supports for actions and conditions of living conducive to health."
+            },
+            {
+                id: 23,
+                question: "Primary health education is directed primarily at people who are already sick.",
+                options: ["True", "False"],
+                correct: 1,
+                rationale: "Primary health education is directed at *healthy* people to prevent the occurrence of ill-health."
+            },
+            {
+                id: 24,
+                question: "What is the primary focus of secondary health education?",
+                options: ["Preventing disease occurrence", "Educating patients about their condition", "Rehabilitating permanent disability", "Improving public policy"],
+                correct: 1,
+                rationale: "Secondary Health Education focuses on educating patients about their condition and what to do about it."
+            },
+            {
+                id: 25,
+                question: "Which principle emphasizes involving the client in the stages of planning, implementation, and evaluation?",
+                options: ["Principle of facts based", "Principle of participation", "Principle of culture", "Principle of diagnosis"],
+                correct: 1,
+                rationale: "The Principle of Participation states that HE should provide an opportunity for clients to go through the stages of planning, implementation, and evaluation."
+            },
+            {
+                id: 26,
+                question: "The holistic principle of health promotion initiatives fosters which aspects of health?",
+                options: ["Physical mental social and spiritual", "Economic and political only", "Biological and chemical only", "Genetic and environmental only"],
+                correct: 0,
+                rationale: "The Holistic principle states that health promotion initiatives should foster physical, mental, social, and spiritual health."
+            },
+            {
+                id: 27,
+                question: "The cognitive component of mental health refers to the ability to do what?",
+                options: ["Express anger appropriately", "Learn perceive and think clearly", "Perform physical tasks routinely", "Maintain social roles effectively"],
+                correct: 1,
+                rationale: "The cognitive component of mental health is the ability of an individual to learn, perceive, and think clearly."
+            },
+            {
+                id: 28,
+                question: "Quality of life is defined by an individual's perception of their position in life in the context of what?",
+                options: ["Their medical diagnosis", "Their financial income", "Their culture and value system", "Their genetic makeup"],
+                correct: 2,
+                rationale: "Quality of life is an individual's perceptions of their position in life in the context of the culture and value system where they live."
+            },
+            {
+                id: 29,
+                question: "What is considered a core principle of Primary Health Care that requires health education for success?",
+                options: ["Advanced surgery", "Community participation", "Centralized management", "Exclusive medication"],
+                correct: 1,
+                rationale: "One of the core principles of primary health care is community participation, which requires health education."
+            },
+            {
+                id: 30,
+                question: "Spiritual health is explicitly listed as a component in the 1948 WHO definition of health.",
+                options: ["True", "False"],
+                correct: 1,
+                rationale: "One critique of the WHO definition is that Spiritual health is *not* a component of the WHO definition."
+            }
+        ];
+
+        // --- 2. SHUFFLE & RENDER LOGIC (DO NOT EDIT) ---
+        const quizData = rawQuizData.map(q => {
+            const opts = q.options.map((text, i) => ({ text, isCorrect: i === q.correct }));
+            for (let i = opts.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [opts[i], opts[j]] = [opts[j], opts[i]];
+            }
+            return { ...q, options: opts.map(o => o.text), correct: opts.findIndex(o => o.isCorrect) };
+        });
+
+        const container = document.getElementById('quiz-container');
+        let score = 0; let answeredCount = 0;
+
+        function renderQuiz() {
+            document.getElementById('total-display').innerText = `/ ${quizData.length}`;
+            container.innerHTML = quizData.map((q, index) => {
+                return `
+                <div class="card bg-white rounded-xl p-6 mb-6 border border-gray-100">
+                    <div class="flex justify-between items-center mb-4 border-b border-gray-50 pb-3">
+                        <span class="bg-blue-100 text-blue-800 text-xs font-bold px-3 py-1 rounded-full">Question ${index + 1}</span>
+                         ${q.options.length === 2 ? '<span class="bg-purple-100 text-purple-800 text-xs font-bold px-2 py-1 rounded-md">True/False</span>' : ''}
+                    </div>
+                    <h3 class="text-gray-800 font-bold mb-6 text-lg leading-relaxed font-cairo" style="direction: ltr; text-align: left;">${q.question}</h3>
+                    <div class="grid gap-3 ${q.options.length === 2 ? 'grid-cols-2' : ''}">
+                        ${q.options.map((opt, i) => `<button onclick="checkAnswer(${index}, ${i})" class="option-btn option-btn-${index} w-full text-left px-5 py-4 rounded-xl border border-gray-200 hover:bg-blue-50 hover:border-blue-300 focus:outline-none flex items-center justify-between group bg-white"><span class="font-medium text-gray-700 group-hover:text-blue-700 font-sans">${opt}</span></button>`).join('')}
+                    </div>
+                    <div id="feedback-${index}" class="hidden-content mt-6 bg-blue-50 rounded-xl p-5 border border-blue-100 animate-fade-in text-left">
+                        <p class="text-blue-800 text-sm leading-relaxed"><strong>Rationale:</strong> ${q.rationale}</p>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        window.checkAnswer = function(qIndex, optIndex) {
+            const q = quizData[qIndex];
+            const feedback = document.getElementById(`feedback-${qIndex}`);
+            const btns = document.querySelectorAll(`.option-btn-${qIndex}`);
+            if (!feedback.classList.contains('hidden-content')) return;
+            feedback.classList.remove('hidden-content');
+            btns.forEach((btn, i) => {
+                btn.disabled = true;
+                if (i === q.correct) { btn.classList.add('correct-answer'); btn.innerHTML += '<i class="fas fa-check float-right"></i>'; }
+                else if (i === optIndex) { btn.classList.add('wrong-answer'); btn.innerHTML += '<i class="fas fa-times float-right"></i>'; }
+                else { btn.classList.add('opacity-50'); }
+            });
+            if (optIndex === q.correct) score++;
+            answeredCount++;
+            if (answeredCount === quizData.length) {
+                document.getElementById('result-summary').classList.remove('hidden-content');
+                document.getElementById('score-display').innerText = score;
+                document.getElementById('score-message').innerText = (score/quizData.length*100) >= 50 ? "Good Job!" : "Keep Studying";
+                setTimeout(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }), 500);
+            }
+        };
+        renderQuiz();
+    </script>
+</body>
+</html>
