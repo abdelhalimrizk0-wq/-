@@ -514,6 +514,50 @@
     ]
   },
   {
+    "id": "health-education-t1",
+    "name": "Health Education in Nursing",
+    "nameAr": "التثقيف الصحي في التمريض",
+    "emoji": "🗣️",
+    "color": "#10b981",
+    "department": "common_t1",
+    "lectures": [
+      { "name": "كويز 1", "file": "#", "questions": 20 }
+    ]
+  },
+  {
+    "id": "ethics-t1",
+    "name": "Professional Ethics and Legislation",
+    "nameAr": "أخلاقيات المهنة والتشريعات",
+    "emoji": "⚖️",
+    "color": "#8b5cf6",
+    "department": "common_t1",
+    "lectures": [
+      { "name": "كويز 1", "file": "#", "questions": 20 }
+    ]
+  },
+  {
+    "id": "teaching-skills-t1",
+    "name": "Teaching Skills and Strategies in Nursing",
+    "nameAr": "مهارات واستراتيجيات التدريس في التمريض",
+    "emoji": "🏫",
+    "color": "#f59e0b",
+    "department": "common_t1",
+    "lectures": [
+      { "name": "كويز 1", "file": "#", "questions": 20 }
+    ]
+  },
+  {
+    "id": "english-3-t1",
+    "name": "English Language 3",
+    "nameAr": "لغة إنجليزية (3)",
+    "emoji": "🇬🇧",
+    "color": "#3b82f6",
+    "department": "common_t1",
+    "lectures": [
+      { "name": "كويز 1", "file": "#", "questions": 20 }
+    ]
+  },
+  {
     "id": "quality-t2",
     "name": "Quality & Safety",
     "nameAr": "أساسيات الجودة والامان في الرعاية الصحية",
