@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Noto+Sans:wght@400;600;700&display=swap');
+        body { font-family: 'Noto Sans', 'Cairo', sans-serif; background-color: #f8fafc; }
+        .card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .card:hover { transform: translateY(-4px); box-shadow: 0 12px 20px -5px rgba(0, 0, 0, 0.1); }
+        .correct-answer { background-color: #dcfce7 !important; border-color: #22c55e !important; color: #15803d !important; }
+        .wrong-answer { background-color: #fee2e2 !important; border-color: #ef4444 !important; color: #b91c1c !important; }
+        .hidden-content { display: none; }
+        .option-btn { transition: all 0.2s; }
+        .option-btn:disabled { cursor: default; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
+    </style>
+</head>
+<body class="pb-12 bg-gray-50">
+    <div class="max-w-3xl mx-auto px-4 py-8">
+        <div class="bg-white rounded-2xl shadow-sm p-8 mb-8 text-center border-t-4 border-blue-600 relative overflow-hidden">
+            <div class="absolute top-0 right-0 p-4 opacity-10"><i class="fas fa-user-md text-8xl text-blue-600"></i></div>
+            
+            <h1 class="text-3xl font-bold text-gray-800 mb-2 font-cairo text-center" dir="auto">Electronic Health Record (EHR)</h1>
+            
+            <div class="flex items-center justify-center gap-2 text-green-600 font-semibold bg-green-50 w-fit mx-auto px-4 py-1 rounded-full text-sm">
+                <i class="fas fa-check-circle"></i> "تم صنع هذا الامتحان بواسطة عبدالحليم رزق"
+            </div>
+        </div>
+        <div id="quiz-container"></div>
+        <div id="result-summary" class="hidden-content bg-white rounded-2xl shadow-lg p-8 text-center mt-8 border border-gray-100">
+            <h2 class="text-2xl font-bold text-gray-800">Exam Completed</h2>
+            <div class="mt-4 text-4xl font-bold text-blue-600 mb-2">
+                <span id="score-display">0</span> <span class="text-xl text-gray-400" id="total-display"></span>
+            </div>
+            <p id="score-message" class="text-gray-500 mb-6"></p>
+            <button onclick="location.reload()" class="bg-blue-600 text-white px-8 py-3 rounded-xl hover:bg-blue-700 transition shadow-lg hover:shadow-blue-200">
+                <i class="fas fa-redo mr-2"></i> Restart Exam
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. QUESTIONS ARRAY ---
+        const rawQuizData =[
+            { id: 1, question: "An electronic health record is strictly limited to use within a single healthcare facility without external sharing capabilities.", options: ["True", "False"], correct: 1, rationale: "Unlike paper records, electronic health records enable seamless information sharing across different healthcare settings." },
+            { id: 2, question: "Which component provides alerts for drug interactions and guideline based care suggestions?", options:["Clinical decision support", "Patient demographic data", "Billing financial management", "Order entry management"], correct: 0, rationale: "Clinical Decision Support tools include alerts for drug interactions, AI-driven diagnostic assistance, and guideline-based care suggestions." },
+            { id: 3, question: "A pilot implementation run is typically conducted in a small department before launching the system hospital wide.", options:["True", "False"], correct: 0, rationale: "Testing and Pilot Implementation involves conducting a pilot run in a small department or unit before full deployment." },
+            { id: 4, question: "Extracting data from legacy systems and ensuring formatting standardization occurs during which stage?", options: ["Data integration", "System design", "Complete dissemination", "Planning and readiness"], correct: 0, rationale: "Data Integration involves extracting data from paper records or legacy systems and ensuring accuracy, formatting, and standardization." },
+            { id: 5, question: "The ongoing expenses required for staff training represent a significant financial limitation of electronic health records.", options: ["True", "False"], correct: 0, rationale: "Ongoing Training Expenses are listed under Financial Limitations, noting that staff training is necessary and leads to additional costs." },
+            { id: 6, question: "Which healthcare professional primarily uses the system to manage medication histories and check drug interactions?", options:["Pharmacists", "Medical assistants", "Laboratory technicians", "Physical therapists"], correct: 0, rationale: "Pharmacists review prescriptions, check drug interactions, and manage medication histories." },
+            { id: 7, question: "Family medical history used to identify genetic predispositions belongs to which record component?", options:["Medical history", "Treatment plans", "Preventive care", "Patient demographics"], correct: 0, rationale: "Medical History includes family medical history to identify genetic predispositions, past illnesses, and lifestyle factors." },
+            { id: 8, question: "Next of kin information and emergency contacts are classified under the patient demographics component.", options: ["True", "False"], correct: 0, rationale: "Patient Demographics include emergency contacts, next of kin information, personal details, and insurance details." },
+            { id: 9, question: "Which type of system is specifically tailored for medical fields such as cardiology or pediatrics?", options:["Specialty specific systems", "Cloud based systems", "Ambulatory care systems", "Hospital based systems"], correct: 0, rationale: "Specialty-Specific EHRs are tailored for specific medical fields like cardiology, radiology, or pediatrics." },
+            { id: 10, question: "Medical billers primarily use the system to prescribe medications and document clinical treatment plans.", options: ["True", "False"], correct: 1, rationale: "Medical Coders and Billers use the system for medical coding, insurance claims, and billing. Doctors prescribe medications." },
+            { id: 11, question: "Setting clear goals for adoption and evaluating budget requirements belong to which phase?", options:["Planning and readiness", "System configuration", "Training management", "Pilot implementation"], correct: 0, rationale: "Planning and Readiness Assessment involves setting clear goals, assessing workflows, and evaluating budget and infrastructure." },
+            { id: 12, question: "Electronic health records are generally considered less secure than traditional paper charts due to encryption vulnerabilities.", options: ["True", "False"], correct: 1, rationale: "Enhanced Data Security is an advantage, stating they are more secure than paper records with encryption and access controls." },
+            { id: 13, question: "The vulnerability of patient data to unauthorized cyberattacks represents which type of limitation?", options:["Privacy and security risks", "Legal and ethical limitations", "Technical infrastructure challenges", "Financial implementation costs"], correct: 0, rationale: "Privacy and Security Risks highlight that systems are vulnerable to cyberattacks and unauthorized access." },
+            { id: 14, question: "Providing accurate and real time patient information directly contributes to which specific system benefit?", options:["Improved patient care", "Increased staff resistance", "Continuous monitoring", "Comprehensive dissemination"], correct: 0, rationale: "Improved Patient Care provides accurate, real-time, and up-to-date patient information." },
+            { id: 15, question: "Tracking rehabilitation progress and documenting therapy sessions is the primary role of which user group?", options:["Therapists", "Radiologists", "Administrators", "Researchers"], correct: 0, rationale: "Therapists track patient rehabilitation progress and document therapy sessions." },
+            { id: 16, question: "Public health agencies track disease outbreaks and population trends using aggregated system data.", options: ["True", "False"], correct: 0, rationale: "Public Health Agencies track disease outbreaks, vaccinations, and population health trends." },
+            { id: 17, question: "Audit logs used to track record modifications are classified under which system component?", options:["Security and privacy features", "Clinical decision support", "Laboratory test results", "Order entry management"], correct: 0, rationale: "Security and Privacy Features include audit logs to track record modifications and access history." },
+            { id: 18, question: "Evaluating system performance through data analytics is a key activity in which stage?", options:["Continuous monitoring", "System configuration", "Readiness assessment", "Data integration"], correct: 0, rationale: "Continuous Monitoring and Optimization involves evaluating system performance through data analytics and reporting." },
+            { id: 19, question: "Ambulatory systems are designed exclusively for inpatient care settings integrating multiple hospital wards.", options: ["True", "False"], correct: 1, rationale: "Ambulatory systems are designed for outpatient clinics and physician offices, whereas Hospital-Based EHRs are for inpatient care." },
+            { id: 20, question: "The ability to facilitate information sharing between different healthcare providers refers to which advantage?", options:["Interoperability", "Remote access", "Time efficiency", "Data security"], correct: 0, rationale: "Interoperability facilitates information sharing between different healthcare providers." },
+            { id: 21, question: "Health maintenance reminders for routine checkups are located within which system section?", options: ["Preventive care records", "Medical history data", "Patient demographics", "Treatment progress notes"], correct: 0, rationale: "Immunization and Preventive Care Records include health maintenance reminders for check-ups and screenings." },
+            { id: 22, question: "System downtime resulting from technical failures can completely disrupt routine healthcare operations.", options: ["True", "False"], correct: 0, rationale: "System Downtime is a limitation where technical failures can disrupt healthcare operations." },
+            { id: 23, question: "Ensuring data integrity and compliance with healthcare regulations is the responsibility of which staff member?", options:["Health information managers", "Clinical medical researchers", "Reception scheduling staff", "Laboratory clinical technicians"], correct: 0, rationale: "Health Information Managers ensure data integrity, security, and compliance with regulations." },
+            { id: 24, question: "A system hosted on remote servers and accessible via the internet is known by what classification?", options:["Cloud based systems", "Ambulatory outpatient systems", "Comprehensive clinical systems", "Hospital inpatient systems"], correct: 0, rationale: "Cloud-Based EHRs are hosted on remote servers and accessible via the internet." },
+            { id: 25, question: "Computerized physician order entry for tests and medications is part of which component?", options:["Prescription management", "Diagnostic test results", "Preventive care records", "Clinical decision support"], correct: 0, rationale: "Order Entry and Prescription Management includes Computerized Physician Order Entry for tests, procedures, and medications." },
+            { id: 26, question: "Addressing staff resistance to change and offering troubleshooting support occurs during which stage?", options:["Training management", "System customization", "Readiness assessment", "Complete dissemination"], correct: 0, rationale: "Training and Change Management includes addressing resistance to change, encouraging adoption, and offering support." },
+            { id: 27, question: "Cost savings are achieved by reducing administrative expenses and eliminating unnecessary duplicate tests.", options: ["True", "False"], correct: 0, rationale: "Cost Savings reduce administrative expenses, unnecessary tests, and hospital stays." },
+            { id: 28, question: "Medical practitioners struggling with the transition from paper to digital formats illustrate which challenge?", options:["User resistance", "System downtime", "Ethical limitations", "Financial constraints"], correct: 0, rationale: "User Resistance occurs when some healthcare providers struggle with the transition from paper to digital." },
+            { id: 29, question: "Cost estimation for various medical procedures is managed by which system component?", options:["Financial management", "Treatment planning", "Patient demographics", "Decision support"], correct: 0, rationale: "Billing and Financial Management includes cost estimation for procedures and treatments." },
+            { id: 30, question: "Viewing and analyzing diagnostic imaging linked with patient records is the primary function of which professional?", options:["Radiologists", "Pharmacists", "Administrators", "Caregivers"], correct: 0, rationale: "Radiologists view and analyze diagnostic imaging linked with patient records." },
+            { id: 31, question: "Customizing templates for clinical documentation and setting up user permissions takes place in which stage?", options:["System configuration", "Pilot implementation", "Continuous monitoring", "Data integration"], correct: 0, rationale: "System Configuration and Customization involves setting up user roles and customizing templates for documentation." },
+            { id: 32, question: "Generating automated alerts for incorrect medication dosages represents which specific system benefit?", options: ["Enhanced safety", "Cost savings", "Better coordination", "Data analytics"], correct: 0, rationale: "Enhanced Safety provides alerts for allergies, drug interactions, and incorrect dosages." },
+            { id: 33, question: "Requesting prescription refills and accessing health education resources are activities performed by which system users?", options: ["Patients", "Physicians", "Researchers", "Administrators"], correct: 0, rationale: "Patients use the system to view test results, schedule appointments, request prescription refills, and access health resources." },
+            { id: 34, question: "Pathology reports and microbiology results are stored under which specific electronic record section?", options:["Diagnostic test results", "Treatment progress notes", "Medical history records", "Preventive care records"], correct: 0, rationale: "Laboratory and Diagnostic Test Results include pathology reports, blood tests, and microbiology results." },
+            { id: 35, question: "Researching system types and ensuring compliance standards are met happens during which implementation stage?", options:["System design", "Complete dissemination", "Training management", "Readiness assessment"], correct: 0, rationale: "System Design involves researching system types, ensuring compliance, and defining key features." },
+            { id: 36, question: "Supporting telemedicine practices and remote healthcare management is enabled by which system feature?", options:["Remote access", "Interoperability", "Time efficiency", "Quality improvement"], correct: 0, rationale: "Remote Access supports telemedicine and remote healthcare management." },
+            { id: 37, question: "Unauthorized access leading to improper use of patient data is primarily classified under which limitation?", options:["Legal ethical limitations", "Technical infrastructure challenges", "Financial maintenance costs", "General user resistance"], correct: 0, rationale: "Legal and Ethical Limitations include Patient Privacy Concerns regarding unauthorized access or improper use." },
+            { id: 38, question: "Assisting in updating general records and managing administrative scheduling is the role of which professional?", options:["Medical assistants", "Clinical researchers", "Laboratory technicians", "Health administrators"], correct: 0, rationale: "Medical Assistants assist in updating records, scheduling appointments, and administrative tasks." },
+            { id: 39, question: "Ensuring that proper backup and disaster recovery plans are in place is a key activity of which stage?", options:["Complete dissemination", "Pilot implementation", "System configuration", "Readiness assessment"], correct: 0, rationale: "Complete Dissemination includes ensuring backup and disaster recovery plans are in place." },
+            { id: 40, question: "Care coordination notes between different healthcare providers are located in which record component?", options: ["Treatment plans", "Patient demographics", "Diagnostic results", "Medication records"], correct: 0, rationale: "Treatment Plans and Progress Notes include care coordination between different healthcare providers." }
+        ];
+
+        // --- 2. SHUFFLE & RENDER LOGIC (DO NOT EDIT) ---
+        const quizData = rawQuizData.map(q => {
+            const opts = q.options.map((text, i) => ({ text, isCorrect: i === q.correct }));
+            for (let i = opts.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [opts[i], opts[j]] = [opts[j], opts[i]];
+            }
+            return { ...q, options: opts.map(o => o.text), correct: opts.findIndex(o => o.isCorrect) };
+        });
+
+        const container = document.getElementById('quiz-container');
+        let score = 0; let answeredCount = 0;
+
+        function renderQuiz() {
+            document.getElementById('total-display').innerText = `/ ${quizData.length}`;
+            container.innerHTML = quizData.map((q, index) => {
+                return `
+                <div class="card bg-white rounded-xl p-6 mb-6 border border-gray-100">
+                    <div class="flex justify-between items-center mb-4 border-b border-gray-50 pb-3">
+                        <span class="bg-blue-100 text-blue-800 text-xs font-bold px-3 py-1 rounded-full">Question ${index + 1}</span>
+                         ${q.options.length === 2 ? '<span class="bg-purple-100 text-purple-800 text-xs font-bold px-2 py-1 rounded-md">True/False</span>' : ''}
+                    </div>
+                    <h3 class="text-gray-800 font-bold mb-6 text-lg leading-relaxed font-cairo" style="direction: ltr; text-align: left;">${q.question}</h3>
+                    <div class="grid gap-3 ${q.options.length === 2 ? 'grid-cols-2' : ''}">
+                        ${q.options.map((opt, i) => `<button onclick="checkAnswer(${index}, ${i})" class="option-btn option-btn-${index} w-full text-left px-5 py-4 rounded-xl border border-gray-200 hover:bg-blue-50 hover:border-blue-300 focus:outline-none flex items-center justify-between group bg-white"><span class="font-medium text-gray-700 group-hover:text-blue-700 font-sans">${opt}</span></button>`).join('')}
+                    </div>
+                    <div id="feedback-${index}" class="hidden-content mt-6 bg-blue-50 rounded-xl p-5 border border-blue-100 animate-fade-in text-left">
+                        <p class="text-blue-800 text-sm leading-relaxed"><strong>Rationale:</strong> ${q.rationale}</p>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        window.checkAnswer = function(qIndex, optIndex) {
+            const q = quizData[qIndex];
+            const feedback = document.getElementById(`feedback-${qIndex}`);
+            const btns = document.querySelectorAll(`.option-btn-${qIndex}`);
+            if (!feedback.classList.contains('hidden-content')) return;
+            feedback.classList.remove('hidden-content');
+            btns.forEach((btn, i) => {
+                btn.disabled = true;
+                if (i === q.correct) { btn.classList.add('correct-answer'); btn.innerHTML += '<i class="fas fa-check float-right"></i>'; }
+                else if (i === optIndex) { btn.classList.add('wrong-answer'); btn.innerHTML += '<i class="fas fa-times float-right"></i>'; }
+                else { btn.classList.add('opacity-50'); }
+            });
+            if (optIndex === q.correct) score++;
+            answeredCount++;
+            if (answeredCount === quizData.length) {
+                document.getElementById('result-summary').classList.remove('hidden-content');
+                document.getElementById('score-display').innerText = score;
+                document.getElementById('score-message').innerText = (score/quizData.length*100) >= 50 ? "Good Job!" : "Keep Studying";
+                setTimeout(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }), 500);
+            }
+        };
+        renderQuiz();
+    </script>
+</body>
+</html>

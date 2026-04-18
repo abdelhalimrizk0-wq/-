@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Noto+Sans:wght@400;600;700&display=swap');
+        body { font-family: 'Noto Sans', 'Cairo', sans-serif; background-color: #f8fafc; }
+        .card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .card:hover { transform: translateY(-4px); box-shadow: 0 12px 20px -5px rgba(0, 0, 0, 0.1); }
+        .correct-answer { background-color: #dcfce7 !important; border-color: #22c55e !important; color: #15803d !important; }
+        .wrong-answer { background-color: #fee2e2 !important; border-color: #ef4444 !important; color: #b91c1c !important; }
+        .hidden-content { display: none; }
+        .option-btn { transition: all 0.2s; }
+        .option-btn:disabled { cursor: default; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
+    </style>
+</head>
+<body class="pb-12 bg-gray-50">
+    <div class="max-w-3xl mx-auto px-4 py-8">
+        <div class="bg-white rounded-2xl shadow-sm p-8 mb-8 text-center border-t-4 border-blue-600 relative overflow-hidden">
+            <div class="absolute top-0 right-0 p-4 opacity-10"><i class="fas fa-user-md text-8xl text-blue-600"></i></div>
+            
+            <h1 class="text-3xl font-bold text-gray-800 mb-2 font-cairo text-center" dir="auto">IT Implementation Requirements</h1>
+            
+            <div class="flex items-center justify-center gap-2 text-green-600 font-semibold bg-green-50 w-fit mx-auto px-4 py-1 rounded-full text-sm">
+                <i class="fas fa-check-circle"></i> "تم صنع هذا الامتحان بواسطة عبدالحليم رزق"
+            </div>
+        </div>
+        <div id="quiz-container"></div>
+        <div id="result-summary" class="hidden-content bg-white rounded-2xl shadow-lg p-8 text-center mt-8 border border-gray-100">
+            <h2 class="text-2xl font-bold text-gray-800">Exam Completed</h2>
+            <div class="mt-4 text-4xl font-bold text-blue-600 mb-2">
+                <span id="score-display">0</span> <span class="text-xl text-gray-400" id="total-display"></span>
+            </div>
+            <p id="score-message" class="text-gray-500 mb-6"></p>
+            <button onclick="location.reload()" class="bg-blue-600 text-white px-8 py-3 rounded-xl hover:bg-blue-700 transition shadow-lg hover:shadow-blue-200">
+                <i class="fas fa-redo mr-2"></i> Restart Exam
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. QUESTIONS ARRAY (GENERATE 40 QUESTIONS HERE) ---
+        const rawQuizData =[
+            { id: 1, question: "Which action should be completed first when getting started with any software implementation project?", options:["Define the problem that needs to be solved", "Assemble a strong implementation team", "Install the necessary software frameworks", "Train administrators on the new features"], correct: 0, rationale: "In order to get started with any project, it is imperative to first define the problem that needs to be solved." },
+            { id: 2, question: "Parallel implementation reduces the risk of disruption but requires more resources than other standard approaches.", options: ["True", "False"], correct: 0, rationale: "Parallel implementation reduces the risk of disruption, but requires more resources, since two systems run at the same time." },
+            { id: 3, question: "Which action should occur during the evaluation phase of software implementation?", options:["Assessing project goals and making future adjustments", "Writing the primary source code for the application", "Purchasing the physical servers for the data center", "Identifying the initial problem that needs solving"], correct: 0, rationale: "A comprehensive assessment of the project's goals and objectives is conducted during the evaluation phase, making necessary adjustments." },
+            { id: 4, question: "What must be done to ensure that the data in the new system is accurate before going live?", options:["Create a solid plan for data migration", "Erase all redundant customer records", "Purchase additional server hardware", "Hire temporary administrative assistants"], correct: 0, rationale: "Make sure you have a solid plan for data migration. You must do this to ensure that the data in your new system is accurate." },
+            { id: 5, question: "When unexpected roadblocks occur during the implementation process, what is the recommended response?", options:["Adapt as needed and be prepared for hiccups", "Abandon the project and refund the client", "Terminate the responsible software engineers", "Skip the testing phase to recover lost time"], correct: 0, rationale: "Regardless of how well you plan, there will likely be some hiccups along the way. Adapt as needed, and be prepared for this." },
+            { id: 6, question: "How should an organization handle the frequency of upgrades for mission critical systems?", options:["Apply the latest version as soon as possible", "Wait several years before applying any updates", "Ignore upgrades unless the system crashes", "Delegate the upgrading task to untrained personnel"], correct: 0, rationale: "When it comes to mission-critical systems, you'll want to be on the latest and greatest version as soon as possible." },
+            { id: 7, question: "Having a secondary plan during software implementation might involve what specific action?", options:["Establishing a contingency plan for reverting", "Purchasing a completely different software package", "Refusing to communicate the failure to management", "Deleting the existing database to free up space"], correct: 0, rationale: "A backup plan might mean having someone on call to troubleshoot issues or establishing a contingency plan for reverting." },
+            { id: 8, question: "The post implementation phase focuses primarily on installing existing systems with the new software.", options: ["True", "False"], correct: 1, rationale: "The installation of systems occurs during the implementation phase. Post-implementation focuses on ensuring the new system functions correctly." },
+            { id: 9, question: "Which software implementation strategy introduces a new system in specific stages to mitigate risks?", options:["Phased implementation", "Parallel implementation", "Direct cutover", "Pilot implementation"], correct: 0, rationale: "Phased implementation involves introducing a new software system in stages or phases, which helps mitigate risks." },
+            { id: 10, question: "What information comprises the design rationale of a computer system?", options:["Motivations and negotiations determining organization", "Programming languages utilized during initial coding", "Financial statements of the developing company", "Marketing materials distributed to the end users"], correct: 0, rationale: "The motivations, user requirements, discussions, debates, negotiations, and tradeoffs comprise the design rationale of the system." },
+            { id: 11, question: "What is the primary purpose of utilizing software development frameworks and libraries?", options:["Speeding up the software development process", "Generating legal contracts for the stakeholders", "Replacing the need for manual user training", "Preventing all future software errors permanently"], correct: 0, rationale: "Software engineers utilize software development tools, frameworks, and libraries to speed up the process." },
+            { id: 12, question: "Software maintenance focuses primarily on adding features and fixing bugs that are considered low priority.", options: ["True", "False"], correct: 0, rationale: "The main objective of software maintenance is to add features and fix low-priority bugs." },
+            { id: 13, question: "During the actual software implementation phase, what task do software engineers perform after writing code?", options:["Testing individual components and functions", "Gathering initial requirements from stakeholders", "Defining the total budget and project schedule", "Interviewing potential marketing contractors"], correct: 0, rationale: "Engineers write code and then create and test individual components, modules, or functions to ensure they work well." },
+            { id: 14, question: "During a direct cutover approach the new software system is released only to a small group for evaluation.", options: ["True", "False"], correct: 1, rationale: "Releasing to a small group is pilot implementation. Direct cutover replaces the existing software system all at once." },
+            { id: 15, question: "Software support involves reactive development to fix broken software components.", options: ["True", "False"], correct: 0, rationale: "Software support involves fixing broken software with reactive development." },
+            { id: 16, question: "A computer system inherently expresses the motivations and discussions that initiated its original design.", options:["True", "False"], correct: 1, rationale: "A computer system does not itself express the motivations that initiated its design." },
+            { id: 17, question: "Setting realistic goals helps the implementation team achieve what state of mind during the process?", options:["Calm and focused", "Anxious and rushed", "Apathetic and detached", "Confused and overwhelmed"], correct: 0, rationale: "You must set realistic goals to stay calm and focused when implementing new software." },
+            { id: 18, question: "What is the recommended approach if you encounter a shortcut during the installation process?", options:["Avoid skipping steps to prevent future problems", "Take the shortcut to save implementation time", "Redesign the software architecture completely", "Pause the project until the next financial quarter"], correct: 0, rationale: "Don't try to shortcut the process or skip steps — this will only lead to problems." },
+            { id: 19, question: "Extensive quality assurance processes and applying third party libraries occur during which stage?", options:["Software coding and implementation", "Pre implementation project planning", "Post implementation system evaluation", "Initial stakeholder requirement gathering"], correct: 0, rationale: "The implementation process usually includes tasks such as performing unit testing, applying third-party libraries, and carrying out an extensive quality assurance process." },
+            { id: 20, question: "Having a detailed project plan removes the need to consider potential risks and future budget constraints.", options:["True", "False"], correct: 1, rationale: "It is essential that this plan considers all aspects of the project, including its schedule, budget, resources, risks, and results." },
+            { id: 21, question: "Which method is explicitly mentioned as a way to gather requirements from various stakeholders?", options:["Focus groups", "Random sampling", "Usability testing", "Code reviews"], correct: 0, rationale: "Several methods can be used to gather requirements, such as interviews, focus groups, surveys, and more." },
+            { id: 22, question: "Communicating early and often with stakeholders helps achieve which specific goal before going live?", options:["Setting expectations for the entire process", "Eliminating the need for data migration", "Bypassing necessary security testing protocols", "Reducing the final cost of the purchased software"], correct: 0, rationale: "Communicating early and often with all stakeholders is crucial to set expectations for what will happen before, during, and after the go-live date." },
+            { id: 23, question: "Which phase involves configuring the existing systems of the organization and installing the new software?", options: ["Implementation phase", "Evaluation phase", "Planning phase", "Support phase"], correct: 0, rationale: "In the Implementation phase, the organization's existing systems are configured and installed with the new software." },
+            { id: 24, question: "A contingency plan for reverting the system is considered a crucial part of having a backup plan.", options: ["True", "False"], correct: 0, rationale: "Having a backup plan might mean having someone on call to troubleshoot issues or establishing a contingency plan for reverting." },
+            { id: 25, question: "Which action represents a vital component of the training and adoption step?", options:["Allowing users to learn at their own pace", "Forcing all employees to take written exams", "Restricting access to the training materials", "Delaying support until the software goes live"], correct: 0, rationale: "Users can train with videos or guide materials at their own pace, which is an excellent resource for learning." },
+            { id: 26, question: "Who needs to be informed when changes occur during the software implementation process?", options:["Management teams and affected users", "External software outsourcing partners", "Financial department executive staff", "Specific developers writing the code"], correct: 0, rationale: "Management, information technology teams, and anyone affected by a change will need to be informed about it." },
+            { id: 27, question: "Putting the project plan into action requires identifying a specific team member who is responsible for what?", options: ["Each assigned task", "Total budget approval", "Competitor market analysis", "Marketing strategy creation"], correct: 0, rationale: "Identify a specific team member or contractor responsible for each task and assign them responsibility." },
+            { id: 28, question: "Developing a training program should occur before establishing the goals of the software implementation.", options: ["True", "False"], correct: 1, rationale: "You must establish the goals and objectives and create a plan for implementing the new software before developing a training program." },
+            { id: 29, question: "Gathering stakeholder requirements must involve documenting and reviewing them with the client before coding begins.", options: ["True", "False"], correct: 0, rationale: "Requirements should be documented and reviewed with the client to confirm they are complete and accurate before starting to code." },
+            { id: 30, question: "Software implementation plans can only be fully proven through which activity?", options:["Continuously testing all software features", "Reviewing the initial stakeholder survey", "Examining the original marketing strategy", "Reading the detailed project documentation"], correct: 0, rationale: "Software implementation plans can only be proven through testing. Take some time to thoroughly test the software." },
+            { id: 31, question: "Reviewing the initial software capabilities against what the software is meant to do defines what process?", options:["Defining the project scope", "Executing the evaluation phase", "Initiating the parallel transition", "Creating the marketing strategy"], correct: 0, rationale: "Defining the project's scope involves understanding what the software is meant to do, which features are needed, and what limitations exist." },
+            { id: 32, question: "When selecting new software for a business process, which factor must be considered according to the guidelines?", options:["Ensuring you do not pay for unwanted features", "Purchasing the most expensive industry software", "Hiring external consultants for daily operations", "Replacing existing hardware components immediately"], correct: 0, rationale: "When selecting software, remember to make sure you don't pay for features you don't want." },
+            { id: 33, question: "What approach involves replacing an existing software system with a new one all at once?", options:["Direct cutover", "Parallel implementation", "Phased implementation", "Pilot implementation"], correct: 0, rationale: "Direct cutover is an approach that involves replacing an existing software system with a new one all at once." },
+            { id: 34, question: "What is the primary difference between software support and software maintenance?", options:["Maintenance adds functionality while support fixes broken code", "Support redesigns architecture while maintenance updates interfaces", "Maintenance replaces hardware while support trains general users", "Support evaluates security while maintenance recruits project staff"], correct: 0, rationale: "Software support involves fixing broken software, while software maintenance adds features and fixes low-priority bugs." },
+            { id: 35, question: "Releasing a new software system in a limited scope to gather feedback describes which approach?", options:["Pilot implementation", "Direct cutover", "Parallel implementation", "Phased implementation"], correct: 0, rationale: "Pilot implementation releases a new system in a limited scope or for a small group to gather feedback." },
+            { id: 36, question: "What is a primary disadvantage of using the parallel implementation method?", options:["It requires more resources to run both systems", "It completely deletes the legacy system data", "It prevents users from learning the new interface", "It forces an immediate transition for all departments"], correct: 0, rationale: "Parallel implementation reduces the risk of disruption, but requires more resources, since two systems run at the same time." },
+            { id: 37, question: "Tracking usage and performance metrics after the system goes live helps identify what?", options:["Areas that require further improvement", "Employees who should be terminated immediately", "Competitors attempting to steal digital data", "Hardware components ready for physical disposal"], correct: 0, rationale: "Monitoring usage and performance metrics provides feedback so you can identify areas that need improvement." },
+            { id: 38, question: "After executing the plan and installing the software, the next critical step is to do what?", options:["Configure the software to suit business needs", "Delete all legacy data from previous systems", "Rewrite the original application source code", "Terminate the external outsourcing partner"], correct: 0, rationale: "After installing the software, you can focus on configuring it to suit your business needs and integrating it." },
+            { id: 39, question: "Adhering to coding standards and best practices during development ensures what outcome?", options:["Software quality and maintainability", "Immediate profitability and revenue growth", "Complete elimination of hardware needs", "Automated stakeholder communications generation"], correct: 0, rationale: "Engineers adhere to coding standards and best practices to ensure software quality and maintainability." },
+            { id: 40, question: "To ensure a software implementation goes smoothly, what must be done to the project plan?", options:["It must consider resources risks and budget", "It must bypass standard quality assurance", "It must exclude nontechnical stakeholders", "It must rely entirely on external contractors"], correct: 0, rationale: "It is essential that this plan considers all aspects of the project, including its schedule, budget, resources, risks, and results." }
+        ];
+
+        // --- 2. SHUFFLE & RENDER LOGIC (DO NOT EDIT) ---
+        const quizData = rawQuizData.map(q => {
+            const opts = q.options.map((text, i) => ({ text, isCorrect: i === q.correct }));
+            for (let i = opts.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [opts[i], opts[j]] = [opts[j], opts[i]];
+            }
+            return { ...q, options: opts.map(o => o.text), correct: opts.findIndex(o => o.isCorrect) };
+        });
+
+        // Shuffle the questions themselves
+        for (let i = quizData.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [quizData[i], quizData[j]] = [quizData[j], quizData[i]];
+        }
+
+        const container = document.getElementById('quiz-container');
+        let score = 0; let answeredCount = 0;
+
+        function renderQuiz() {
+            document.getElementById('total-display').innerText = `/ ${quizData.length}`;
+            container.innerHTML = quizData.map((q, index) => {
+                return `
+                <div class="card bg-white rounded-xl p-6 mb-6 border border-gray-100">
+                    <div class="flex justify-between items-center mb-4 border-b border-gray-50 pb-3">
+                        <span class="bg-blue-100 text-blue-800 text-xs font-bold px-3 py-1 rounded-full">Question ${index + 1}</span>
+                         ${q.options.length === 2 ? '<span class="bg-purple-100 text-purple-800 text-xs font-bold px-2 py-1 rounded-md">True/False</span>' : ''}
+                    </div>
+                    <h3 class="text-gray-800 font-bold mb-6 text-lg leading-relaxed font-cairo" style="direction: ltr; text-align: left;">${q.question}</h3>
+                    <div class="grid gap-3 ${q.options.length === 2 ? 'grid-cols-2' : ''}">
+                        ${q.options.map((opt, i) => `<button onclick="checkAnswer(${index}, ${i})" class="option-btn option-btn-${index} w-full text-left px-5 py-4 rounded-xl border border-gray-200 hover:bg-blue-50 hover:border-blue-300 focus:outline-none flex items-center justify-between group bg-white"><span class="font-medium text-gray-700 group-hover:text-blue-700 font-sans">${opt}</span></button>`).join('')}
+                    </div>
+                    <div id="feedback-${index}" class="hidden-content mt-6 bg-blue-50 rounded-xl p-5 border border-blue-100 animate-fade-in text-left">
+                        <p class="text-blue-800 text-sm leading-relaxed"><strong>Rationale:</strong> ${q.rationale}</p>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        window.checkAnswer = function(qIndex, optIndex) {
+            const q = quizData[qIndex];
+            const feedback = document.getElementById(`feedback-${qIndex}`);
+            const btns = document.querySelectorAll(`.option-btn-${qIndex}`);
+            if (!feedback.classList.contains('hidden-content')) return;
+            feedback.classList.remove('hidden-content');
+            btns.forEach((btn, i) => {
+                btn.disabled = true;
+                if (i === q.correct) { btn.classList.add('correct-answer'); btn.innerHTML += '<i class="fas fa-check float-right"></i>'; }
+                else if (i === optIndex) { btn.classList.add('wrong-answer'); btn.innerHTML += '<i class="fas fa-times float-right"></i>'; }
+                else { btn.classList.add('opacity-50'); }
+            });
+            if (optIndex === q.correct) score++;
+            answeredCount++;
+            if (answeredCount === quizData.length) {
+                document.getElementById('result-summary').classList.remove('hidden-content');
+                document.getElementById('score-display').innerText = score;
+                document.getElementById('score-message').innerText = (score/quizData.length*100) >= 50 ? "Good Job!" : "Keep Studying";
+                setTimeout(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }), 500);
+            }
+        };
+        renderQuiz();
+    </script>
+</body>
+</html>

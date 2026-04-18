@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Noto+Sans:wght@400;600;700&display=swap');
+        body { font-family: 'Noto Sans', 'Cairo', sans-serif; background-color: #f8fafc; }
+        .card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .card:hover { transform: translateY(-4px); box-shadow: 0 12px 20px -5px rgba(0, 0, 0, 0.1); }
+        .correct-answer { background-color: #dcfce7 !important; border-color: #22c55e !important; color: #15803d !important; }
+        .wrong-answer { background-color: #fee2e2 !important; border-color: #ef4444 !important; color: #b91c1c !important; }
+        .hidden-content { display: none; }
+        .option-btn { transition: all 0.2s; }
+        .option-btn:disabled { cursor: default; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
+    </style>
+</head>
+<body class="pb-12 bg-gray-50">
+    <div class="max-w-3xl mx-auto px-4 py-8">
+        <div class="bg-white rounded-2xl shadow-sm p-8 mb-8 text-center border-t-4 border-blue-600 relative overflow-hidden">
+            <div class="absolute top-0 right-0 p-4 opacity-10"><i class="fas fa-user-md text-8xl text-blue-600"></i></div>
+            
+            <h1 class="text-3xl font-bold text-gray-800 mb-2 font-cairo text-center" dir="auto">Computer Technology in Nursing</h1>
+            
+            <div class="flex items-center justify-center gap-2 text-green-600 font-semibold bg-green-50 w-fit mx-auto px-4 py-1 rounded-full text-sm">
+                <i class="fas fa-check-circle"></i> "تم صنع هذا الامتحان بواسطة عبدالحليم رزق"
+            </div>
+        </div>
+        <div id="quiz-container"></div>
+        <div id="result-summary" class="hidden-content bg-white rounded-2xl shadow-lg p-8 text-center mt-8 border border-gray-100">
+            <h2 class="text-2xl font-bold text-gray-800">Exam Completed</h2>
+            <div class="mt-4 text-4xl font-bold text-blue-600 mb-2">
+                <span id="score-display">0</span> <span class="text-xl text-gray-400" id="total-display"></span>
+            </div>
+            <p id="score-message" class="text-gray-500 mb-6"></p>
+            <button onclick="location.reload()" class="bg-blue-600 text-white px-8 py-3 rounded-xl hover:bg-blue-700 transition shadow-lg hover:shadow-blue-200">
+                <i class="fas fa-redo mr-2"></i> Restart Exam
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. QUESTIONS ARRAY ---
+        const rawQuizData =[
+            { id: 1, question: "The physical components of a computer system are collectively identified by which term?", options: ["Hardware", "Software", "Process", "Program"], correct: 0, rationale: "The physical components of a computer system are collectively called hardware." },
+            { id: 2, question: "Analyzing monthly demographic data and hospital mortality rates are functions of which administrative system?", options: ["Medical record", "Human resources", "Nursing station", "Facilities system"], correct: 0, rationale: "Computerization of medical records is utilized for monthly demographic data analysis and hospital mortality rates." },
+            { id: 3, question: "Evaluating a nurse's performance record and promotion falls under the nursing station system.", options:["True", "False"], correct: 1, rationale: "Performance record and promotion are part of Personnel management, not the nursing station system." },
+            { id: 4, question: "Which step is a direct application of computers in the specific field of nursing research?", options:["Literature search", "Budget finance", "Course management", "Ward scheduling"], correct: 0, rationale: "Literature search is explicitly listed as a primary use of computers in nursing research." },
+            { id: 5, question: "Which function involves carrying out a series of operations that direct processing results to an external collection device?", options: ["Outputting", "Inputting", "Controlling", "Processing"], correct: 0, rationale: "Output operations direct the processing results to the output unit." },
+            { id: 6, question: "The acronym for computer includes the phrase particularly used for training and education.", options:["True", "False"], correct: 0, rationale: "Computer means Commonly Operated Machine Particularly Used for Training Education Research." },
+            { id: 7, question: "Providing easy retrieval of specific data such as trends in vital signs is a function of which system?", options:["Client record", "Personnel system", "Quality assurance", "Facilities system"], correct: 0, rationale: "Computer Based Client Records provide easy retrieval of specific data such as trends in vital signs." },
+            { id: 8, question: "Which technology involves automatic paging capability when client measurements fall outside normal parameters?", options: ["Wireless technology", "Intravenous technology", "Plotter technology", "Optical technology"], correct: 0, rationale: "Wireless technology possesses automatic nurse paging capability when measurements fall outside normal parameters." },
+            { id: 9, question: "The less than and greater than symbols are examples of which type of operator used in logic operations?", options: ["Relational", "Boolean", "Arithmetic", "Processing"], correct: 0, rationale: "The logic operations use relational operators to perform comparisons such as less than and greater than." },
+            { id: 10, question: "Human beings are described in the conclusion as incredibly fast and accurate but lacking brilliance.", options:["True", "False"], correct: 1, rationale: "The text concludes that human beings are incredibly slow inaccurate and brilliant." },
+            { id: 11, question: "Which system is located in each ward specifically to manage dietary requirements and drug administration schedules?", options:["Nursing station", "Quality assurance", "Medical record", "Human resources"], correct: 0, rationale: "The nurses station system is located in each ward for dietary requirements and drug administration schedules." },
+            { id: 12, question: "The process of translating data from indirect entry devices into a binary format is known as what?", options: ["Encoding", "Executing", "Outputting", "Sequencing"], correct: 0, rationale: "Indirect entry devices must translate input into a binary format through a process referred to as encoding." },
+            { id: 13, question: "Ordering supplies, meals, and services from other departments is categorized under which function?", options:["Practice management", "Bedside entry", "Client scheduling", "Medical keeping"], correct: 0, rationale: "Practice management is used to order supplies, tests, meals, and services from other departments." },
+            { id: 14, question: "Copyright of materials on the web is considered a primary legal and ethical issue related to computers in nursing.", options: ["True", "False"], correct: 0, rationale: "Copyright of materials on the Web is strictly listed under issues related to computers in nursing." },
+            { id: 15, question: "Which component performs mathematical calculations within the central processing unit?", options:["Arithmetic logic", "Control unit", "Primary storage", "Input device"], correct: 0, rationale: "The Arithmetic Logic Unit performs arithmetic operations such as add, subtract, multiply, and divide." },
+            { id: 16, question: "A task given to a computer to perform is specifically identified as what?", options:["Program", "Software", "Hardware", "Process"], correct: 0, rationale: "A program is formally defined as a task given to a computer." },
+            { id: 17, question: "Determining the most costly items used by a nursing unit is a potential benefit of healthcare informatics applications.", options: ["True", "False"], correct: 0, rationale: "Informatics allows nursing service to determine the most costly items used by a particular unit." },
+            { id: 18, question: "Which type of storage contains physical components like solid state drives and optical devices?", options: ["Secondary storage", "Primary storage", "Arithmetic logic", "Process controller"], correct: 0, rationale: "Secondary storage can include solid-state drives, hard-disk drives, and optical devices." },
+            { id: 19, question: "Which term refers to the medium containing instructions that tell the hardware how to perform tasks?", options: ["Software", "Hardware", "Process", "Data"], correct: 0, rationale: "Software refers to the medium containing a set of instructions that instructs the hardware." },
+            { id: 20, question: "Computers are described as incredibly fast and accurate but fundamentally stupid without human guidance.", options: ["True", "False"], correct: 0, rationale: "The conclusion clearly states that computers are incredibly fast, accurate, and stupid." },
+            { id: 21, question: "How many primary functional units make up standard computer system operations?", options: ["Five", "Four", "Three", "Six"], correct: 0, rationale: "Computer operations are executed by the five primary functional units." },
+            { id: 22, question: "Managing building and non-nursing services like air conditioning falls under which administrative category?", options: ["Facilities management", "Personnel management", "Quality assurance", "Medical records"], correct: 0, rationale: "Facilities management involves managing building and non-nursing services such as air conditioning." },
+            { id: 23, question: "Which component is responsible for retrieving and decoding each instruction found in the computer memory?", options: ["Control unit", "Arithmetic unit", "Storage unit", "Input unit"], correct: 0, rationale: "The control unit retrieves and decodes each instruction in memory." },
+            { id: 24, question: "The control unit is directly responsible for processing and storing all inputted data.", options: ["True", "False"], correct: 1, rationale: "The control unit does not process or store data; it strictly controls communications and synchronizes operations." },
+            { id: 25, question: "Warning providers about conflicting medications is a specialized feature of which clinical application?", options: ["Client record", "Financial system", "Personnel system", "Quality system"], correct: 0, rationale: "The Computer Based Client Record can be designed to warn providers about conflicting medications." },
+            { id: 26, question: "Optical scanners and touchscreens represent which specific category of computer hardware?", options: ["Direct entry", "Indirect entry", "Primary storage", "Secondary storage"], correct: 0, rationale: "Optical scanners and touchscreens are two examples of direct entry devices." },
+            { id: 27, question: "According to the nineteen eighty definition, nursing informatics involves computer technology in which specific endeavors?", options:["Services education research", "Administration billing payroll", "Hardware software logic", "Privacy security consent"], correct: 0, rationale: "Scholes and Barber defined it as computer technology in all nursing endeavors: services, education, and research." },
+            { id: 28, question: "The central processor can directly execute highly complex tasks without breaking them down into simple individual operations.", options: ["True", "False"], correct: 1, rationale: "A processor can only execute simple operations; complex tasks must be broken down into billions of operations." },
+            { id: 29, question: "Which organizations defined nursing informatics as combining nursing, information, and computer sciences in two thousand one?", options: ["American Nurses Association", "World Health Organization", "Joint Commission Organization", "Centers Disease Control"], correct: 0, rationale: "The American Nurses Association defined nursing informatics in 2001." },
+            { id: 30, question: "Logic operations within the arithmetic logic unit rely heavily on which type of operators?", options: ["Boolean operators", "Linear operators", "Manual operators", "Sequential operators"], correct: 0, rationale: "Logic operations rely on Boolean operators, which work with true/false values." },
+            { id: 31, question: "Which application is considered a primary use of computers in nursing education?", options:["Distance learning", "Patient monitoring", "Facilities management", "Intravenous delivery"], correct: 0, rationale: "Distance learning is listed as one of the key ways computers enhance teaching and learning in education." },
+            { id: 32, question: "Computers can independently generate different customized exams for each student based on set selection criteria.", options: ["True", "False"], correct: 0, rationale: "For testing, the computer can generate different exams for each student depending on the selection criteria." },
+            { id: 33, question: "When a computer system breaks down a task it handles into smaller distinct tasks, what is this called?", options: ["Process", "Program", "Software", "Hardware"], correct: 0, rationale: "The computer system breaks down each task it handles into smaller tasks called a process." },
+            { id: 34, question: "Which entity requires healthcare organizations to have online mechanisms to monitor quality indicators?", options: ["Joint commission", "Nursing administration", "Federal government", "State department"], correct: 0, rationale: "The Joint commission on accreditation care organization requires hospitals to have online mechanisms to monitor quality indicators." },
+            { id: 35, question: "Input and output operations rely extensively on which specific type of computer memory?", options: ["Primary storage", "Secondary storage", "External storage", "Peripheral storage"], correct: 0, rationale: "Input, processing, and output operations rely extensively on primary storage." },
+            { id: 36, question: "Bedside data entry is exclusively utilized to manage client scheduling and departmental ordering.", options:["True", "False"], correct: 1, rationale: "Bedside data entry records client assessments, medication administration, and progress notes, not just scheduling." },
+            { id: 37, question: "Which term is specifically defined as simple facts about an entity within a computer system?", options: ["Data", "Process", "Program", "Storage"], correct: 0, rationale: "Data is strictly defined as facts about an entity." },
+            { id: 38, question: "Calculating percentages and sorting student scores is a primary feature of which educational application?", options:["Record management", "Distance learning", "Classroom technologies", "Literature search"], correct: 0, rationale: "Student and Course Record Management programs can calculate percentages and sort student scores." },
+            { id: 39, question: "Which of the following is considered a primary issue related to the application of computers in nursing?", options:["Informed consent", "Hardware design", "Storage capacity", "Processing speed"], correct: 0, rationale: "Informed consent, along with legal/ethical issues and privacy, are listed as key issues related to computers in nursing." },
+            { id: 40, question: "Data collection and research dissemination are direct applications of computers in which specialized nursing domain?", options:["Nursing research", "Nursing education", "Nursing administration", "Nursing scheduling"], correct: 0, rationale: "Research dissemination and data collection are core parts of the use of computers in nursing research." }
+        ];
+
+        // --- 2. SHUFFLE & RENDER LOGIC (DO NOT EDIT) ---
+        const quizData = rawQuizData.map(q => {
+            const opts = q.options.map((text, i) => ({ text, isCorrect: i === q.correct }));
+            for (let i = opts.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [opts[i], opts[j]] = [opts[j], opts[i]];
+            }
+            return { ...q, options: opts.map(o => o.text), correct: opts.findIndex(o => o.isCorrect) };
+        });
+
+        const container = document.getElementById('quiz-container');
+        let score = 0; let answeredCount = 0;
+
+        function renderQuiz() {
+            document.getElementById('total-display').innerText = `/ ${quizData.length}`;
+            container.innerHTML = quizData.map((q, index) => {
+                return `
+                <div class="card bg-white rounded-xl p-6 mb-6 border border-gray-100">
+                    <div class="flex justify-between items-center mb-4 border-b border-gray-50 pb-3">
+                        <span class="bg-blue-100 text-blue-800 text-xs font-bold px-3 py-1 rounded-full">Question ${index + 1}</span>
+                         ${q.options.length === 2 ? '<span class="bg-purple-100 text-purple-800 text-xs font-bold px-2 py-1 rounded-md">True/False</span>' : ''}
+                    </div>
+                    <h3 class="text-gray-800 font-bold mb-6 text-lg leading-relaxed font-cairo" style="direction: ltr; text-align: left;">${q.question}</h3>
+                    <div class="grid gap-3 ${q.options.length === 2 ? 'grid-cols-2' : ''}">
+                        ${q.options.map((opt, i) => `<button onclick="checkAnswer(${index}, ${i})" class="option-btn option-btn-${index} w-full text-left px-5 py-4 rounded-xl border border-gray-200 hover:bg-blue-50 hover:border-blue-300 focus:outline-none flex items-center justify-between group bg-white"><span class="font-medium text-gray-700 group-hover:text-blue-700 font-sans">${opt}</span></button>`).join('')}
+                    </div>
+                    <div id="feedback-${index}" class="hidden-content mt-6 bg-blue-50 rounded-xl p-5 border border-blue-100 animate-fade-in text-left">
+                        <p class="text-blue-800 text-sm leading-relaxed"><strong>Rationale:</strong> ${q.rationale}</p>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        window.checkAnswer = function(qIndex, optIndex) {
+            const q = quizData[qIndex];
+            const feedback = document.getElementById(`feedback-${qIndex}`);
+            const btns = document.querySelectorAll(`.option-btn-${qIndex}`);
+            if (!feedback.classList.contains('hidden-content')) return;
+            feedback.classList.remove('hidden-content');
+            btns.forEach((btn, i) => {
+                btn.disabled = true;
+                if (i === q.correct) { btn.classList.add('correct-answer'); btn.innerHTML += '<i class="fas fa-check float-right"></i>'; }
+                else if (i === optIndex) { btn.classList.add('wrong-answer'); btn.innerHTML += '<i class="fas fa-times float-right"></i>'; }
+                else { btn.classList.add('opacity-50'); }
+            });
+            if (optIndex === q.correct) score++;
+            answeredCount++;
+            if (answeredCount === quizData.length) {
+                document.getElementById('result-summary').classList.remove('hidden-content');
+                document.getElementById('score-display').innerText = score;
+                document.getElementById('score-message').innerText = (score/quizData.length*100) >= 50 ? "Good Job!" : "Keep Studying";
+                setTimeout(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }), 500);
+            }
+        };
+        renderQuiz();
+    </script>
+</body>
+</html>

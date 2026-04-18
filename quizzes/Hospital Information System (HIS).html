@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Noto+Sans:wght@400;600;700&display=swap');
+        body { font-family: 'Noto Sans', 'Cairo', sans-serif; background-color: #f8fafc; }
+        .card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .card:hover { transform: translateY(-4px); box-shadow: 0 12px 20px -5px rgba(0, 0, 0, 0.1); }
+        .correct-answer { background-color: #dcfce7 !important; border-color: #22c55e !important; color: #15803d !important; }
+        .wrong-answer { background-color: #fee2e2 !important; border-color: #ef4444 !important; color: #b91c1c !important; }
+        .hidden-content { display: none; }
+        .option-btn { transition: all 0.2s; }
+        .option-btn:disabled { cursor: default; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
+    </style>
+</head>
+<body class="pb-12 bg-gray-50">
+    <div class="max-w-3xl mx-auto px-4 py-8">
+        <div class="bg-white rounded-2xl shadow-sm p-8 mb-8 text-center border-t-4 border-blue-600 relative overflow-hidden">
+            <div class="absolute top-0 right-0 p-4 opacity-10"><i class="fas fa-user-md text-8xl text-blue-600"></i></div>
+            
+            <h1 class="text-3xl font-bold text-gray-800 mb-2 font-cairo text-center" dir="auto">Hospital Information System (HIS)</h1>
+            
+            <div class="flex items-center justify-center gap-2 text-green-600 font-semibold bg-green-50 w-fit mx-auto px-4 py-1 rounded-full text-sm">
+                <i class="fas fa-check-circle"></i> "تم صنع هذا الامتحان بواسطة عبدالحليم رزق"
+            </div>
+        </div>
+        <div id="quiz-container"></div>
+        <div id="result-summary" class="hidden-content bg-white rounded-2xl shadow-lg p-8 text-center mt-8 border border-gray-100">
+            <h2 class="text-2xl font-bold text-gray-800">Exam Completed</h2>
+            <div class="mt-4 text-4xl font-bold text-blue-600 mb-2">
+                <span id="score-display">0</span> <span class="text-xl text-gray-400" id="total-display"></span>
+            </div>
+            <p id="score-message" class="text-gray-500 mb-6"></p>
+            <button onclick="location.reload()" class="bg-blue-600 text-white px-8 py-3 rounded-xl hover:bg-blue-700 transition shadow-lg hover:shadow-blue-200">
+                <i class="fas fa-redo mr-2"></i> Restart Exam
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. QUESTIONS ARRAY (GENERATE 40 QUESTIONS HERE) ---
+        const rawQuizData =[
+            { id: 1, question: "In a decentralized system, staff members generally feel more comfortable knowing they control their own filing.", options: ["True", "False"], correct: 0, rationale: "An advantage of a decentralized system is that staff feels more comfortable knowing they are in control of their own filing and retrieving." },
+            { id: 2, question: "Which main element of a hospital information system involves guidelines that ensure information reaches the appropriate person at the correct time?", options: ["Humans", "Data", "Procedures", "Equipment"], correct: 2, rationale: "Procedures are a series of guidelines that ensure the right information reaches the right person at the right time." },
+            { id: 3, question: "Which advantage helps doctors make rapid responses in emergency cases when immediate choices are required?", options:["Automatic reporting", "Critical pathway decisions", "Medico legal purpose", "Clinical research"], correct: 1, rationale: "Critical Pathway of Decisions helps a doctor bring his response quickly in very serious or emergency cases." },
+            { id: 4, question: "What feature allows authorized personnel to access hospital data from any location and share it between facilities?", options:["Centralized network", "Web based system", "Fragmented documentation", "Local workstation"], correct: 1, rationale: "Availability on the web means authorized personnel can access the information whenever they want from anywhere." },
+            { id: 5, question: "The system prevents adverse events such as drug allergies by providing a readily available list of current medications.", options: ["True", "False"], correct: 0, rationale: "Patient safety is improved by preventing bad outcomes due to lack of information, such as checking drug allergies and current medications." },
+            { id: 6, question: "What term specifically describes data that has been interpreted, organized, or structured?", options:["System", "Information", "Procedure", "Equipment"], correct: 1, rationale: "Information is defined as data that is interpreted, organized or structured." },
+            { id: 7, question: "Which issue is considered a primary disadvantage of utilizing a centralized hospital information system?", options:["Fragmented documentation", "Lack of uniformity", "High starting cost", "Lost local files"], correct: 2, rationale: "Disadvantages of centralized systems include failure, high cost (high starting cost requires training), and being time consuming." },
+            { id: 8, question: "The initial implementation of a new system rarely encounters resistance if proper training is provided.", options: ["True", "False"], correct: 1, rationale: "There is a learning curve, and some people are resistant to change and hesitant to use the new system even after training." },
+            { id: 9, question: "Which type of data recorded in the system directly documents incidents or unexpected events occurring within the facility?", options:["Discharge plans", "Care plans", "Event reports", "Nursing notes"], correct: 2, rationale: "HIS includes many types of data, explicitly listing Event reports / Incidence report." },
+            { id: 10, question: "Which outcome is a direct advantage of utilizing a centralized hospital information system?", options:["Improved data security", "Reduced full staffing", "Eliminated training costs", "Decentralized stations"], correct: 0, rationale: "Advantages of a centralized system include improved security, reducing duplication, and keeping related data together." },
+            { id: 11, question: "What constitutes the most significant problem associated with health information systems?", options: ["Medical research", "Patient expectations", "Financial cost", "Hardware size"], correct: 2, rationale: "The biggest problem associated with HIS is costs, as they are quite pricey for many reasons." },
+            { id: 12, question: "Which factor contributed significantly to the necessity and development of modern hospital information systems?", options:["Inefficiency of manual procedures", "Decrease in medical research", "Reduction in patient expectations", "Decline of professional staff"], correct: 0, rationale: "Reasons for HIS development include the inefficiency of manual procedures, growing health costs, and increased patient expectations." },
+            { id: 13, question: "Deploying or upgrading an information system often invites employee criticism and resistance to change.", options: ["True", "False"], correct: 0, rationale: "Change is always resisted by humans and deploying or upgrading a hospital information system may invite employee criticism." },
+            { id: 14, question: "Which component is responsible for the actual collection, storage, and communication of clinical data?", options: ["Procedures", "Humans", "Equipment", "Data"], correct: 2, rationale: "Equipment (software-hardware) is used for the collection, storage, communication, and editing of data/information." },
+            { id: 15, question: "Fragmented documentation is a potential risk primarily associated with which type of system configuration?", options:["Centralized system", "Decentralized system", "Web based system", "Single point system"], correct: 1, rationale: "A disadvantage of decentralized systems is that it can result in fragmented documentation filed in multiple places." },
+            { id: 16, question: "Which concept is defined as a set of principles according to which something is organized and accomplished?", options:["Information", "System", "Procedure", "Network"], correct: 1, rationale: "System is defined as a set of principles or procedures according to which something is done and organized." },
+            { id: 17, question: "Better interaction with patients is achieved primarily by using graphical images to educate them about their status.", options: ["True", "False"], correct: 0, rationale: "Through images and graphics, HIS helps doctors to educate patients about their status, improving interaction." },
+            { id: 18, question: "The raw materials that must be processed based on the specific needs of healthcare users are known as what?", options: ["Procedures", "Humans", "Data", "Equipment"], correct: 2, rationale: "Data is the raw data to be processed based on the needs of the users." },
+            { id: 19, question: "How does a hospital information system most directly contribute to reducing overall patient care costs?", options:["Eliminating clinical staff positions", "Preventing duplicated medical tests", "Bypassing necessary care procedures", "Selling patient data externally"], correct: 1, rationale: "By having detection in the system, you won't need to review the problem again or require performing additional tests." },
+            { id: 20, question: "A major benefit of decentralized systems is that they do not require extra space specifically dedicated to centralized data.", options:["True", "False"], correct: 0, rationale: "An advantage of the decentralized system is that it does not require extra space needed for centralized data." },
+            { id: 21, question: "What fundamental problem might users face when adapting to a new health information system?", options:["Excessive patient interactions", "Lack of computer skills", "Improved manual writing", "Reduced medical research"], correct: 1, rationale: "Fundamental problems include lack of computer skills, complex tasks, and complex functions." },
+            { id: 22, question: "In a centralized system configuration, how is responsibility for data management generally handled?", options:["It is entirely distributed", "It is easily placed", "It is impossible to track", "It is constantly shifting"], correct: 1, rationale: "An advantage of a centralized system is that responsibility is easily placed." },
+            { id: 23, question: "When selecting a new system, consulting the clinical staff before purchasing is recommended for what primary reason?", options:["Reducing the software licensing fee", "Discovering overlooked practical details", "Bypassing the implementation phase", "Eliminating the need for training"], correct: 1, rationale: "Staff may be able to tell you something new or inform you about things others may have overlooked." },
+            { id: 24, question: "Without proper backup protocols, digital health data can be easily corrupted or permanently lost.", options: ["True", "False"], correct: 0, rationale: "A disadvantage is that data can be easily corrupted if no backup is provided." },
+            { id: 25, question: "What type of system uses technology specifically as a tool to deliver data and support human work?", options:["Information system", "Biological system", "Manual system", "Decentralized system"], correct: 0, rationale: "Information system (IS) is defined as a system using technology as a tool to deliver information to support human work." },
+            { id: 26, question: "Documenting what was provided to the patient, by whom, and when serves which specific system advantage?", options:["Clinical research purpose", "Medico legal purpose", "Financial billing purpose", "Automatic reporting purpose"], correct: 1, rationale: "Medico-legal purpose addresses what was done or provided to the patient, why, by whom, and when." },
+            { id: 27, question: "Centralized systems typically suffer from a severe lack of uniformity and consistency across different departments.", options: ["True", "False"], correct: 1, rationale: "Centralized systems actually provide uniform service to all users; lack of uniformity is a disadvantage of decentralized systems." },
+            { id: 28, question: "Intake and output measurements belong to which specific category of hospital data?", options: ["Diagnostic laboratory results", "Vital physiological measurements", "Basic demographic information", "Event incidence reports"], correct: 1, rationale: "The text lists 'Vital signs, intake/output, and physiological measurements' as a specific type of data included in HIS." },
+            { id: 29, question: "What happens when a staff member is absent in a highly decentralized filing environment?", options:["Automatic routing of medical files", "Instantaneous central data retrieval", "Confusion locating patient information", "Immediate deletion of the records"], correct: 2, rationale: "A disadvantage is confusion as to where information can be found, especially if a staff member is absent." },
+            { id: 30, question: "Humans are considered an essential element of the information system because they produce and use the data.", options: ["True", "False"], correct: 0, rationale: "Humans (users) are those who produce the information and use it for decision making during everyday practice." },
+            { id: 31, question: "A comprehensive health information system is explicitly designed to integrate medical issues with what other aspects?", options:["Administrative financial and legal", "Educational theoretical and global", "Personal recreational and social", "Mechanical electrical and plumbing"], correct: 0, rationale: "HIS Comprehensive Definition includes managing medical, administrative, financial, and legal issues." },
+            { id: 32, question: "The problem of managing massive volumes of clinical data became monumental due to what global trend?", options:["Information and communication revolution", "Decrease in population life expectancy", "Reduction of available medical facilities", "Simplification of the nursing profession"], correct: 0, rationale: "With growing communications and informatics, the information and communication technologies revolution caused healthcare institutions to generate massive volumes of information." },
+            { id: 33, question: "Which factor creates a steep learning curve for employees interacting with new medical software?", options:["Intuitive interface designs", "Immediate hardware failure", "Resistance to change", "Decreased patient volumes"], correct: 2, rationale: "The learning curve is steep because some people are resistant to change and hesitant to use the new system." },
+            { id: 34, question: "Health information systems hinder clinical research by hiding critical diagnostic pathways.", options: ["True", "False"], correct: 1, rationale: "One of the advantages listed is that HIS facilitates clinical research." },
+            { id: 35, question: "A vendor offering a design that requires fewer servers directly addresses which selection criteria?", options: ["Total cost of package", "Web based accessibility", "Implementation support", "Clinical user interface"], correct: 0, rationale: "Under 'Total cost of package', vendors reduce costs by having a design that requires less hardware and fewer servers." },
+            { id: 36, question: "Centralizing all patient data in one location significantly reduces the occurrence of what issue?", options:["Medical errors", "Automatic reports", "Patient education", "Legal compliance"], correct: 0, rationale: "Reducing errors occurs because all data have been collected in one place, resulting in fewer mistakes." },
+            { id: 37, question: "Which characteristic is considered a distinct operational advantage of decentralized systems?", options:["Highly accessible local workstations", "Completely unified documentation", "Extreme central data security", "Elimination of user training"], correct: 0, rationale: "Accessibility at distributed workstations is listed as a primary advantage of a decentralized system." },
+            { id: 38, question: "What was the original primary purpose of developing hospital information systems?", options:["Facilitating internal communication", "Replacing clinical practitioners", "Eliminating hospital administration", "Selling software to patients"], correct: 0, rationale: "The original purpose of HISs was to provide a framework to facilitate the communication of information within a hospital setting." },
+            { id: 39, question: "Defining the exact way that clinical information will be transformed is a function of which system element?", options:["Humans", "Procedures", "Hardware", "Data"], correct: 1, rationale: "Procedures involve series of guidelines that define the way information will be transformed." },
+            { id: 40, question: "If information is primarily kept in a single large computer managed by a specific director, the system is classified as what?", options:["Decentralized", "Centralized", "Fragmented", "Distributed"], correct: 1, rationale: "A Centralized System is one in which data is located in one central computer, generally under the control of the health information manager." }
+        ];
+
+        // --- 2. SHUFFLE & RENDER LOGIC (DO NOT EDIT) ---
+        const quizData = rawQuizData.map(q => {
+            const opts = q.options.map((text, i) => ({ text, isCorrect: i === q.correct }));
+            for (let i = opts.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [opts[i], opts[j]] = [opts[j], opts[i]];
+            }
+            return { ...q, options: opts.map(o => o.text), correct: opts.findIndex(o => o.isCorrect) };
+        });
+
+        const container = document.getElementById('quiz-container');
+        let score = 0; let answeredCount = 0;
+
+        function renderQuiz() {
+            document.getElementById('total-display').innerText = `/ ${quizData.length}`;
+            container.innerHTML = quizData.map((q, index) => {
+                return `
+                <div class="card bg-white rounded-xl p-6 mb-6 border border-gray-100">
+                    <div class="flex justify-between items-center mb-4 border-b border-gray-50 pb-3">
+                        <span class="bg-blue-100 text-blue-800 text-xs font-bold px-3 py-1 rounded-full">Question ${index + 1}</span>
+                         ${q.options.length === 2 ? '<span class="bg-purple-100 text-purple-800 text-xs font-bold px-2 py-1 rounded-md">True/False</span>' : ''}
+                    </div>
+                    <h3 class="text-gray-800 font-bold mb-6 text-lg leading-relaxed font-cairo" style="direction: ltr; text-align: left;">${q.question}</h3>
+                    <div class="grid gap-3 ${q.options.length === 2 ? 'grid-cols-2' : ''}">
+                        ${q.options.map((opt, i) => `<button onclick="checkAnswer(${index}, ${i})" class="option-btn option-btn-${index} w-full text-left px-5 py-4 rounded-xl border border-gray-200 hover:bg-blue-50 hover:border-blue-300 focus:outline-none flex items-center justify-between group bg-white"><span class="font-medium text-gray-700 group-hover:text-blue-700 font-sans">${opt}</span></button>`).join('')}
+                    </div>
+                    <div id="feedback-${index}" class="hidden-content mt-6 bg-blue-50 rounded-xl p-5 border border-blue-100 animate-fade-in text-left">
+                        <p class="text-blue-800 text-sm leading-relaxed"><strong>Rationale:</strong> ${q.rationale}</p>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        window.checkAnswer = function(qIndex, optIndex) {
+            const q = quizData[qIndex];
+            const feedback = document.getElementById(`feedback-${qIndex}`);
+            const btns = document.querySelectorAll(`.option-btn-${qIndex}`);
+            if (!feedback.classList.contains('hidden-content')) return;
+            feedback.classList.remove('hidden-content');
+            btns.forEach((btn, i) => {
+                btn.disabled = true;
+                if (i === q.correct) { btn.classList.add('correct-answer'); btn.innerHTML += '<i class="fas fa-check float-right"></i>'; }
+                else if (i === optIndex) { btn.classList.add('wrong-answer'); btn.innerHTML += '<i class="fas fa-times float-right"></i>'; }
+                else { btn.classList.add('opacity-50'); }
+            });
+            if (optIndex === q.correct) score++;
+            answeredCount++;
+            if (answeredCount === quizData.length) {
+                document.getElementById('result-summary').classList.remove('hidden-content');
+                document.getElementById('score-display').innerText = score;
+                document.getElementById('score-message').innerText = (score/quizData.length*100) >= 50 ? "Good Job!" : "Keep Studying";
+                setTimeout(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }), 500);
+            }
+        };
+        renderQuiz();
+    </script>
+</body>
+</html>

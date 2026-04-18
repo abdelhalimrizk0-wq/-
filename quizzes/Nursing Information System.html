@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Noto+Sans:wght@400;600;700&display=swap');
+        body { font-family: 'Noto Sans', 'Cairo', sans-serif; background-color: #f8fafc; }
+        .card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .card:hover { transform: translateY(-4px); box-shadow: 0 12px 20px -5px rgba(0, 0, 0, 0.1); }
+        .correct-answer { background-color: #dcfce7 !important; border-color: #22c55e !important; color: #15803d !important; }
+        .wrong-answer { background-color: #fee2e2 !important; border-color: #ef4444 !important; color: #b91c1c !important; }
+        .hidden-content { display: none; }
+        .option-btn { transition: all 0.2s; }
+        .option-btn:disabled { cursor: default; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
+    </style>
+</head>
+<body class="pb-12 bg-gray-50">
+    <div class="max-w-3xl mx-auto px-4 py-8">
+        <div class="bg-white rounded-2xl shadow-sm p-8 mb-8 text-center border-t-4 border-blue-600 relative overflow-hidden">
+            <div class="absolute top-0 right-0 p-4 opacity-10"><i class="fas fa-user-md text-8xl text-blue-600"></i></div>
+            
+            <h1 class="text-3xl font-bold text-gray-800 mb-2 font-cairo text-center" dir="auto">Nursing Information System</h1>
+            
+            <div class="flex items-center justify-center gap-2 text-green-600 font-semibold bg-green-50 w-fit mx-auto px-4 py-1 rounded-full text-sm">
+                <i class="fas fa-check-circle"></i> "تم صنع هذا الامتحان بواسطة عبدالحليم رزق"
+            </div>
+        </div>
+        <div id="quiz-container"></div>
+        <div id="result-summary" class="hidden-content bg-white rounded-2xl shadow-lg p-8 text-center mt-8 border border-gray-100">
+            <h2 class="text-2xl font-bold text-gray-800">Exam Completed</h2>
+            <div class="mt-4 text-4xl font-bold text-blue-600 mb-2">
+                <span id="score-display">0</span> <span class="text-xl text-gray-400" id="total-display"></span>
+            </div>
+            <p id="score-message" class="text-gray-500 mb-6"></p>
+            <button onclick="location.reload()" class="bg-blue-600 text-white px-8 py-3 rounded-xl hover:bg-blue-700 transition shadow-lg hover:shadow-blue-200">
+                <i class="fas fa-redo mr-2"></i> Restart Exam
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. QUESTIONS ARRAY ---
+        const rawQuizData =[
+            { id: 1, question: "Which clinical decision support benefit helps nurses adhere to care pathways and prompts for preventative care?", options:["Clinical guidelines", "Medication safety", "Care planning", "Evidence based decisions"], correct: 0, rationale: "Clinical Guidelines can help nurses adhere to clinical guidelines and care pathways by providing prompts for screenings and preventative care." },
+            { id: 2, question: "Personnel cost and nurse work pattern data are considered patient specific data in the system.", options: ["True", "False"], correct: 1, rationale: "Personnel cost and nurse work pattern data are categorized under 'Agency specific data', not patient specific data." },
+            { id: 3, question: "How does the nursing information system specifically benefit health authorities?", options:["Enables central printing and purchasing", "Provides curriculum development frameworks", "Creates predictive machine learning models", "Generates patient self management metrics"], correct: 0, rationale: "To Health Authorities, it provides a common format for recording care and enables central printing and purchasing of forms." },
+            { id: 4, question: "Applying knowledge unique to nursing to direct patient care represents which global category of nursing roles?", options:["Autonomous nursing function", "Physician delegated tasks", "Managerial coordinating roles", "Technological support tasks"], correct: 0, rationale: "The third category is autonomous nursing function, which applies knowledge unique to nursing to patient care." },
+            { id: 5, question: "Which technology uses devices and sensors to continuously collect and transmit patient health data?", options:["Wearable technology", "Clinical decision support", "Electronic health records", "Bibliographic databases"], correct: 0, rationale: "Wearable technologies and remote patient monitoring use devices and sensors that collect and transmit patients' health data." },
+            { id: 6, question: "Predictive analytics and machine learning will enable healthcare workers to identify high risk patients.", options:["True", "False"], correct: 0, rationale: "Predictive analytics and machine learning will enable healthcare workers to identify high-risk patients, personalize care plans, and optimize interventions." },
+            { id: 7, question: "Healthcare informatics is primarily broken down into which two main categories of systems?", options:["Clinical and administrative", "Hardware and software", "Medical and surgical", "Internal and external"], correct: 0, rationale: "Healthcare informatics can be broken down into two main categories of clinical and administrative systems." },
+            { id: 8, question: "Which term describes a system designed to manage operational data and electronic medical records?", options:["Health information system", "Nursing information system", "Telehealth network system", "Clinical decision support"], correct: 0, rationale: "A health information system refers to a system designed to manage healthcare data, including electronic medical records and operational management." },
+            { id: 9, question: "Risk assessments and laboratory tests are documented under which specific data category?", options:["Interventions", "Outcomes", "Demographics", "Problems"], correct: 0, rationale: "Interventions include risk assessments, procedures, medical interventions, nursing interventions, nursing notes, and laboratory tests." },
+            { id: 10, question: "Electronically prescribed drugs are generally less legible than handwritten prescriptions.", options: ["True", "False"], correct: 1, rationale: "Electronically prescribed drugs are more legible, making it less likely those drugs would be wrongly administered." },
+            { id: 11, question: "Which remote service encompasses patient education, remote monitoring, and virtual consultations?", options: ["Telehealth", "Telemedicine", "Clinical decision support", "Agency data integration"], correct: 0, rationale: "Tele-health encompasses several services, including remote monitoring, patient education, and virtual consultations." },
+            { id: 12, question: "Which feature generates alerts for medication safety based on patient specific data like drug interactions?", options:["Clinical decision support", "Telemedicine consultation", "Wearable remote monitor", "Staff scheduling module"], correct: 0, rationale: "Clinical Decision Support Systems (CDSS) generate alerts and reminders for medication safety based on patient-specific data such as drug interactions." },
+            { id: 13, question: "Creating a software product that can be successfully implemented in broad scope requires standardized languages.", options: ["True", "False"], correct: 0, rationale: "Creating a software product that can be successfully implemented in broad scope requires the creation of standardized languages and patient centric processes." },
+            { id: 14, question: "The APACHE score is classified under which specific category of patient data in the nursing information system?", options:["Severity of illness", "Care intensity", "Outcomes", "Problems"], correct: 0, rationale: "Severity of illness scores include APACHE, Medis Groups, and nursing severity Index." },
+            { id: 15, question: "Accessing the general nursing record to review daily health status and blood test results is a main function of which system?", options:["Management nursing information system", "Clinical decision support system", "Wearable patient monitoring system", "Telehealth communication system"], correct: 0, rationale: "The main functions of Management NIS include accessing the general nursing record that deals with daily health status, drug searches, and blood test results." },
+            { id: 16, question: "What is the primary function of a clinical decision support system in nursing informatics?", options:["Providing evidence based recommendations", "Managing hospital billing operations", "Tracking staff overtime hours", "Designing physical network structures"], correct: 0, rationale: "CDSSs are software tools providing healthcare workers with evidence-based information and patient-specific data to assist with clinical decision-making." },
+            { id: 17, question: "Telemedicine focuses primarily on clinical diagnosis and treatment rather than general patient education.", options: ["True", "False"], correct: 0, rationale: "Tele-health encompasses education, while telemedicine focuses on clinical diagnosis and treatment." },
+            { id: 18, question: "Which condition is specifically mentioned as benefiting from continuous glucose monitoring systems?", options: ["Diabetes", "Asthma", "Hypertension", "Osteoarthritis"], correct: 0, rationale: "Glucose monitoring systems enable patients with diabetes to monitor glucose levels." },
+            { id: 19, question: "Telephone booking of appointments is classified under which global category of nursing roles?", options: ["Managerial roles", "Autonomous functions", "Delegated tasks", "Technical roles"], correct: 0, rationale: "Managerial roles or coordinating activities involve gathering and transmission of information, such as telephone booking of appointments." },
+            { id: 20, question: "Managerial roles in the nursing information system strictly exclude order entry and results reporting.", options: ["True", "False"], correct: 1, rationale: "Managerial roles actually involve the gathering and transmission of patient information, such as order entry and results reporting." },
+            { id: 21, question: "Which type of patient specific data includes elements such as admission source and discharge destination?", options:["Hospital service data", "Demographics", "Outcomes", "Interventions"], correct: 0, rationale: "Hospital service data includes admission, discharge, care locations, referral source, discharge destination, and disposition." },
+            { id: 22, question: "Which benefit is achieved by averting infections when the system detects them early?", options:["Patient safety and satisfaction", "Improved workload functionality", "Reduction in work burden", "Better drug administration"], correct: 0, rationale: "Patient safety and satisfaction is achieved by increasing the sense of security through averting infection when the system is used to detect it." },
+            { id: 23, question: "Providing a framework for curriculum development and reducing orientation time is a benefit directed at which group?", options: ["Educators", "Researchers", "Health authorities", "Clinical managers"], correct: 0, rationale: "To Educators, the system provides a framework for curriculum development and ongoing education and reduces orientation time." },
+            { id: 24, question: "Wearable technology can empower patients to actively participate in their own healthcare management.", options: ["True", "False"], correct: 0, rationale: "Wearable tech can empower patients to actively participate in their own healthcare, track health metrics, and make informed choices." },
+            { id: 25, question: "Which component integrates clinical information from all disciplines into a single patient care plan?", options: ["Clinical data integration", "Problem diagnosis record", "Nursing care intensity", "Hospital service data"], correct: 0, rationale: "Clinical Data Integration allows clinical information from all disciplines to be retrieved, viewed, analyzed, and integrated into a patient's care plan." },
+            { id: 26, question: "Printing charts from an electronic system to make medication rounds quicker improves which aspect of care?", options:["Work burden and quality", "Data security and privacy", "Staff roster management", "Remote patient monitoring"], correct: 0, rationale: "Reduction in the burden of work and improvement in the quality of care is achieved through printing charts resulting in quicker medication rounds." },
+            { id: 27, question: "The establishment of an information function component involves information systems, information technology, and which other area?", options: ["Information management", "Information security", "Information architecture", "Information networking"], correct: 0, rationale: "The three interrelated areas are Information system, Information technology, and Information management." },
+            { id: 28, question: "Bibliographic databases are classified as patient specific data in the nursing information system.", options:["True", "False"], correct: 1, rationale: "Bibliographic databases are listed under 'Agency specific data', not patient specific data." },
+            { id: 29, question: "When a user clicks a function button in the main menu, the screen transfers directly to the sub menu of that function.", options: ["True", "False"], correct: 0, rationale: "When a user clicks the function button in the main menu, the screen will transfer to the sub-menu of the function." },
+            { id: 30, question: "Reducing the need for frequent hospital visits is a primary benefit of which informatics application?", options:["Remote patient monitoring", "Agency scheduling rules", "Bibliographic databases", "Administrative billing systems"], correct: 0, rationale: "Wearable technologies and remote patient monitoring can reduce the need for frequent hospital visits, especially for patients with chronic conditions." },
+            { id: 31, question: "Mortality and morbidity metrics are categorized under which type of patient specific data?", options:["Outcomes", "Interventions", "Problems", "Demographics"], correct: 0, rationale: "Outcomes include mortality, morbidity, health services utilization, functional status, and quality of life." },
+            { id: 32, question: "What is the collection and integration of hardware, software, human resources, and databases called?", options: ["Information system", "Wearable technology", "Clinical decision support", "Telemedicine network"], correct: 0, rationale: "An information system is the collection and integration of various pieces of hardware, software, human resources, and databases." },
+            { id: 33, question: "Which clinical decision support benefit helps nurses create individualized care plans for chronic conditions?", options: ["Care planning", "Medication safety", "Clinical guidelines", "Evidence based decisions"], correct: 0, rationale: "Care Planning through CDSSs can support nurses in managing chronic conditions and creating individualized care plans." },
+            { id: 34, question: "Physician delegated tasks represent the third category of nursing roles in the nursing information system.", options: ["True", "False"], correct: 1, rationale: "Physician-delegated tasks are the second category. The third is the autonomous nursing function." },
+            { id: 35, question: "Vital signs and physical assessment are sub functions of which main system feature?", options:["General nursing record", "Clinical decision support", "Agency specific data", "Patient demographic data"], correct: 0, rationale: "The sub-menu of the general nursing record includes vital signs, physical assessment, nursing planning, nursing instruction, and nursing record." },
+            { id: 36, question: "Which system benefit provides a common format for recording patient care to develop expanded nursing knowledge?", options: ["Researchers benefit", "Educators benefit", "Health authorities benefit", "Management benefit"], correct: 0, rationale: "To Researchers, it provides a common format for recording patient care that can be used as the basis for developing expanded nursing knowledge." },
+            { id: 37, question: "Providing tools for managing the delivery of nursing care and supporting documentation are main tasks of which system?", options:["Computerized nursing information system", "Telemedicine diagnostic system", "Wearable glucose monitoring system", "Centralized hospital billing system"], correct: 0, rationale: "The computerized nursing information system supports the documentation of nursing processes and provides tools for managing the delivery of care." },
+            { id: 38, question: "Which term describes a computer system that manages clinical data from various healthcare environments to aid nurses?", options:["Nursing information system", "Health information system", "Clinical decision system", "Information technology system"], correct: 0, rationale: "Nursing Information systems (NIS) is a computer system that manages clinical data from a variety of healthcare environments to aid nurses." },
+            { id: 39, question: "Agency specific data includes which feature that allows nurses to handle their own shift scheduling?", options:["Occupancy and staff schedules", "Clinical data integration", "Personnel cost patterns", "Patient satisfaction surveys"], correct: 0, rationale: "Occupancy and Staff Schedules allow nurses to self-schedule their shifts using computerized scheduling rules." },
+            { id: 40, question: "Which benefit allows staffing levels and appropriate skill mix per shift to be more easily determined?", options:["Improved workload functionality", "Reduced burden of work", "Lower health costs", "Improved clinical efficacy"], correct: 0, rationale: "Improved workload functionality allows staffing levels and appropriate skill mix per shift to be more easily determined." }
+        ];
+
+        // --- 2. SHUFFLE & RENDER LOGIC (DO NOT EDIT) ---
+        const quizData = rawQuizData.map(q => {
+            const opts = q.options.map((text, i) => ({ text, isCorrect: i === q.correct }));
+            for (let i = opts.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [opts[i], opts[j]] = [opts[j], opts[i]];
+            }
+            return { ...q, options: opts.map(o => o.text), correct: opts.findIndex(o => o.isCorrect) };
+        });
+
+        const container = document.getElementById('quiz-container');
+        let score = 0; let answeredCount = 0;
+
+        function renderQuiz() {
+            document.getElementById('total-display').innerText = `/ ${quizData.length}`;
+            container.innerHTML = quizData.map((q, index) => {
+                return `
+                <div class="card bg-white rounded-xl p-6 mb-6 border border-gray-100">
+                    <div class="flex justify-between items-center mb-4 border-b border-gray-50 pb-3">
+                        <span class="bg-blue-100 text-blue-800 text-xs font-bold px-3 py-1 rounded-full">Question ${index + 1}</span>
+                         ${q.options.length === 2 ? '<span class="bg-purple-100 text-purple-800 text-xs font-bold px-2 py-1 rounded-md">True/False</span>' : ''}
+                    </div>
+                    <h3 class="text-gray-800 font-bold mb-6 text-lg leading-relaxed font-cairo" style="direction: ltr; text-align: left;">${q.question}</h3>
+                    <div class="grid gap-3 ${q.options.length === 2 ? 'grid-cols-2' : ''}">
+                        ${q.options.map((opt, i) => `<button onclick="checkAnswer(${index}, ${i})" class="option-btn option-btn-${index} w-full text-left px-5 py-4 rounded-xl border border-gray-200 hover:bg-blue-50 hover:border-blue-300 focus:outline-none flex items-center justify-between group bg-white"><span class="font-medium text-gray-700 group-hover:text-blue-700 font-sans">${opt}</span></button>`).join('')}
+                    </div>
+                    <div id="feedback-${index}" class="hidden-content mt-6 bg-blue-50 rounded-xl p-5 border border-blue-100 animate-fade-in text-left">
+                        <p class="text-blue-800 text-sm leading-relaxed"><strong>Rationale:</strong> ${q.rationale}</p>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        window.checkAnswer = function(qIndex, optIndex) {
+            const q = quizData[qIndex];
+            const feedback = document.getElementById(`feedback-${qIndex}`);
+            const btns = document.querySelectorAll(`.option-btn-${qIndex}`);
+            if (!feedback.classList.contains('hidden-content')) return;
+            feedback.classList.remove('hidden-content');
+            btns.forEach((btn, i) => {
+                btn.disabled = true;
+                if (i === q.correct) { btn.classList.add('correct-answer'); btn.innerHTML += '<i class="fas fa-check float-right"></i>'; }
+                else if (i === optIndex) { btn.classList.add('wrong-answer'); btn.innerHTML += '<i class="fas fa-times float-right"></i>'; }
+                else { btn.classList.add('opacity-50'); }
+            });
+            if (optIndex === q.correct) score++;
+            answeredCount++;
+            if (answeredCount === quizData.length) {
+                document.getElementById('result-summary').classList.remove('hidden-content');
+                document.getElementById('score-display').innerText = score;
+                document.getElementById('score-message').innerText = (score/quizData.length*100) >= 50 ? "Good Job!" : "Keep Studying";
+                setTimeout(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }), 500);
+            }
+        };
+        renderQuiz();
+    </script>
+</body>
+</html>
