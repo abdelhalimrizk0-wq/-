@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Noto+Sans:wght@400;600;700&display=swap');
+        body { font-family: 'Noto Sans', 'Cairo', sans-serif; background-color: #f8fafc; }
+        .card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .card:hover { transform: translateY(-4px); box-shadow: 0 12px 20px -5px rgba(0, 0, 0, 0.1); }
+        .correct-answer { background-color: #dcfce7 !important; border-color: #22c55e !important; color: #15803d !important; }
+        .wrong-answer { background-color: #fee2e2 !important; border-color: #ef4444 !important; color: #b91c1c !important; }
+        .hidden-content { display: none; }
+        .option-btn { transition: all 0.2s; }
+        .option-btn:disabled { cursor: default; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
+    </style>
+</head>
+<body class="pb-12 bg-gray-50">
+    <div class="max-w-3xl mx-auto px-4 py-8">
+        <div class="bg-white rounded-2xl shadow-sm p-8 mb-8 text-center border-t-4 border-blue-600 relative overflow-hidden">
+            <div class="absolute top-0 right-0 p-4 opacity-10"><i class="fas fa-user-md text-8xl text-blue-600"></i></div>
+            
+            <h1 class="text-3xl font-bold text-gray-800 mb-2 font-cairo text-center" dir="auto">Data Security and Ethics</h1>
+            
+            <div class="flex items-center justify-center gap-2 text-green-600 font-semibold bg-green-50 w-fit mx-auto px-4 py-1 rounded-full text-sm">
+                <i class="fas fa-check-circle"></i> "تم صنع هذا الامتحان بواسطة عبدالحليم رزق"
+            </div>
+        </div>
+        <div id="quiz-container"></div>
+        <div id="result-summary" class="hidden-content bg-white rounded-2xl shadow-lg p-8 text-center mt-8 border border-gray-100">
+            <h2 class="text-2xl font-bold text-gray-800">Exam Completed</h2>
+            <div class="mt-4 text-4xl font-bold text-blue-600 mb-2">
+                <span id="score-display">0</span> <span class="text-xl text-gray-400" id="total-display"></span>
+            </div>
+            <p id="score-message" class="text-gray-500 mb-6"></p>
+            <button onclick="location.reload()" class="bg-blue-600 text-white px-8 py-3 rounded-xl hover:bg-blue-700 transition shadow-lg hover:shadow-blue-200">
+                <i class="fas fa-redo mr-2"></i> Restart Exam
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. QUESTIONS ARRAY ---
+        const rawQuizData =[
+            { id: 1, question: "Which common data security measure is specifically designed to prevent data loss?", options:["Regular backups", "Access control", "Multifactor authentication", "Antivirus software"], correct: 0, rationale: "Regular backups are explicitly listed as the measure for preventing data loss." },
+            { id: 2, question: "The digital divide refers to the unequal access to technology across different socioeconomic groups.", options: ["True", "False"], correct: 0, rationale: "The text defines the digital divide as inequality in technology access across socioeconomic groups." },
+            { id: 3, question: "Which organization created the Ten Commandments of computer ethics?", options:["Computer Ethics Institute", "Software Engineering Institute", "Global Information Society", "Internet Engineering Task Force"], correct: 0, rationale: "The Computer Ethics Institute created these commandments to guide people in using computers responsibly." },
+            { id: 4, question: "When ethics are ignored, companies often spend significant money on repairs and lawsuits. This leads to what specific consequence?", options:["Financial losses", "Damaged trust", "Privacy violations", "Digital divide"], correct: 0, rationale: "Financial Losses occur when companies spend significant money on repairs, lawsuits, and security measures." },
+            { id: 5, question: "The Computer Ethics Institute explicitly states that users may copy software without paying if it is for educational purposes.", options: ["True", "False"], correct: 1, rationale: "The 6th commandment clearly states: Do not use or copy software that you have not paid for, with no exceptions mentioned for education." },
+            { id: 6, question: "Spreading propaganda to manipulate public opinion falls under which specific ethical issue of information technology?", options:["Misinformation and fake news", "Surveillance and privacy violations", "Hacking and cybersecurity threats", "Plagiarizing digital content"], correct: 0, rationale: "Misinformation and Fake News includes spreading fake news or propaganda to manipulate public opinion." },
+            { id: 7, question: "Which commandment directly addresses the issue of sharing misleading content online?", options:["Do not spread lies using a computer", "Do not interfere with computer work", "Do not take credit for someone else", "Do not use a computer to steal"], correct: 0, rationale: "The 5th commandment is 'Do not spread lies using a computer,' which involves avoiding sharing false news or misleading content." },
+            { id: 8, question: "Encryption is primarily used to protect digital data only while it is being transmitted over a network.", options: ["True", "False"], correct: 1, rationale: "Encryption involves protecting data during transmission AND storage." },
+            { id: 9, question: "Respecting copyrights, patents, and trademarks in digital content relates to which ethical principle?", options:["Intellectual property", "Digital responsibility", "Ethical software development", "Privacy and data collection"], correct: 0, rationale: "Intellectual Property involves respecting copyrights, patents, and trademarks, and avoiding piracy." },
+            { id: 10, question: "Fostering positive societal changes by promoting education and collaboration represents which importance of ethics?", options:["Supports a better society", "Encourages absolute fairness", "Minimizes community harm", "Builds organizational trust"], correct: 0, rationale: "Responsible use of computers fosters positive societal changes by promoting education, collaboration, and innovation." },
+            { id: 11, question: "Ethical practices encourage fairness by ensuring equitable access and use of technology resources without exploitation.", options:["True", "False"], correct: 0, rationale: "One of the importance of IT Ethics is encouraging fairness by ensuring equitable access and use of technology resources." },
+            { id: 12, question: "What term describes the protection of digital data from unauthorized access or theft throughout its entire lifecycle?", options:["Data security", "Computer ethics", "Information privacy", "Digital responsibility"], correct: 0, rationale: "Data security refers to the protection of digital data from unauthorized access, corruption, or theft throughout its entire lifecycle." },
+            { id: 13, question: "Selling personal data without obtaining proper permission is categorized under which ethical issue?", options:["Surveillance and privacy violations", "Cybersecurity threat creation", "Copyright infringement cases", "Unequal technology access"], correct: 0, rationale: "Selling personal data without permission is listed under Surveillance and Privacy Violations." },
+            { id: 14, question: "Ethical hacking is considered a violation of the fundamental ethical principles of information technology.", options: ["True", "False"], correct: 1, rationale: "Ethical hacking and responsible vulnerability disclosure are listed as positive measures under the 'Security' ethical principle." },
+            { id: 15, question: "Using someone else's wireless internet connection without asking violates which specific commandment?", options:["Do not use other computer resources without permission", "Do not interfere with other people computer work", "Do not look at other people files without permission", "Do not copy software that you have not paid for"], correct: 0, rationale: "The 7th commandment 'Do not use other people's computer resources without permission' includes using someone's Wi-Fi without asking." },
+            { id: 16, question: "Developers avoiding the creation of malicious programs like spyware falls under which ethical principle?", options:["Ethical software development", "Cybercrime prevention", "Digital responsibility", "Intellectual property"], correct: 0, rationale: "Ethical Software Development requires developers to avoid creating malicious programs like viruses or spyware." },
+            { id: 17, question: "Ethics is formally defined as the study of what is morally right and what is not.", options: ["True", "False"], correct: 0, rationale: "The text defines ethics as the study of what is morally right and what is not." },
+            { id: 18, question: "Taking passwords or money illegally online is explicitly forbidden by which computer ethics commandment?", options:["Do not use a computer to steal", "Do not spread lies using a computer", "Do not take credit for someone else", "Do not use a computer to harm others"], correct: 0, rationale: "The 4th commandment 'Do not use a computer to steal' explicitly prohibits committing fraud, stealing passwords, or taking money illegally online." },
+            { id: 19, question: "What is the primary purpose of using firewalls and antivirus software in an organization?", options:["Preventing cyberattacks and malware", "Restricting who can view specific information", "Protecting data during transmission and storage", "Educating workers about security policies"], correct: 0, rationale: "Firewalls and Antivirus Software are used for preventing cyberattacks and malware." },
+            { id: 20, question: "The ninth commandment of computer ethics requires programmers to think about the societal effects of the systems they design.", options: ["True", "False"], correct: 0, rationale: "The 9th commandment is 'Think about the effects of your programs or systems,' making sure the technology benefits people." },
+            { id: 21, question: "Which consequence of lacking information technology ethics causes people to stop using online services because they feel unsafe?", options: ["Damaged trust", "Spread of false information", "Financial losses", "Software piracy"], correct: 0, rationale: "Damaged Trust occurs when people stop using online services if they feel unsafe due to unethical actions." },
+            { id: 22, question: "Preventing activities such as data breaches and cyberbullying highlights which importance of information technology ethics?", options:["Minimizes harm", "Fosters trust", "Encourages fairness", "Supports a better society"], correct: 0, rationale: "Minimizing harm prevents activities that may harm individuals, such as data breaches and cyberbullying." },
+            { id: 23, question: "Software piracy generally accelerates technological innovation by making programs accessible to more developers.", options: ["True", "False"], correct: 1, rationale: "The text states that software piracy and copyright violations cause companies to lose money, and innovation slows down." },
+            { id: 24, question: "Obtaining informed consent for data collection is a core component of which ethical principle?", options:["Privacy and data collection", "Ethical software development", "Digital responsibility", "Cybercrime prevention"], correct: 0, rationale: "Obtaining informed consent for data collection falls under the 'Privacy and data collection' principle." },
+            { id: 25, question: "Always giving credit for ideas, writing, or code that you use adheres to which computer ethics commandment?", options:["Do not take credit for someone else work", "Do not copy software that you have not paid for", "Always use computers in a way that respects others", "Do not look at other people files without permission"], correct: 0, rationale: "The 8th commandment 'Do not take credit for someone else's work' requires always giving credit for ideas, writing, or code you use." },
+            { id: 26, question: "Access control involves restricting who can view or modify specific information within a system.", options: ["True", "False"], correct: 0, rationale: "Access Control is defined as restricting who can view or modify specific information." },
+            { id: 27, question: "Creating and spreading ransomware for financial gain is classified as which ethical issue?", options:["Hacking and cybersecurity threats", "Surveillance and privacy violations", "Plagiarizing digital content", "Copyright infringement"], correct: 0, rationale: "Hacking and Cybersecurity Threats include creating harmful software and spreading malware or ransomware for financial gain." },
+            { id: 28, question: "The rapid growth of technologies like artificial intelligence and cloud computing has led to complex dilemmas regarding what?", options:["User rights and security", "Hardware manufacturing processes", "Internet connection speeds", "Global trade regulations"], correct: 0, rationale: "The rapid growth of technologies has led to complex dilemmas regarding user rights, security, and the balance between innovation and ethical responsibility." },
+            { id: 29, question: "Snooping into another person's emails or personal messages violates the commandment against interfering with computer work.", options: ["True", "False"], correct: 1, rationale: "Snooping into emails violates the 3rd commandment: 'Do not look at other people's files without permission,' not the commandment against interfering with work." },
+            { id: 30, question: "Using strong passwords and multifactor authentication is classified under which data security measure?", options:["Passwords and authentication", "Access control restriction", "Data encryption protocols", "Network firewall protection"], correct: 0, rationale: "Passwords and Authentication involves using strong passwords and multifactor authentication." },
+            { id: 31, question: "The moral principles and guidelines that govern the responsible use of technology are referred to as what?", options: ["Computer ethics", "Digital divide", "Access control", "Cybercrime prevention"], correct: 0, rationale: "Computer ethics refers to the moral principles and guidelines that govern the responsible use of computers and technology." },
+            { id: 32, question: "Ethical hacking and responsible vulnerability disclosure are key components of which ethical principle?", options:["Security", "Digital responsibility", "Intellectual property", "Ethical software development"], correct: 0, rationale: "Security involves implementing measures to safeguard data and ethical hacking with responsible vulnerability disclosure." },
+            { id: 33, question: "The spread of fake news and misleading content primarily leads to which negative outcome?", options:["Panic or harmed reputations", "Decreased financial repair costs", "Improved software innovation", "Increased digital divides"], correct: 0, rationale: "The Spread of False Information can cause panic or harm reputations, and people may make wrong decisions based on lies." },
+            { id: 34, question: "Making sure your technology benefits people and does not cause harm is a requirement of which commandment?", options:["Think about the effects of your programs", "Use computers in a way that respects others", "Do not use a computer to harm others", "Do not interfere with other computer work"], correct: 0, rationale: "The 9th commandment 'Think about the effects of your programs or systems' includes making sure your technology benefits people and does not cause harm." },
+            { id: 35, question: "Plagiarizing digital content or academic work is closely related to which other ethical issue?", options:["Copyright infringement and illegal file sharing", "Unauthorized surveillance and hacking", "Spreading fake news and propaganda", "Unequal access to technology"], correct: 0, rationale: "Plagiarizing digital content is adjacent to and related to copyright infringement and illegal file sharing." },
+            { id: 36, question: "Educating healthcare workers about data security policies is essential for which specific security measure?", options:["Training staff", "Access control", "Regular backups", "Passwords and authentication"], correct: 0, rationale: "Training Staff involves educating healthcare workers about data security policies." },
+            { id: 37, question: "What is a major consequence of software piracy and copyright violations for developers?", options:["Companies lose money and innovation slows down", "Personal emails and financial details are leaked", "People suffer from immediate physical harm", "Users face unequal access to socioeconomic resources"], correct: 0, rationale: "As a consequence of software piracy and copyright violations, companies lose money, and innovation slows down." },
+            { id: 38, question: "Spreading viruses or hacking into systems directly violates which foundational commandment?", options:["Do not use a computer to harm others", "Do not interfere with other people computer work", "Do not look at other people files without permission", "Do not take credit for someone else work"], correct: 0, rationale: "The 1st commandment 'Do not use a computer to harm others' includes not spreading viruses, cyberbullying, or hacking into systems." },
+            { id: 39, question: "Users avoiding cyberbullying and other harmful online activities is described under which ethical principle?", options:["Digital responsibility and online behavior", "Privacy and data collection", "Ethical software development", "Security and vulnerability disclosure"], correct: 0, rationale: "Digital Responsibility and Online Behavior states that users should avoid cyberbullying and spreading false information." },
+            { id: 40, question: "What is a primary example of unequal access to technology across socioeconomic groups?", options:["Digital divide", "Data security violation", "Cybersecurity threat", "Copyright infringement"], correct: 0, rationale: "The Digital Divide refers to inequality in technology access across socioeconomic groups." }
+        ];
+
+        // --- 2. SHUFFLE & RENDER LOGIC (DO NOT EDIT) ---
+        const quizData = rawQuizData.map(q => {
+            const opts = q.options.map((text, i) => ({ text, isCorrect: i === q.correct }));
+            for (let i = opts.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));[opts[i], opts[j]] = [opts[j], opts[i]];
+            }
+            return { ...q, options: opts.map(o => o.text), correct: opts.findIndex(o => o.isCorrect) };
+        });
+
+        const container = document.getElementById('quiz-container');
+        let score = 0; let answeredCount = 0;
+
+        function renderQuiz() {
+            document.getElementById('total-display').innerText = `/ ${quizData.length}`;
+            container.innerHTML = quizData.map((q, index) => {
+                return `
+                <div class="card bg-white rounded-xl p-6 mb-6 border border-gray-100">
+                    <div class="flex justify-between items-center mb-4 border-b border-gray-50 pb-3">
+                        <span class="bg-blue-100 text-blue-800 text-xs font-bold px-3 py-1 rounded-full">Question ${index + 1}</span>
+                         ${q.options.length === 2 ? '<span class="bg-purple-100 text-purple-800 text-xs font-bold px-2 py-1 rounded-md">True/False</span>' : ''}
+                    </div>
+                    <h3 class="text-gray-800 font-bold mb-6 text-lg leading-relaxed font-cairo" style="direction: ltr; text-align: left;">${q.question}</h3>
+                    <div class="grid gap-3 ${q.options.length === 2 ? 'grid-cols-2' : ''}">
+                        ${q.options.map((opt, i) => `<button onclick="checkAnswer(${index}, ${i})" class="option-btn option-btn-${index} w-full text-left px-5 py-4 rounded-xl border border-gray-200 hover:bg-blue-50 hover:border-blue-300 focus:outline-none flex items-center justify-between group bg-white"><span class="font-medium text-gray-700 group-hover:text-blue-700 font-sans">${opt}</span></button>`).join('')}
+                    </div>
+                    <div id="feedback-${index}" class="hidden-content mt-6 bg-blue-50 rounded-xl p-5 border border-blue-100 animate-fade-in text-left">
+                        <p class="text-blue-800 text-sm leading-relaxed"><strong>Rationale:</strong> ${q.rationale}</p>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        window.checkAnswer = function(qIndex, optIndex) {
+            const q = quizData[qIndex];
+            const feedback = document.getElementById(`feedback-${qIndex}`);
+            const btns = document.querySelectorAll(`.option-btn-${qIndex}`);
+            if (!feedback.classList.contains('hidden-content')) return;
+            feedback.classList.remove('hidden-content');
+            btns.forEach((btn, i) => {
+                btn.disabled = true;
+                if (i === q.correct) { btn.classList.add('correct-answer'); btn.innerHTML += '<i class="fas fa-check float-right"></i>'; }
+                else if (i === optIndex) { btn.classList.add('wrong-answer'); btn.innerHTML += '<i class="fas fa-times float-right"></i>'; }
+                else { btn.classList.add('opacity-50'); }
+            });
+            if (optIndex === q.correct) score++;
+            answeredCount++;
+            if (answeredCount === quizData.length) {
+                document.getElementById('result-summary').classList.remove('hidden-content');
+                document.getElementById('score-display').innerText = score;
+                document.getElementById('score-message').innerText = (score/quizData.length*100) >= 50 ? "Good Job!" : "Keep Studying";
+                setTimeout(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }), 500);
+            }
+        };
+        renderQuiz();
+    </script>
+</body>
+</html>
