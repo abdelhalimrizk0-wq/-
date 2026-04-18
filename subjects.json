@@ -698,7 +698,31 @@
     "color": "#6366f1",
     "department": "common_t2",
     "lectures": [
-      { "name": "كويز 1", "file": "#", "questions": 20 }
+       {
+    "name": "Computer Technology in Nursing",
+    "file": "quizzes/Computer Technology in Nursing.html",
+    "questions": 0
+  },
+  {
+    "name": "Hospital Information System (HIS)",
+    "file": "quizzes/Hospital Information System (HIS).html",
+    "questions": 0
+  },
+  {
+    "name": "Electronic Health Record (EHR)",
+    "file": "quizzes/Electronic Health Record (EHR).html",
+    "questions": 0
+  },
+  {
+    "name": "Nursing Information System",
+    "file": "quizzes/Nursing Information System.html",
+    "questions": 0
+  },
+  {
+    "name": "IT Implementation Requirements",
+    "file": "quizzes/IT Implementation Requirements.html",
+    "questions": 0
+  }
     ]
   },
   {
