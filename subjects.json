@@ -722,6 +722,11 @@
     "name": "IT Implementation Requirements",
     "file": "quizzes/IT Implementation Requirements.html",
     "questions": 0
+  },
+       {
+    "name": "Data Security and Ethics",
+    "file": "quizzes/Data Security and Ethics.html",
+    "questions": 0
   }
     ]
   },
