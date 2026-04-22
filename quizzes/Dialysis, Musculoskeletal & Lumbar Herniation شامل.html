@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Noto+Sans:wght@400;600;700&display=swap');
+        body { font-family: 'Noto Sans', 'Cairo', sans-serif; background-color: #f8fafc; }
+        .card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .card:hover { transform: translateY(-4px); box-shadow: 0 12px 20px -5px rgba(0, 0, 0, 0.1); }
+        .correct-answer { background-color: #dcfce7 !important; border-color: #22c55e !important; color: #15803d !important; }
+        .wrong-answer { background-color: #fee2e2 !important; border-color: #ef4444 !important; color: #b91c1c !important; }
+        .hidden-content { display: none; }
+        .option-btn { transition: all 0.2s; }
+        .option-btn:disabled { cursor: default; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
+    </style>
+</head>
+<body class="pb-12 bg-gray-50">
+    <div class="max-w-3xl mx-auto px-4 py-8">
+        <div class="bg-white rounded-2xl shadow-sm p-8 mb-8 text-center border-t-4 border-blue-600 relative overflow-hidden">
+            <div class="absolute top-0 right-0 p-4 opacity-10"><i class="fas fa-user-md text-8xl text-blue-600"></i></div>
+            
+            <h1 class="text-3xl font-bold text-gray-800 mb-2 font-cairo text-center" dir="auto">Dialysis, Musculoskeletal Injuries & Lumbar Herniation</h1>
+            
+            <div class="flex items-center justify-center gap-2 text-green-600 font-semibold bg-green-50 w-fit mx-auto px-4 py-1 rounded-full text-sm">
+                <i class="fas fa-check-circle"></i> "تم صنع هذا الامتحان بواسطة عبدالحليم رزق"
+            </div>
+        </div>
+        <div id="quiz-container"></div>
+        <div id="result-summary" class="hidden-content bg-white rounded-2xl shadow-lg p-8 text-center mt-8 border border-gray-100">
+            <h2 class="text-2xl font-bold text-gray-800">Exam Completed</h2>
+            <div class="mt-4 text-4xl font-bold text-blue-600 mb-2">
+                <span id="score-display">0</span> <span class="text-xl text-gray-400" id="total-display"></span>
+            </div>
+            <p id="score-message" class="text-gray-500 mb-6"></p>
+            <button onclick="location.reload()" class="bg-blue-600 text-white px-8 py-3 rounded-xl hover:bg-blue-700 transition shadow-lg hover:shadow-blue-200">
+                <i class="fas fa-redo mr-2"></i> Restart Exam
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const rawQuizData = [
+            {
+                id: 1,
+                question: "Which process uses negative pressure as an actual suctioning force applied to the membrane to facilitate water removal during dialysis?",
+                options: ["Ultrafiltration", "Osmosis", "Diffusion", "Filtration"],
+                correct: 0,
+                rationale: "In the machine, negative pressure is an actual suctioning force applied to the membrane and facilitates removal of water, making it more efficient than osmosis."
+            },
+            {
+                id: 2,
+                question: "Which of the following is an absolute contraindication for starting peritoneal dialysis?",
+                options: ["Extensive surgical scars in the abdomen", "Severe cardiovascular instability", "Advanced patient age", "Long term hypertension"],
+                correct: 0,
+                rationale: "Contraindications for peritoneal dialysis include having extensive surgical scars in the abdomen or a condition that prevents effective peritoneal dialysis."
+            },
+            {
+                id: 3,
+                question: "Subluxation is defined as a condition where the articular surfaces of the bones are completely out of contact.",
+                options: ["True", "False"],
+                correct: 1,
+                rationale: "Subluxation is a partial dislocation of the articulating surfaces. Complete loss of anatomic contact is termed a dislocation."
+            },
+            {
+                id: 4,
+                question: "Which clinical manifestation strongly suggests the presence of Cauda Equina Syndrome in a patient with a herniated disc?",
+                options: ["Involuntary overflow incontinence", "Mild localized back pain", "Normal bilateral ankle jerks", "Increased muscle strength"],
+                correct: 0,
+                rationale: "Cauda Equina Syndrome is a serious complication that includes symptoms such as saddle anesthesia, bilateral ankle jerk depression, and involuntary overflow incontinence."
+            },
+            {
+                id: 5,
+                question: "An injury to a muscle and tendon caused by overuse or excessive stress is medically termed a:",
+                options: ["Strain", "Sprain", "Contusion", "Dislocation"],
+                correct: 0,
+                rationale: "A strain, or a pulled muscle, is an injury to muscles and tendons caused by overuse, overstretching, or excessive stress."
+            },
+            {
+                id: 6,
+                question: "Epidural injections of steroid medications provide permanent relief of pain in patients with a herniated lumbar disc.",
+                options: ["True", "False"],
+                correct: 1,
+                rationale: "Epidural injections of steroid medications provide enough pain relief to make progress with rehabilitation, but the effects vary and pain relief is temporary."
+            },
+            {
+                id: 7,
+                question: "Which complication is associated with a long bone fracture and involves the spread of fat particles to the vascular compartment?",
+                options: ["Fat embolism", "Compartment syndrome", "Venous thromboembolism", "Avascular necrosis"],
+                correct: 0,
+                rationale: "Fat embolism occurs when fat particles from within the bone marrow diffuse into the vascular compartment, potentially occluding small blood vessels supplying the lungs and brain."
+            },
+            {
+                id: 8,
+                question: "Poor posture combined with the habitual use of incorrect body mechanics can stress the lumbar spine and increase the risk of disc herniation.",
+                options: ["True", "False"],
+                correct: 0,
+                rationale: "Poor posture combined with the habitual use of incorrect body mechanics stresses the lumbar spine and affects its normal ability to carry the body's weight, acting as a risk factor."
+            },
+            {
+                id: 9,
+                question: "Which post-dialysis laboratory value is routinely used as an indicator of dialysis efficiency?",
+                options: ["Blood urea nitrogen", "White blood cell count", "Serum albumin level", "Liver enzyme profile"],
+                correct: 0,
+                rationale: "Examples of post-dialysis laboratory studies include BUN, creatinine, sodium, potassium, and hematocrit, which are used as indicators of the efficiency of dialysis."
+            },
+            {
+                id: 10,
+                question: "A simple closed fracture involves a broken bone with an open wound protruding through the skin.",
+                options: ["True", "False"],
+                correct: 1,
+                rationale: "A closed or simple fracture involves a broken bone without skin injury. An open or compound fracture involves an open wound."
+            },
+            {
+                id: 11,
+                question: "What is the primary reason for choosing continuous renal replacement therapy over traditional hemodialysis?",
+                options: ["Hemodynamic instability", "Severe hyperkalemia", "Chronic kidney disease", "Fluid volume deficit"],
+                correct: 0,
+                rationale: "Continuous renal replacement therapy is indicated for critically ill patients who cannot tolerate hemodialysis due to hemodynamic instability."
+            },
+            {
+                id: 12,
+                question: "Which surgical procedure involves the removal of the bone between the spinal process and facet pedicle junction to expose neural elements?",
+                options: ["Laminectomy", "Discectomy", "Foraminotomy", "Spinal fusion"],
+                correct: 0,
+                rationale: "Laminectomy is the removal of the bone between the spinal process and facet pedicle junction to expose the neural elements in the spinal canal and relieve compression."
+            },
+            {
+                id: 13,
+                question: "A grating or cracking sensation felt when an injured extremity is examined with the hands is termed:",
+                options: ["Crepitus", "Ecchymosis", "Subluxation", "Contusion"],
+                correct: 0,
+                rationale: "When the extremity is examined with the hands, a grating or crack sensation called crepitus can be felt, caused by the rubbing of the bone fragments against each other."
+            },
+            {
+                id: 14,
+                question: "The small pores in the semipermeable membrane used in hemodialysis do not allow the loss of red blood cells and proteins.",
+                options: ["True", "False"],
+                correct: 0,
+                rationale: "The small pores in the semipermeable membrane do not allow the loss of red blood cells and proteins during dialysis."
+            },
+            {
+                id: 15,
+                question: "During which stage of disc herniation does the nucleus pulposus break through the annulus fibrosis but remain within the disc?",
+                options: ["Extrusion", "Degeneration", "Prolapse", "Sequestration"],
+                correct: 0,
+                rationale: "Extrusion occurs when the gel-like nucleus pulposus breaks through the tire-like wall of the annulus fibrosis but remains within the disc."
+            },
+            {
+                id: 16,
+                question: "Shortening of the extremity is a common clinical manifestation in fractures of long bones due to muscle contraction.",
+                options: ["True", "False"],
+                correct: 0,
+                rationale: "In fractures of long bones, there is actual shortening of the extremity because of the contraction of the muscles, causing fragments to overlap."
+            },
+            {
+                id: 17,
+                question: "Patients who have undergone a lumbar spinal fusion are encouraged to sit for prolonged periods to stabilize the spine.",
+                options: ["True", "False"],
+                correct: 1,
+                rationale: "Nursing interventions instruct patients to avoid prolonged sitting after spinal fusion. They should move to a standing position in a single smooth motion."
+            },
+            {
+                id: 18,
+                question: "What is the most appropriate sleeping position for a patient experiencing severe low back pain?",
+                options: ["Supine with elevated knees", "Prone on a firm mattress", "Side lying with bent neck", "Supine with completely flat legs"],
+                correct: 0,
+                rationale: "The most comfortable sleep position is lying on the back using a relatively firm mattress with slightly elevating the knees by placing a flat pillow under them."
+            },
+            {
+                id: 19,
+                question: "A pathologic fracture occurs in bones weakened by underlying diseases such as osteoporosis or bone cancer.",
+                options: ["True", "False"],
+                correct: 0,
+                rationale: "Pathological fractures are caused by bone diseases such as osteoporosis or bone cancer rather than traumatic external forces."
+            },
+            {
+                id: 20,
+                question: "Which of the following is a potential complication of peritoneal dialysis?",
+                options: ["Peritonitis", "Disequilibrium syndrome", "Arteriovenous fistula failure", "Subclavian vein stenosis"],
+                correct: 0,
+                rationale: "Peritonitis is a major complication of peritoneal dialysis. Disequilibrium syndrome and access failures relate to hemodialysis."
+            },
+            {
+                id: 21,
+                question: "Bringing bone fragments into anatomical alignment through manipulation and manual traction without surgery is known as:",
+                options: ["Closed reduction", "Open reduction", "Internal fixation", "External fixation"],
+                correct: 0,
+                rationale: "Closed reduction involves bringing the bone fragments into apposition through manipulation and manual traction."
+            },
+            {
+                id: 22,
+                question: "Hemodialysis patients are encouraged to carry heavy items in the arm that contains the arteriovenous fistula.",
+                options: ["True", "False"],
+                correct: 1,
+                rationale: "The nurse teaches the client to avoid carrying heavy items in the arm with the fistula or graft to protect the vascular access."
+            },
+            {
+                id: 23,
+                question: "Which diagnostic test is most helpful in identifying small disc protrusions and soft tissue changes in the spine?",
+                options: ["Magnetic resonance imaging", "Computed tomography scan", "Plain radiography", "Electromyography"],
+                correct: 0,
+                rationale: "The MRI scan helps localizing small disc protrusions and changes in bone and soft tissues."
+            },
+            {
+                id: 24,
+                question: "A soft tissue injury produced by a blunt force causing small blood vessels to rupture is known as a:",
+                options: ["Contusion", "Strain", "Sprain", "Dislocation"],
+                correct: 0,
+                rationale: "Contusion is a soft tissue injury produced by blunt force, leading to ruptured blood vessels and bleeding into soft tissues."
+            },
+            {
+                id: 25,
+                question: "Ultrafiltration is described as a less efficient method than osmosis for fluid removal during hemodialysis.",
+                options: ["True", "False"],
+                correct: 1,
+                rationale: "Ultrafiltration is actually more efficient than osmosis for the removal of fluid during hemodialysis."
+            },
+            {
+                id: 26,
+                question: "Which conservative treatment provides maximum pain relief through alternating temperature manipulation?",
+                options: ["Alternating hot and cold packs", "Continuous ice application", "Continuous heat application", "Room temperature immersion"],
+                correct: 0,
+                rationale: "Alternating hot and cold packs provides the maximum pain relief for muscle spasms associated with a herniated disc."
+            },
+            {
+                id: 27,
+                question: "During hemodialysis, the movement of particles from an area of greater concentration to an area of lesser concentration is termed:",
+                options: ["Diffusion", "Osmosis", "Ultrafiltration", "Convection"],
+                correct: 0,
+                rationale: "Diffusion means the movement of particles from an area of greater concentration to an area of lesser concentration."
+            },
+            {
+                id: 28,
+                question: "During the sequestration stage of a herniated disc, the nucleus pulposus breaks through the annulus fibrosis and lies outside the disc in the spinal canal.",
+                options: ["True", "False"],
+                correct: 0,
+                rationale: "Sequestration is the stage where the nucleus pulposus breaks through the annulus fibrosis and lies completely outside the disc in the spinal canal."
+            },
+            {
+                id: 29,
+                question: "Which access method is considered a surgical anastomosis of an artery and a vein lying in close proximity?",
+                options: ["Arteriovenous fistula", "Arteriovenous graft", "Tunneled central venous catheter", "Peripheral intravenous line"],
+                correct: 0,
+                rationale: "An arteriovenous fistula is a surgical anastomosis or connection of an artery and a vein lying in close proximity."
+            },
+            {
+                id: 30,
+                question: "Arteriovenous fistulas require one to four months to mature before they can be safely used for hemodialysis.",
+                options: ["True", "False"],
+                correct: 0,
+                rationale: "Fistulas require from 1 to 4 months to mature before being used for hemodialysis treatments."
+            },
+            {
+                id: 31,
+                question: "Which clinical symptom represents a potential complication resulting from rapid solute lowering during hemodialysis?",
+                options: ["Disequilibrium syndrome", "Hyperparathyroidism", "Amyloid deposits", "Severe hyperkalemia"],
+                correct: 0,
+                rationale: "Disequilibrium syndrome is a neurologic condition believed to be caused by cerebral edema when concentrations of solutes are lowered rapidly during dialysis."
+            },
+            {
+                id: 32,
+                question: "Intermittently warm applications should be used immediately after a musculoskeletal injury to produce vasoconstriction.",
+                options: ["True", "False"],
+                correct: 1,
+                rationale: "Cold compresses are used during the first 24 to 48 hours to produce vasoconstriction. Warm applications are used after 24 hours to relieve muscle spasms."
+            },
+            {
+                id: 33,
+                question: "Which diagnostic finding confirms the diagnosis of a traumatic joint dislocation?",
+                options: ["X ray imaging", "Blood culture test", "Urine analysis", "Electrocardiogram"],
+                correct: 0,
+                rationale: "Signs and symptoms of a traumatic dislocation include pain and contour changes, and the condition is definitively confirmed by X-rays."
+            },
+            {
+                id: 34,
+                question: "Continuous renal replacement therapy is typically used for clinically stable patients in an outpatient setting.",
+                options: ["True", "False"],
+                correct: 1,
+                rationale: "CRRT is used for critically ill patients with acute renal failure who cannot tolerate regular hemodialysis due to hemodynamic instability."
+            },
+            {
+                id: 35,
+                question: "What is the recommended duration of strict bed rest for severe acute low back pain?",
+                options: ["One to two days", "One to two weeks", "Three to four weeks", "Six to eight weeks"],
+                correct: 0,
+                rationale: "Bed rest for severe pain is best limited to 1-2 days, as extended rest will lead to stiffness, muscle weakness, and more pain."
+            },
+            {
+                id: 36,
+                question: "In a microdiscectomy, herniated or extruded fragments of intervertebral disc material are removed using endoscopic or laser techniques.",
+                options: ["True", "False"],
+                correct: 0,
+                rationale: "Micro discectomy involves the removal of herniated fragments using micro endoscopic or percutaneous laser techniques."
+            },
+            {
+                id: 37,
+                question: "An incomplete fracture that typically occurs in children due to their pliable bones is called a:",
+                options: ["Greenstick fracture", "Comminuted fracture", "Transverse fracture", "Spiral fracture"],
+                correct: 0,
+                rationale: "A greenstick fracture is an incomplete fracture that usually occurs in children whose bones are still pliable and soft."
+            },
+            {
+                id: 38,
+                question: "A fracture is a break in the continuity of bone defined according to its type and extent.",
+                options: ["True", "False"],
+                correct: 0,
+                rationale: "A fracture is defined as a break in the continuity of bone according to its type and extent."
+            },
+            {
+                id: 39,
+                question: "In peritoneal dialysis, the dialysate is formulated to be similar to normal plasma but is made hypertonic by the addition of:",
+                options: ["Dextrose", "Sodium", "Potassium", "Calcium"],
+                correct: 0,
+                rationale: "The dialysate is similar in composition to normal plasma but is made hypertonic by the addition of dextrose to increase the osmotic effect."
+            },
+            {
+                id: 40,
+                question: "Isometric and muscle setting exercises are contraindicated in patients with closed fractures.",
+                options: ["True", "False"],
+                correct: 1,
+                rationale: "Isometric and muscle-setting exercises are actually encouraged in patients with closed fractures to minimize disuse atrophy and promote circulation."
+            },
+            {
+                id: 41,
+                question: "A patient with a cast complains of severe increasing pain out of proportion to the injury accompanied by numbness. This indicates:",
+                options: ["Compartment syndrome", "Fat embolism", "Venous thromboembolism", "Avascular necrosis"],
+                correct: 0,
+                rationale: "Compartment syndrome involves increased pressure in a muscle compartment, causing poor blood supply and symptoms like pain, paralysis, paresthesia, and pulselessness."
+            },
+            {
+                id: 42,
+                question: "Dialysate fluid is formulated to be similar in composition to normal plasma but is made hypertonic using dextrose.",
+                options: ["True", "False"],
+                correct: 0,
+                rationale: "The dialysate used in peritoneal dialysis is similar to normal plasma but made hypertonic by dextrose."
+            },
+            {
+                id: 43,
+                question: "The straight leg raising test is considered positive if the patient experiences sciatic pain at an angle between:",
+                options: ["Thirty and seventy degrees", "Ten and twenty degrees", "Eighty and ninety degrees", "Ninety and one hundred degrees"],
+                correct: 0,
+                rationale: "The patient has a positive straight leg raising sign if sciatic pain is experienced when the straight leg is at an angle between 30 and 70 degrees."
+            },
+            {
+                id: 44,
+                question: "Cauda equina syndrome is considered a minor complication that typically resolves with basic physical therapy.",
+                options: ["True", "False"],
+                correct: 1,
+                rationale: "Cauda equina syndrome is a serious condition that requires immediate surgical intervention."
+            },
+            {
+                id: 45,
+                question: "Which vascular access method carries the highest incidence of infection?",
+                options: ["Tunneled central venous catheter", "Arteriovenous fistula", "Arteriovenous graft", "Peripheral intravenous line"],
+                correct: 0,
+                rationale: "Disadvantages of the tunneled central venous catheter include a high incidence of infection and subclavian vein stenosis."
+            },
+            {
+                id: 46,
+                question: "Severe abdominal adhesions represent an absolute indication for initiating peritoneal dialysis.",
+                options: ["True", "False"],
+                correct: 1,
+                rationale: "Abdominal adhesions are an indication for hemodialysis, not peritoneal dialysis, as they prevent effective peritoneal dialysis."
+            },
+            {
+                id: 47,
+                question: "An injury to the ligaments and supporting muscle fibers that surround a joint is called a:",
+                options: ["Sprain", "Strain", "Contusion", "Fracture"],
+                correct: 0,
+                rationale: "A sprain is an injury to the ligaments and supporting muscle fibers that surround and stabilize a joint."
+            },
+            {
+                id: 48,
+                question: "Which type of fracture is characterized by the bone being fragmented into more than two pieces?",
+                options: ["Comminuted fracture", "Oblique fracture", "Transverse fracture", "Linear fracture"],
+                correct: 0,
+                rationale: "A comminuted fracture occurs when the bone is fragmented into more than two bone fragments."
+            },
+            {
+                id: 49,
+                question: "Postoperative nursing care for a patient who just had a spinal fusion includes turning the patient using which technique?",
+                options: ["Logrolling technique", "Independent turning", "Hoyer lift transfer", "Prone positioning"],
+                correct: 0,
+                rationale: "The patient is taught to turn as a unit using the logrolling technique to avoid twisting the spine postoperatively."
+            },
+            {
+                id: 50,
+                question: "Following lumbar disc surgery, the patient complains of a clear fluid draining from the surgical wound. The nurse immediately suspects:",
+                options: ["Cerebrospinal fluid leakage", "Wound infection", "Serosanguinous drainage", "Localized hematoma"],
+                correct: 0,
+                rationale: "Clear fluid leakage around the surgical wound strongly indicates a Cerebrospinal Fluid (CSF) leakage, which must be tested for glucose."
+            },
+            {
+                id: 51,
+                question: "Elevating an injured extremity above heart level is primarily done to:",
+                options: ["Decrease localized edema", "Prevent deep vein thrombosis", "Increase arterial blood flow", "Prevent muscle atrophy"],
+                correct: 0,
+                rationale: "Resting and elevating the affected part just above heart level is performed primarily to decrease edema."
+            },
+            {
+                id: 52,
+                question: "The initial nonpharmacological treatment for muscle spasms associated with a herniated disc is the application of:",
+                options: ["Ice packs", "Heating pads", "Ultrasound therapy", "Transcutaneous electrical nerve stimulation"],
+                correct: 0,
+                rationale: "Ice application decreases initial inflammation and muscle spasms and is most effective for the first 48 hours after back pain has started."
+            },
+            {
+                id: 53,
+                question: "What is the function of heparin administered during the hemodialysis procedure?",
+                options: ["To prevent blood clotting in the circuit", "To increase the rate of ultrafiltration", "To maintain patient blood pressure", "To correct acid base imbalances"],
+                correct: 0,
+                rationale: "Heparin is administered during dialysis to prevent clotting within the extracorporeal circuit."
+            },
+            {
+                id: 54,
+                question: "A partial dislocation of the articulating surfaces of a joint is clinically termed:",
+                options: ["Subluxation", "Complete dislocation", "Compartment syndrome", "Joint avulsion"],
+                correct: 0,
+                rationale: "Subluxation is defined as a partial dislocation of the articulating surfaces."
+            },
+            {
+                id: 55,
+                question: "Which condition is a well known common symptom associated with a herniated lumbar disc?",
+                options: ["Low back pain", "Upper extremity weakness", "Cervical neck stiffness", "Facial muscle paralysis"],
+                correct: 0,
+                rationale: "A herniated lumbar disc is a very common cause of low back pain."
+            },
+            {
+                id: 56,
+                question: "What dietary modification is essential for a patient undergoing long term hemodialysis to reduce nitrogenous wastes?",
+                options: ["Restriction of protein intake", "Increased carbohydrate intake", "Increased sodium intake", "Unrestricted fluid intake"],
+                correct: 0,
+                rationale: "Restriction of protein will reduce nitrogenous wastes and decrease symptoms in a patient on hemodialysis."
+            },
+            {
+                id: 57,
+                question: "Which post dialysis assessment finding requires the nurse to withhold an antihypertensive medication prior to the next treatment?",
+                options: ["Risk of severe hypotension", "Increased body weight", "Elevated blood pressure", "High serum potassium"],
+                correct: 0,
+                rationale: "If antihypertensive drugs are taken on dialysis day, a hypotensive effect may occur during dialysis causing dangerously low blood pressure."
+            },
+            {
+                id: 58,
+                question: "A fracture in which the broken ends of the bone are driven into each other is classified as:",
+                options: ["Impacted fracture", "Comminuted fracture", "Avulsion fracture", "Oblique fracture"],
+                correct: 0,
+                rationale: "An impacted fracture occurs when the broken ends of the bone are driven into each other or jammed together."
+            },
+            {
+                id: 59,
+                question: "A continuous cyclic peritoneal dialysis cycle is primarily performed during which specific time period?",
+                options: ["While the patient sleeps", "During meal times", "Only during hospital admissions", "Following strenuous exercise"],
+                correct: 0,
+                rationale: "In CCPD, a machine is connected to the dialysis catheter and automatically fills and drains dialysate when the person sleeps."
+            },
+            {
+                id: 60,
+                question: "To restore safe heparin levels after hemodialysis, the nurse should avoid administering any routine injections for:",
+                options: ["Two to four hours", "Five to seven hours", "Ten to twelve hours", "Twenty to twenty four hours"],
+                correct: 0,
+                rationale: "After dialysis is completed, the nurse does not administer injections for 2 to 4 hours to allow time for the metabolism and excretion of heparin."
+            }
+        ];
+
+        const quizData = rawQuizData.map(q => {
+            const opts = q.options.map((text, i) => ({ text, isCorrect: i === q.correct }));
+            for (let i = opts.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [opts[i], opts[j]] = [opts[j], opts[i]];
+            }
+            return { ...q, options: opts.map(o => o.text), correct: opts.findIndex(o => o.isCorrect) };
+        });
+
+        const container = document.getElementById('quiz-container');
+        let score = 0; let answeredCount = 0;
+
+        function renderQuiz() {
+            document.getElementById('total-display').innerText = `/ ${quizData.length}`;
+            container.innerHTML = quizData.map((q, index) => {
+                return `
+                <div class="card bg-white rounded-xl p-6 mb-6 border border-gray-100">
+                    <div class="flex justify-between items-center mb-4 border-b border-gray-50 pb-3">
+                        <span class="bg-blue-100 text-blue-800 text-xs font-bold px-3 py-1 rounded-full">Question ${index + 1}</span>
+                        ${q.options.length === 2 ? '<span class="bg-purple-100 text-purple-800 text-xs font-bold px-2 py-1 rounded-md">True/False</span>' : ''}
+                    </div>
+                    <h3 class="text-gray-800 font-bold mb-6 text-lg leading-relaxed font-cairo" style="direction: ltr; text-align: left;">${q.question}</h3>
+                    <div class="grid gap-3 ${q.options.length === 2 ? 'grid-cols-2' : ''}">
+                        ${q.options.map((opt, i) => `
+                            <button onclick="checkAnswer(${index}, ${i})" class="option-btn option-btn-${index} w-full text-left px-5 py-4 rounded-xl border border-gray-200 hover:bg-blue-50 hover:border-blue-300 focus:outline-none flex items-center justify-between group bg-white">
+                                <span class="font-medium text-gray-700 group-hover:text-blue-700 font-sans">${opt}</span>
+                            </button>
+                        `).join('')}
+                    </div>
+                    <div id="feedback-${index}" class="hidden-content mt-6 bg-blue-50 rounded-xl p-5 border border-blue-100 animate-fade-in text-left">
+                        <p class="text-blue-800 text-sm leading-relaxed"><strong>Rationale:</strong> ${q.rationale}</p>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        window.checkAnswer = function(qIndex, optIndex) {
+            const q = quizData[qIndex];
+            const feedback = document.getElementById(`feedback-${qIndex}`);
+            const btns = document.querySelectorAll(`.option-btn-${qIndex}`);
+            if (!feedback.classList.contains('hidden-content')) return;
+            feedback.classList.remove('hidden-content');
+            btns.forEach((btn, i) => {
+                btn.disabled = true;
+                if (i === q.correct) { btn.classList.add('correct-answer'); btn.innerHTML += '<i class="fas fa-check float-right"></i>'; }
+                else if (i === optIndex) { btn.classList.add('wrong-answer'); btn.innerHTML += '<i class="fas fa-times float-right"></i>'; }
+                else { btn.classList.add('opacity-50'); }
+            });
+            if (optIndex === q.correct) score++;
+            answeredCount++;
+            if (answeredCount === quizData.length) {
+                document.getElementById('result-summary').classList.remove('hidden-content');
+                document.getElementById('score-display').innerText = score;
+                document.getElementById('score-message').innerText = (score/quizData.length*100) >= 50 ? "Good Job!" : "Keep Studying";
+                setTimeout(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }), 500);
+            }
+        };
+        renderQuiz();
+    </script>
+</body>
+</html>
