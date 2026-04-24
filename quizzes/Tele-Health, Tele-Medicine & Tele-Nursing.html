@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Noto+Sans:wght@400;600;700&display=swap');
+        body { font-family: 'Noto Sans', 'Cairo', sans-serif; background-color: #f8fafc; }
+        .card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .card:hover { transform: translateY(-4px); box-shadow: 0 12px 20px -5px rgba(0, 0, 0, 0.1); }
+        .correct-answer { background-color: #dcfce7 !important; border-color: #22c55e !important; color: #15803d !important; }
+        .wrong-answer { background-color: #fee2e2 !important; border-color: #ef4444 !important; color: #b91c1c !important; }
+        .hidden-content { display: none; }
+        .option-btn { transition: all 0.2s; }
+        .option-btn:disabled { cursor: default; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
+    </style>
+</head>
+<body class="pb-12 bg-gray-50">
+    <div class="max-w-3xl mx-auto px-4 py-8">
+        <div class="bg-white rounded-2xl shadow-sm p-8 mb-8 text-center border-t-4 border-blue-600 relative overflow-hidden">
+            <div class="absolute top-0 right-0 p-4 opacity-10"><i class="fas fa-user-md text-8xl text-blue-600"></i></div>
+            
+            <h1 class="text-3xl font-bold text-gray-800 mb-2 font-cairo text-center" dir="auto">Tele-Health, Tele-Medicine & Tele-Nursing</h1>
+            
+            <div class="flex items-center justify-center gap-2 text-green-600 font-semibold bg-green-50 w-fit mx-auto px-4 py-1 rounded-full text-sm">
+                <i class="fas fa-check-circle"></i> "تم صنع هذا الامتحان بواسطة عبدالحليم رزق"
+            </div>
+        </div>
+        <div id="quiz-container"></div>
+        <div id="result-summary" class="hidden-content bg-white rounded-2xl shadow-lg p-8 text-center mt-8 border border-gray-100">
+            <h2 class="text-2xl font-bold text-gray-800">Exam Completed</h2>
+            <div class="mt-4 text-4xl font-bold text-blue-600 mb-2">
+                <span id="score-display">0</span> <span class="text-xl text-gray-400" id="total-display"></span>
+            </div>
+            <p id="score-message" class="text-gray-500 mb-6"></p>
+            <button onclick="location.reload()" class="bg-blue-600 text-white px-8 py-3 rounded-xl hover:bg-blue-700 transition shadow-lg hover:shadow-blue-200">
+                <i class="fas fa-redo mr-2"></i> Restart Exam
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. QUESTIONS ARRAY (GENERATE 40 QUESTIONS HERE) ---
+        const rawQuizData =[
+            { id: 1, question: "Tele-nursing requires nurses to hold an interstate licensure to practice across different state lines.", options: ["True", "False"], correct: 0, rationale: "The Interstate Licensure is must because the services can't be restricted to one state only, and it may require an additional licensure to practice across state lines." },
+            { id: 2, question: "Store and forward telehealth requires the simultaneous presence of both the patient and the healthcare provider.", options:["True", "False"], correct: 1, rationale: "Store-and-forward telemedicine involves acquiring medical data and transmitting it at a convenient time for offline assessment. It does not require the presence of both parties at the same time." },
+            { id: 3, question: "Electronic stethoscopes are commonly utilized as recording devices for purposes of tele-cardiology.", options: ["True", "False"], correct: 0, rationale: "In tele-cardiology, electronic stethoscopes can be used as recording devices." },
+            { id: 4, question: "The throughput component of telehealth applications refers strictly to the devices used to capture and process patient content.", options: ["True", "False"], correct: 1, rationale: "The Input component is used to capture and process content. Throughput refers to transferring or exchanging the content." },
+            { id: 5, question: "A tele-nurse is expected to leave detailed confidential patient information on voice messages to ensure continuity of care.", options: ["True", "False"], correct: 1, rationale: "The role of nurses using tele-nursing explicitly states: Never leave confidential information on a voice message." },
+            { id: 6, question: "Interactive telemedicine services can be conducted comparably to traditional visits and are often less costly than in person clinical visits.", options: ["True", "False"], correct: 0, rationale: "Interactive telemedicine services provide real-time interactions comparably to traditional visits and may be less costly than in-person clinical visits." },
+            { id: 7, question: "Rapid obsolescence of information technology is a major concern because new technologies typically come in extremely long ten year cycles.", options: ["True", "False"], correct: 1, rationale: "Rapid obsolescence is a major concern because most information technologies come in short 18- to 36-month cycles." },
+            { id: 8, question: "Tele-radiology typically operates as a store and forward application where digital images are scanned and sent to a consultant later.", options: ["True", "False"], correct: 0, rationale: "Tele-radiology is usually a store and forward application in which an image is acquired and sent on to a consultant to be read." },
+            { id: 9, question: "One of the primary principles of tele-nursing is to reduce the delivery of unnecessary health services.", options: ["True", "False"], correct: 0, rationale: "Effective tele-nursing should reduce the delivery of unnecessary health services." },
+            { id: 10, question: "Tele-health is strictly limited to the disciplines of medicine and nursing without extending to other allied health fields.", options: ["True", "False"], correct: 1, rationale: "The delivery of tele-health care is not limited to physicians and nurses; it includes other disciplines such as radiology, pharmacy, and psychology." },
+            { id: 11, question: "Which characteristic is considered an essential requirement for a nurse practicing tele-nursing?", options:["Having a competent communication skill", "Preferring traditional paper charting", "Avoiding evidence based practice", "Restricting care to a single state"], correct: 0, rationale: "To be a tele-nurse, the nurse must have competent communication skills among other characteristics." },
+            { id: 12, question: "Which tele-health technology involves capturing clinical data and transmitting it securely to a specialist at a later convenient time?", options:["Store and forward", "Real time interactive", "Remote patient monitoring", "Telepresence robotics"], correct: 0, rationale: "In store-and-forward tele-health, data are captured, stored, and forwarded at a convenient time to a specialist." },
+            { id: 13, question: "Which telemedicine application involves transmitting electrocardiograms using telephone and wireless networks?", options: ["Tele cardiology", "Tele neuropsychology", "Tele rehabilitation", "Tele dentistry"], correct: 0, rationale: "Tele-cardiology involves transmitting ECGs or electrocardiographs using telephone and wireless technology." },
+            { id: 14, question: "What is the primary purpose of the throughput component in a tele-health application?", options:["Transferring or exchanging the content", "Capturing and storing numerical data", "Displaying the content on a monitor", "Recording sound and digital images"], correct: 0, rationale: "Throughput refers to the content and a means to transfer or exchange the content and communications." },
+            { id: 15, question: "Which action reflects the proper role of a nurse utilizing tele-nursing technologies?", options:["Participating in the development of policies", "Leaving confidential data on voice messages", "Restricting collaboration with health teams", "Avoiding the evaluation of nursing practice"], correct: 0, rationale: "The role of nurses includes participating in development policies and guidelines associated with tele-health." },
+            { id: 16, question: "What represents a significant barrier to the widespread adoption of tele-health programs once initial grants expire?", options: ["Provider reimbursement", "Rapid technological updates", "Documentation standards", "Liability and malpractice"], correct: 0, rationale: "Provider reimbursement remains a large barrier, and many projects were discontinued when grants expired." },
+            { id: 17, question: "Which medical specialties are most conducive to asynchronous store and forward telemedicine?", options:["Dermatology and pathology", "Cardiology and intensive care", "Emergency medicine and trauma", "Psychiatry and physical therapy"], correct: 0, rationale: "Dermatology, radiology, and pathology are common specialties conducive to asynchronous store-and-forward telemedicine." },
+            { id: 18, question: "Which technology is commonly utilized to facilitate communication in tele-nursing practice?", options:["Personal digital assistants", "Magnetic resonance imaging", "Computed tomography scanners", "Traditional handwritten letters"], correct: 0, rationale: "Technologies used in tele-nursing include Personal digital assistants, telephones, faxes, and the internet." },
+            { id: 19, question: "Which tele-homecare device is specifically designed to monitor a patient pulmonary function and cardiac rhythm?", options:["Wearable monitoring garments", "Automatic pill dispensers", "Routine weight scales", "Fluid status monitors"], correct: 0, rationale: "Wearable monitoring garments are devices or shirts that monitor pulmonary function, cardiac rhythm, and temperature." },
+            { id: 20, question: "The delivery of clinical assessment and therapy over tele-communication networks describes which specific application?", options: ["Tele rehabilitation", "Tele ultrasound", "Tele neuropsychology", "Tele dentistry"], correct: 0, rationale: "Tele-rehabilitation is the delivery of rehabilitation services over tele-communication networks for clinical assessment and therapy." },
+            { id: 21, question: "What is a recognized professional advantage for nurses engaging in tele-nursing?", options:["Flexible working hours", "Increased physical pathogen exposure", "Decreased skill development need", "Elimination of patient interactions"], correct: 0, rationale: "Advantages of tele-nursing include improved salary and flexible working hours." },
+            { id: 22, question: "A computer file server used for receiving and storing content is classified as which component of a tele-health application?", options:["Output component", "Input component", "Throughput component", "Network component"], correct: 0, rationale: "Output is a means for receiving, storing, and displaying the content, possibly a video monitor or a computer file server." },
+            { id: 23, question: "How does telemedicine specifically benefit populations living in isolated geographical communities?", options:["By improving access to specialized care", "By increasing the required travel time", "By decreasing the availability of experts", "By eliminating the general practitioners"], correct: 0, rationale: "Benefits include improved access to care, reduced travel time, and increased availability of experts for isolated populations." },
+            { id: 24, question: "According to the principles of tele-nursing what should job descriptions for tele-nurses clearly define?", options:["Comprehensive yet flexible roles", "Rigid and unchangeable protocols", "Vague and generalized responsibilities", "Strict limitations on healthcare access"], correct: 0, rationale: "Effective tele-nursing should follow job descriptions that clearly define comprehensive, yet flexible roles and responsibilities." },
+            { id: 25, question: "How do robotics provide tele-presence within intensive care units?", options:["By allowing real time audio and video interaction", "By automatically administering intravenous drugs", "By physically transporting patients between wards", "By replacing the need for respiratory therapists"], correct: 0, rationale: "The robot's audio and video features allow for real-time interaction between the physician at the remote site and the patient in the ICU." },
+            { id: 26, question: "Remote monitoring is primarily utilized for managing which type of patient conditions?", options:["Chronic diseases like diabetes", "Acute traumatic bone fractures", "Sudden cardiac arrest emergencies", "Routine cosmetic skin procedures"], correct: 0, rationale: "Remote monitoring is primarily used for managing chronic diseases or specific conditions, such as heart disease, diabetes mellitus, or asthma." },
+            { id: 27, question: "Which factor represents a major challenge regarding patient safety and malpractice in tele-nursing?", options: ["Software problems and failures", "Excessive policy development", "Increased nursing salaries", "Overabundance of technical support"], correct: 0, rationale: "Issues related to tele-nursing include the threat to safety of patient and malpractice through any problem of software." },
+            { id: 28, question: "Why is rapid obsolescence considered a major concern for tele-health administrators?", options:["Technologies come in short month cycles", "Equipment physically deteriorates fast", "Hardware becomes too heavy to transport", "Patients refuse to learn interface designs"], correct: 0, rationale: "Rapid obsolescence is a major concern because most information technologies come in 18- to 36-month cycles." },
+            { id: 29, question: "Phone conversations and home visits conducted via video are examples of which type of telemedicine?", options: ["Interactive telemedicine services", "Store and forward applications", "Asynchronous remote tracking", "Automated robotic surgery"], correct: 0, rationale: "Interactive telemedicine services provide real-time interactions, including phone conversations, online communication, and home visits." },
+            { id: 30, question: "A tele-nurse must possess the ability to accurately assess the need for what specific clinical change?", options:["The need for hospitalization", "The need for administrative billing", "The need for equipment replacement", "The need for facility renovations"], correct: 0, rationale: "To be a tele-nurse, the nurse must be able to assess the need for hospitalization and need of change in the care plan." },
+            { id: 31, question: "Which objective highlights the financial and temporal benefits of implementing tele-health services?", options:["Reducing travel expenses and waiting room time", "Increasing the number of mandatory clinical visits", "Expanding the physical size of rural hospitals", "Prolonging the duration of specialist consultations"], correct: 0, rationale: "Tele-health objectives include saving money and time through reduced travel expenses and time in the waiting room." },
+            { id: 32, question: "Which telemedicine application utilizes information technology to promote public awareness and consultation regarding oral health?", options: ["Tele dentistry", "Tele radiology", "Tele ultrasound", "Tele cardiology"], correct: 0, rationale: "Tele-dentistry is the use of information technology and tele-communications for dental care, consultation, education, and public awareness." },
+            { id: 33, question: "Informing the patient about the nurse name qualifications and registration states fulfills which aspect of tele-nursing?", options:["The professional role of the nurse", "The technological hardware requirements", "The financial reimbursement protocol", "The automated data throughput process"], correct: 0, rationale: "The role of nurses who use Tele-Nursing includes informing the patient about her name, qualification, and registration states." },
+            { id: 34, question: "Which tele-homecare device is utilized to instruct the patient on specific actions to take regarding their medication schedule?", options:["Automatic pill reminder", "Fluid status monitor", "Portable spirometer", "Electrocardiogram machine"], correct: 0, rationale: "The automatic pill dispenser/reminder reminds the patient when it is time to take the medication and what actions to take." },
+            { id: 35, question: "Telemedicine is explicitly defined as the practice of delivering health care using which specific modalities?", options:["Interactive audio visual and data communications", "Traditional handwritten letters and physical charts", "In person seminars and community workshops", "Strictly one way pre recorded audio broadcasts"], correct: 0, rationale: "Telemedicine is the practice of health care delivery using interactive audio, visual, and data communications." },
+            { id: 36, question: "Ensuring immediate access to healthcare services is listed as a core element of which tele-nursing framework?", options:["Principles of tele nursing", "Disadvantages of tele nursing", "Challenges of tele nursing", "Hardware of tele nursing"], correct: 0, rationale: "The principles of tele-nursing state that effective tele-nursing should provide immediate access to healthcare services." },
+            { id: 37, question: "If a tele-health technology fails to provide a clear clinical assessment what is the recommended course of action regarding liability?", options:["Refer the patient for a face to face consultation", "Prescribe a broad spectrum antibiotic empirically", "Discharge the patient from the clinical practice", "Delete the equivocal results from the digital record"], correct: 0, rationale: "If technology does not provide a clear assessment or if results are equivocal, see the patient in person or refer him/her for face-to-face consultation to avoid liability and malpractice." },
+            { id: 38, question: "Which benefit is specifically associated with the use of tele-monitoring devices at a patient home?", options:["Enhanced continuity of care", "Increased physical separation", "Decreased decision making speed", "Reduced expert availability"], correct: 0, rationale: "Benefits of tele-medicine include enhanced continuity of care e.g., using tele-monitoring devices at home such as blood pressure." },
+            { id: 39, question: "Which clinical practice area is specifically listed as a standard setting for tele-health nursing interventions?", options:["Tele triage", "Tele pharmacology", "Tele surgery", "Tele radiology"], correct: 0, rationale: "Tele-triage is explicitly listed among the Tele-health Nursing practice areas." },
+            { id: 40, question: "Tracings and alpha-numeric data are captured and stored using which fundamental component of a tele-health system?", options:["Input component", "Throughput component", "Output component", "Network component"], correct: 0, rationale: "Input is a device or means to capture, process, and store content including tracings and alpha-numeric data." }
+        ];
+
+        // --- 2. SHUFFLE & RENDER LOGIC (DO NOT EDIT) ---
+        const quizData = rawQuizData.map(q => {
+            const opts = q.options.map((text, i) => ({ text, isCorrect: i === q.correct }));
+            for (let i = opts.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [opts[i], opts[j]] = [opts[j], opts[i]];
+            }
+            return { ...q, options: opts.map(o => o.text), correct: opts.findIndex(o => o.isCorrect) };
+        });
+
+        // Initial question shuffle
+        for (let i = quizData.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [quizData[i], quizData[j]] = [quizData[j], quizData[i]];
+        }
+
+        const container = document.getElementById('quiz-container');
+        let score = 0; let answeredCount = 0;
+
+        function renderQuiz() {
+            document.getElementById('total-display').innerText = `/ ${quizData.length}`;
+            container.innerHTML = quizData.map((q, index) => {
+                return `
+                <div class="card bg-white rounded-xl p-6 mb-6 border border-gray-100">
+                    <div class="flex justify-between items-center mb-4 border-b border-gray-50 pb-3">
+                        <span class="bg-blue-100 text-blue-800 text-xs font-bold px-3 py-1 rounded-full">Question ${index + 1}</span>
+                         ${q.options.length === 2 ? '<span class="bg-purple-100 text-purple-800 text-xs font-bold px-2 py-1 rounded-md">True/False</span>' : ''}
+                    </div>
+                    <h3 class="text-gray-800 font-bold mb-6 text-lg leading-relaxed font-cairo" style="direction: ltr; text-align: left;">${q.question}</h3>
+                    <div class="grid gap-3 ${q.options.length === 2 ? 'grid-cols-2' : ''}">
+                        ${q.options.map((opt, i) => `<button onclick="checkAnswer(${index}, ${i})" class="option-btn option-btn-${index} w-full text-left px-5 py-4 rounded-xl border border-gray-200 hover:bg-blue-50 hover:border-blue-300 focus:outline-none flex items-center justify-between group bg-white"><span class="font-medium text-gray-700 group-hover:text-blue-700 font-sans">${opt}</span></button>`).join('')}
+                    </div>
+                    <div id="feedback-${index}" class="hidden-content mt-6 bg-blue-50 rounded-xl p-5 border border-blue-100 animate-fade-in text-left">
+                        <p class="text-blue-800 text-sm leading-relaxed"><strong>Rationale:</strong> ${q.rationale}</p>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        window.checkAnswer = function(qIndex, optIndex) {
+            const q = quizData[qIndex];
+            const feedback = document.getElementById(`feedback-${qIndex}`);
+            const btns = document.querySelectorAll(`.option-btn-${qIndex}`);
+            if (!feedback.classList.contains('hidden-content')) return;
+            feedback.classList.remove('hidden-content');
+            btns.forEach((btn, i) => {
+                btn.disabled = true;
+                if (i === q.correct) { btn.classList.add('correct-answer'); btn.innerHTML += '<i class="fas fa-check float-right"></i>'; }
+                else if (i === optIndex) { btn.classList.add('wrong-answer'); btn.innerHTML += '<i class="fas fa-times float-right"></i>'; }
+                else { btn.classList.add('opacity-50'); }
+            });
+            if (optIndex === q.correct) score++;
+            answeredCount++;
+            if (answeredCount === quizData.length) {
+                document.getElementById('result-summary').classList.remove('hidden-content');
+                document.getElementById('score-display').innerText = score;
+                document.getElementById('score-message').innerText = (score/quizData.length*100) >= 50 ? "Good Job!" : "Keep Studying";
+                setTimeout(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }), 500);
+            }
+        };
+        renderQuiz();
+    </script>
+</body>
+</html>

@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Noto+Sans:wght@400;600;700&display=swap');
+        body { font-family: 'Noto Sans', 'Cairo', sans-serif; background-color: #f8fafc; }
+        .card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .card:hover { transform: translateY(-4px); box-shadow: 0 12px 20px -5px rgba(0, 0, 0, 0.1); }
+        .correct-answer { background-color: #dcfce7 !important; border-color: #22c55e !important; color: #15803d !important; }
+        .wrong-answer { background-color: #fee2e2 !important; border-color: #ef4444 !important; color: #b91c1c !important; }
+        .hidden-content { display: none; }
+        .option-btn { transition: all 0.2s; }
+        .option-btn:disabled { cursor: default; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
+    </style>
+</head>
+<body class="pb-12 bg-gray-50">
+    <div class="max-w-3xl mx-auto px-4 py-8">
+        <div class="bg-white rounded-2xl shadow-sm p-8 mb-8 text-center border-t-4 border-blue-600 relative overflow-hidden">
+            <div class="absolute top-0 right-0 p-4 opacity-10"><i class="fas fa-user-md text-8xl text-blue-600"></i></div>
+            
+            <h1 class="text-3xl font-bold text-gray-800 mb-2 font-cairo text-center" dir="auto">Due Care</h1>
+            
+            <div class="flex items-center justify-center gap-2 text-green-600 font-semibold bg-green-50 w-fit mx-auto px-4 py-1 rounded-full text-sm">
+                <i class="fas fa-check-circle"></i> "تم صنع هذا الامتحان بواسطة عبدالحليم رزق"
+            </div>
+        </div>
+        <div id="quiz-container"></div>
+        <div id="result-summary" class="hidden-content bg-white rounded-2xl shadow-lg p-8 text-center mt-8 border border-gray-100">
+            <h2 class="text-2xl font-bold text-gray-800">Exam Completed</h2>
+            <div class="mt-4 text-4xl font-bold text-blue-600 mb-2">
+                <span id="score-display">0</span> <span class="text-xl text-gray-400" id="total-display"></span>
+            </div>
+            <p id="score-message" class="text-gray-500 mb-6"></p>
+            <button onclick="location.reload()" class="bg-blue-600 text-white px-8 py-3 rounded-xl hover:bg-blue-700 transition shadow-lg hover:shadow-blue-200">
+                <i class="fas fa-redo mr-2"></i> Restart Exam
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. QUESTIONS ARRAY (GENERATE 40 QUESTIONS HERE) ---
+        const rawQuizData =[
+            { id: 1, question: "Which organizational password policy determines the number of unsuccessful login attempts allowed before the account is temporarily disabled?", options: ["Maximum password age", "Minimum password length", "Password history tracking", "Minimum consecutive failures"], correct: 3, rationale: "Minimum Consecutive Failures is an organizational password policy used to restrict access after several failed attempts." },
+            { id: 2, question: "Malicious damage to medical equipment is officially categorized as a natural disaster threat.", options: ["True", "False"], correct: 1, rationale: "Natural disasters are earthquakes and floods. Malicious damage to medical equipment is a separate security threat." },
+            { id: 3, question: "Which specific consequence is directly associated with a software failure in a health information system?", options:["Physical equipment damage", "Inside malicious attacks", "Inaccurate clinical results", "External hardware crashes"], correct: 2, rationale: "Software failure leads to inaccurate results according to the security threats section." },
+            { id: 4, question: "Which action is strictly prohibited regarding the storage of personal passwords on a local computer workstation?", options:["Storing them in an encrypted format", "Storing them without any encryption", "Writing a descriptive reconstruction hint", "Creating a twenty character sentence"], correct: 1, rationale: "Guidelines state to never store your password on your computer except in an encrypted form." },
+            { id: 5, question: "The barcode access control method uses binary information encoded in vertical bars of differing widths.", options: ["True", "False"], correct: 0, rationale: "A barcode represents binary information printed as a set of vertical bars of differing widths." },
+            { id: 6, question: "Which security concept ensures that unauthorized users are entirely prevented from modifying critical health information?", options:["Information confidentiality", "System availability", "Information integrity", "User authentication"], correct: 2, rationale: "Integrity means preventing any unauthorized user from changing the information, and tracking authorized changes." },
+            { id: 7, question: "What type of access control method is physically represented by a fingerprint or retinal scanner device?", options:["What the user knows", "What the user has", "What the user is", "What the user creates"], correct: 2, rationale: "Biometric scans like fingerprints or retinas fall under the category of 'What the user is'." },
+            { id: 8, question: "If a user chooses a long password pulse consisting of twenty or more characters, what specific format is highly recommended?", options:["A complex mathematical formula", "A sequence of random symbols", "Any normal readable sentence", "A string of dictionary numbers"], correct: 2, rationale: "It is advised that you choose a twenty plus character pulse as a password, for example, any normal sentence." },
+            { id: 9, question: "A personal identification number is primarily an alphabetic password used to authenticate a user to a secure system.", options: ["True", "False"], correct: 1, rationale: "A personal identification number is a numeric password used to authenticate the user to a system." },
+            { id: 10, question: "Which password guideline is explicitly recommended when a user feels the need to document their complex password physically?", options:["Store it securely within a hidden file", "Share the document with a manager", "Keep the document near the monitor", "Write down only a descriptive hint"], correct: 3, rationale: "The guidelines state: Do not write down your password, but rather a hint that would allow you and nobody else to reconstruct it." },
+            { id: 11, question: "Tracking all modifications and changes made by authorized clinical users falls under which major security function?", options: ["System availability", "Information integrity", "Data confidentiality", "Network authentication"], correct: 1, rationale: "Integrity includes preventing unauthorized changes and tracking the changes made by authorized users." },
+            { id: 12, question: "Sending a secure password via an unsecured email method is considered acceptable if the recipient is an authorized administrator.", options:["True", "False"], correct: 1, rationale: "The guidelines state: Never send your password via e-mail or other unsecured method." },
+            { id: 13, question: "Which external device provides a uniquely different identification number every time it is used to authenticate a single user?", options:["Optical scanner", "Smart card", "Access token", "Biometric reader"], correct: 2, rationale: "A token is a small device that provides a different number every time, identifying the user to the system." },
+            { id: 14, question: "Text access control systems traditionally consist of which two specific authentication elements?", options:["Biometric scan and digital certificate", "Smart card and numerical barcode", "Access token and optical scanner", "Username and secret word password"], correct: 3, rationale: "Text access control consists of a username and a password containing a secret word." },
+            { id: 15, question: "Implementing system access control by relying on what a user is involves requiring a secure token device.", options:["True", "False"], correct: 1, rationale: "What a user is refers to biometric scans. A secure token device falls under what the user has." },
+            { id: 16, question: "What is the recommended minimum length for a standard complex password according to the provided security guidelines?", options:["Six standard characters", "Eight standard characters", "Ten standard characters", "Twelve standard characters"], correct: 1, rationale: "A strong password must be at least eight characters in length, but not more than fifty characters." },
+            { id: 17, question: "Accidental viewing of sensitive patient data by an entirely unauthorized person is officially classified as what?", options:["A software failure incident", "An equipment malfunction", "A direct security threat", "A biometric scanning error"], correct: 2, rationale: "Accidental viewing from an unauthorized person to some confidential or sensitive patient data is listed under security threats." },
+            { id: 18, question: "Which defining feature makes biometric scanning technologies considered a substantially stronger authentication method?", options:["They are generally less expensive to run", "They analyze unique body characteristics", "They process data without a microchip", "They utilize a simple numeric sequence"], correct: 1, rationale: "Biometrics refer to technologies for analyzing human body characteristics, which provides a stronger authentication method." },
+            { id: 19, question: "Smart cards rely exclusively on magnetic stripes rather than integrated microchips to process large amounts of data at high security.", options: ["True", "False"], correct: 1, rationale: "The smart card contains a microchip with the potential for storage and processing of large amounts of data." },
+            { id: 20, question: "Which specific action represents a severe security threat related to the handling of external digital media?", options:["Transferring patient data to flash drives", "Printing medical records for patient files", "Upgrading the hospital operating system", "Implementing multifactor authentication"], correct: 0, rationale: "Risk of transferring patient data to external media, such as CDs or USB flash drives, is a listed security threat." },
+            { id: 21, question: "A physical smart card achieves high security storage and advanced data processing through the use of which specific component?", options:["Optical laser beam reader", "Integrated internal microchip", "Vertical barcode sequence", "Voice pattern recognition"], correct: 1, rationale: "A smart card contains a microchip with the potential for storage and processing of large amounts of data at high security." },
+            { id: 22, question: "Which component is an essential part of a complete biometric authentication device alongside the physical scanner and conversion software?", options:["A token number generator", "An optical barcode printer", "A data comparison database", "A smart card access reader"], correct: 2, rationale: "A biometric device consists of a scanning device, conversion software, and a database that stores the biometric data for comparison." },
+            { id: 23, question: "Passwords must never be shared verbally with close friends or the network system administrator under any circumstances.", options: ["True", "False"], correct: 0, rationale: "The guidelines state: Do not tell anyone your password, not even a close friend or your system administrator." },
+            { id: 24, question: "What does the technical acronym PIN stand for in the precise context of computer system authentication?", options:["Protected Information Node", "Personal Identification Number", "Private Internet Network", "Patient Identification Name"], correct: 1, rationale: "A personal identification number is a numeric password used to authenticate the user to a system." },
+            { id: 25, question: "Printed barcodes represent coded binary information that is typically read using which specific type of scanning technology?", options:["Radio frequency identification tag", "Magnetic stripe authentication card", "Optical scanner with a laser beam", "Retinal biometric pattern scanner"], correct: 2, rationale: "The barcode represents binary information that can be read by an optical scanner that uses a laser beam." },
+            { id: 26, question: "An effective strong password must contain only lowercase letters to avoid critical typing errors during emergency access.", options: ["True", "False"], correct: 1, rationale: "Guidelines state a strong password contains both uppercase letters and lowercase letters." },
+            { id: 27, question: "How should an individual properly handle the standard Windows operating system offer to permanently save a typed password?", options:["Accept it only for nonclinical network applications", "Accept it if the computer workstation is privately owned", "Never accept the automated offer under any circumstances", "Accept it to successfully prevent consecutive login failures"], correct: 2, rationale: "The guidelines state: Never accept Windows offer to save the password." },
+            { id: 28, question: "Outside network attacks aimed specifically at stealing private medical records are typically executed by whom?", options:["Malicious internal employees", "Hackers and computer viruses", "Network system administrators", "Authorized clinical care staff"], correct: 1, rationale: "Security threats include unauthorized access from outside hackers who seek to steal private medical records or attacks by viruses." },
+            { id: 29, question: "Which broad threat category explicitly includes destructive environmental events such as massive earthquakes and localized floods?", options:["Inside malicious attacks", "Critical equipment failure", "Major natural disasters", "Inaccurate software failure"], correct: 2, rationale: "Natural disasters, such as earthquakes and floods, are listed as major security threats." },
+            { id: 30, question: "Voice tracking patterns and physical hand measurements are officially recognized and valid forms of biometric scanning technologies.", options: ["True", "False"], correct: 0, rationale: "Biometric scans refer to technologies analyzing characteristics such as voice patterns, facial patterns, and hand measurements." },
+            { id: 31, question: "If a selected network password is intentionally shorter than twenty total characters, what critical condition must it inherently meet?", options:["It must be exclusively composed of numerical digits", "It must be completely free of all punctuation marks", "It must be an easily recognizable simple dictionary word", "It must be very complex and extremely hard to remember"], correct: 3, rationale: "Passwords shorter than twenty characters must be very complex and therefore hard to remember." },
+            { id: 32, question: "In a fully functional biometric authentication device, what is the precise operational role of the internal software component?", options:["Capturing the physical human characteristics directly", "Converting scanned information into secure digital form", "Storing the biometric database files for future queries", "Displaying the clinical patient medical access records"], correct: 1, rationale: "The software converts the scanned information into digital form and compares match points." },
+            { id: 33, question: "The organizational password policy known as Maximum Password Age forces network users to change their passwords regularly.", options: ["True", "False"], correct: 0, rationale: "Maximum Password Age dictates how long a password can be used before the user is required to change it." },
+            { id: 34, question: "Which specific type of system authentication relies entirely on a physical item the user constantly possesses, such as a plastic card?", options:["What the network user knows", "What the network user has", "What the network user is", "What the network user creates"], correct: 1, rationale: "Controlling access methods include 'What the user has', such as a card or a token." },
+            { id: 35, question: "What exact action should a system user take immediately if they strongly suspect their personal password is no longer a tightly kept secret?", options:["Notify their trusted close friends", "Write the compromised password down", "Change the secret password immediately", "Wait for the network lockout time to expire"], correct: 2, rationale: "If you believe your password has been compromised or that it is no longer a secret, change it immediately." },
+            { id: 36, question: "Which specific authentication method involves an access code printed physically as a uniform set of vertical lines of differing widths?", options: ["Integrated smart card", "Digital token device", "Optical barcode system", "Facial biometric scan"], correct: 2, rationale: "Barcodes are printed as a set of vertical bars of differing widths and used as an access code." },
+            { id: 37, question: "System confidentiality within a computerized health information network primarily ensures which foundational security condition?", options:["Information is continuously accessible without delay", "Information remains entirely unchanged by administrators", "Information is only seen by authorized medical personnel", "Information is routinely backed up to external optical media"], correct: 2, rationale: "Confidentiality means ensuring that information is only being seen or used by people who are authorized to access it." },
+            { id: 38, question: "A user password based exclusively on a regular dictionary word is generally considered weak for which specific security reason?", options:["It usually exceeds the strict fifty character maximum limit", "It completely lacks the required standard numerical sequences", "It is easily discovered through automated internet guessing methods", "It requires extremely frequent updates by the system administrator"], correct: 2, rationale: "Guidelines state: Do not choose a password that is an English or Arabic word found in the dictionary, as one could easily discover it." },
+            { id: 39, question: "According to the detailed security guidelines, what is the absolute maximum recommended character length for a strong user password?", options:["Twenty total characters", "Thirty total characters", "Forty total characters", "Fifty total characters"], correct: 3, rationale: "A strong password must be at least eight characters in length, but not more than fifty characters." },
+            { id: 40, question: "The specific capability to guarantee that critical health information is present and accessible whenever authorized users need it describes which core concept?", options:["System availability", "Data confidentiality", "Information integrity", "Network lockout time"], correct: 0, rationale: "Availability means making sure the information will be available when authorized users need it." }
+        ];
+
+        // --- 2. SHUFFLE & RENDER LOGIC (DO NOT EDIT) ---
+        const quizData = rawQuizData.map(q => {
+            const opts = q.options.map((text, i) => ({ text, isCorrect: i === q.correct }));
+            for (let i = opts.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));[opts[i], opts[j]] = [opts[j], opts[i]];
+            }
+            return { ...q, options: opts.map(o => o.text), correct: opts.findIndex(o => o.isCorrect) };
+        });
+
+        const container = document.getElementById('quiz-container');
+        let score = 0; let answeredCount = 0;
+
+        function renderQuiz() {
+            document.getElementById('total-display').innerText = `/ ${quizData.length}`;
+            container.innerHTML = quizData.map((q, index) => {
+                return `
+                <div class="card bg-white rounded-xl p-6 mb-6 border border-gray-100">
+                    <div class="flex justify-between items-center mb-4 border-b border-gray-50 pb-3">
+                        <span class="bg-blue-100 text-blue-800 text-xs font-bold px-3 py-1 rounded-full">Question ${index + 1}</span>
+                         ${q.options.length === 2 ? '<span class="bg-purple-100 text-purple-800 text-xs font-bold px-2 py-1 rounded-md">True/False</span>' : ''}
+                    </div>
+                    <h3 class="text-gray-800 font-bold mb-6 text-lg leading-relaxed font-cairo" style="direction: ltr; text-align: left;">${q.question}</h3>
+                    <div class="grid gap-3 ${q.options.length === 2 ? 'grid-cols-2' : ''}">
+                        ${q.options.map((opt, i) => `<button onclick="checkAnswer(${index}, ${i})" class="option-btn option-btn-${index} w-full text-left px-5 py-4 rounded-xl border border-gray-200 hover:bg-blue-50 hover:border-blue-300 focus:outline-none flex items-center justify-between group bg-white"><span class="font-medium text-gray-700 group-hover:text-blue-700 font-sans">${opt}</span></button>`).join('')}
+                    </div>
+                    <div id="feedback-${index}" class="hidden-content mt-6 bg-blue-50 rounded-xl p-5 border border-blue-100 animate-fade-in text-left">
+                        <p class="text-blue-800 text-sm leading-relaxed"><strong>Rationale:</strong> ${q.rationale}</p>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        window.checkAnswer = function(qIndex, optIndex) {
+            const q = quizData[qIndex];
+            const feedback = document.getElementById(`feedback-${qIndex}`);
+            const btns = document.querySelectorAll(`.option-btn-${qIndex}`);
+            if (!feedback.classList.contains('hidden-content')) return;
+            feedback.classList.remove('hidden-content');
+            btns.forEach((btn, i) => {
+                btn.disabled = true;
+                if (i === q.correct) { btn.classList.add('correct-answer'); btn.innerHTML += '<i class="fas fa-check float-right"></i>'; }
+                else if (i === optIndex) { btn.classList.add('wrong-answer'); btn.innerHTML += '<i class="fas fa-times float-right"></i>'; }
+                else { btn.classList.add('opacity-50'); }
+            });
+            if (optIndex === q.correct) score++;
+            answeredCount++;
+            if (answeredCount === quizData.length) {
+                document.getElementById('result-summary').classList.remove('hidden-content');
+                document.getElementById('score-display').innerText = score;
+                document.getElementById('score-message').innerText = (score/quizData.length*100) >= 50 ? "Good Job!" : "Keep Studying";
+                setTimeout(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }), 500);
+            }
+        };
+        renderQuiz();
+    </script>
+</body>
+</html>

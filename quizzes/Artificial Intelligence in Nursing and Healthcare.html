@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Noto+Sans:wght@400;600;700&display=swap');
+        body { font-family: 'Noto Sans', 'Cairo', sans-serif; background-color: #f8fafc; }
+        .card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .card:hover { transform: translateY(-4px); box-shadow: 0 12px 20px -5px rgba(0, 0, 0, 0.1); }
+        .correct-answer { background-color: #dcfce7 !important; border-color: #22c55e !important; color: #15803d !important; }
+        .wrong-answer { background-color: #fee2e2 !important; border-color: #ef4444 !important; color: #b91c1c !important; }
+        .hidden-content { display: none; }
+        .option-btn { transition: all 0.2s; }
+        .option-btn:disabled { cursor: default; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
+    </style>
+</head>
+<body class="pb-12 bg-gray-50">
+    <div class="max-w-3xl mx-auto px-4 py-8">
+        <div class="bg-white rounded-2xl shadow-sm p-8 mb-8 text-center border-t-4 border-blue-600 relative overflow-hidden">
+            <div class="absolute top-0 right-0 p-4 opacity-10"><i class="fas fa-user-md text-8xl text-blue-600"></i></div>
+            
+            <h1 class="text-3xl font-bold text-gray-800 mb-2 font-cairo text-center" dir="auto">Artificial Intelligence in Nursing and Healthcare</h1>
+            
+            <div class="flex items-center justify-center gap-2 text-green-600 font-semibold bg-green-50 w-fit mx-auto px-4 py-1 rounded-full text-sm">
+                <i class="fas fa-check-circle"></i> "تم صنع هذا الامتحان بواسطة عبدالحليم رزق"
+            </div>
+        </div>
+        <div id="quiz-container"></div>
+        <div id="result-summary" class="hidden-content bg-white rounded-2xl shadow-lg p-8 text-center mt-8 border border-gray-100">
+            <h2 class="text-2xl font-bold text-gray-800">Exam Completed</h2>
+            <div class="mt-4 text-4xl font-bold text-blue-600 mb-2">
+                <span id="score-display">0</span> <span class="text-xl text-gray-400" id="total-display"></span>
+            </div>
+            <p id="score-message" class="text-gray-500 mb-6"></p>
+            <button onclick="location.reload()" class="bg-blue-600 text-white px-8 py-3 rounded-xl hover:bg-blue-700 transition shadow-lg hover:shadow-blue-200">
+                <i class="fas fa-redo mr-2"></i> Restart Exam
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. QUESTIONS ARRAY ---
+        const rawQuizData =[
+            { id: 1, question: "Intelligent scheduling algorithms are used to optimize nurse workload balance and reduce staff burnout.", options: ["True", "False"], correct: 0, rationale: "Intelligent scheduling algorithms can optimize nurse-patient assignments, ensuring workload balance and reducing burnout." },
+            { id: 2, question: "Which technology assists nurses by automating routine tasks and optimizing patient assignments?", options:["Workflow optimization", "Telehealth monitoring", "Robotic exoskeletons", "Administrative scheduling"], correct: 0, rationale: "Workflow Optimization uses AI to automate routine tasks and optimize assignments, reducing burnout." },
+            { id: 3, question: "What fundamental element allows artificial intelligence systems to find patterns beyond human capacity?", options:["Vast data analysis", "Advanced robotic limbs", "High speed internet", "Virtual reality headsets"], correct: 0, rationale: "AI analyzes vast amounts of digital data to identify patterns that enhance knowledge generation and decision making beyond human capacity." },
+            { id: 4, question: "What critical question arises when artificial intelligence systems make complex medical decisions leading to adverse outcomes?", options:["Accountability and responsibility", "Internet connection stability", "Database storage capacity", "Software subscription pricing"], correct: 0, rationale: "When AI systems make critical decisions, there may be questions regarding accountability and responsibility in case of errors or adverse outcomes." },
+            { id: 5, question: "Which platform facilitates remote consultations and virtual patient monitoring?", options:["Telehealth systems", "Clinical decision support", "Electronic health records", "Robotic nursing exoskeletons"], correct: 0, rationale: "Telehealth and Remote Patient platforms facilitate remote consultations, virtual patient monitoring, and remote care coordination." },
+            { id: 6, question: "Which clinical application automatically generates nursing diagnoses and predicts fall risks?", options:["Clinical decision support", "Administrative automation", "Virtual health assistants", "Wearable fitness tracking"], correct: 0, rationale: "AI-based clinical decision support includes automatically generated nursing diagnoses, fall risk prediction, and care plans." },
+            { id: 7, question: "Artificial intelligence systems do not require accurate and up to date data to make informed clinical decisions.", options: ["True", "False"], correct: 1, rationale: "AI systems are highly reliant on accurate and up-to-date data to make informed decisions." },
+            { id: 8, question: "What is a primary challenge of using artificial intelligence in nursing regarding emotional support?", options:["Lack of human touch", "High financial cost", "Increased paperwork", "Slower data entry"], correct: 0, rationale: "A major challenge is the 'Lack of Human Touch', as AI cannot fully replicate empathy and emotional support." },
+            { id: 9, question: "Tailoring specific medical interventions to individual patient needs is best categorized as what type of care?", options:["Personalized care", "Standardized care", "Administrative care", "Automated care"], correct: 0, rationale: "Personalized Care uses AI to tailor interventions to individual patient needs." },
+            { id: 10, question: "Artificial intelligence systems are capable of processing much more data more quickly than a human professional.", options: ["True", "False"], correct: 0, rationale: "AI systems can simply process much more data more quickly than a human is able to." },
+            { id: 11, question: "Synthesizing research evidence and patient data to generate new insights describes the core function of which system?", options: ["Health intelligence technologies", "Automated payroll software", "Virtual reality gaming", "Basic electronic spreadsheets"], correct: 0, rationale: "AI health technologies (AIHTs) analyze large amounts of research evidence and clinical data to identify patterns and enhance knowledge generation." },
+            { id: 12, question: "Artificial intelligence powered manikins are used to replicate patient behavior for medical education.", options: ["True", "False"], correct: 0, rationale: "Students can be put into realistic simulations where AI-powered 'patients' in the forms of manikins present symptoms or behavior." },
+            { id: 13, question: "Which domains of nursing practice are predicted to be transformed by new intelligent technologies?", options:["Administration and clinical care", "Janitorial and maintenance services", "Accounting and financial auditing", "Cafeteria and dietary planning"], correct: 0, rationale: "AI will transform nursing across all domains including administration, clinical care, education, policy, and research." },
+            { id: 14, question: "Which ethical concern is raised when artificial intelligence algorithms rely on vast amounts of patient data?", options:["Privacy and confidentiality", "Slow system performance", "High hardware costs", "Staff schedule conflicts"], correct: 0, rationale: "AI algorithms rely on vast amounts of patient data, raising questions about data privacy, consent, and potential breaches of confidentiality." },
+            { id: 15, question: "Artificial intelligence technologies can fully replicate the empathy and emotional support that human nurses provide.", options:["True", "False"], correct: 1, rationale: "AI technologies, although advanced, cannot fully replicate the human touch and emotional support that patients often need." },
+            { id: 16, question: "What does the acronym AIHT stand for in the context of emerging health systems?", options:["Artificial intelligence health technologies", "Advanced information health tracking", "Automated interactive health tools", "Applied intelligence hospital tech"], correct: 0, rationale: "AIHT stands for artificial intelligence health technologies." },
+            { id: 17, question: "Using computer programs that present specific clinical symptoms for learner response is an example of what?", options:["Medical training simulation", "Direct patient treatment", "Remote health monitoring", "Administrative data entry"], correct: 0, rationale: "Medical training and education benefit from AI through realistic simulations where computer programs present symptoms requiring learner response." },
+            { id: 18, question: "What defines technology enabling computer systems to learn and make decisions like humans?", options:["Artificial intelligence", "Predictive analytics", "Virtual robotics", "Remote monitoring"], correct: 0, rationale: "Artificial intelligence enables a computer system to learn, reason, perceive, infer, communicate, and make decisions similar to humans." },
+            { id: 19, question: "Which tool provides health advice and medication reminders to patients directly?", options:["Virtual health assistants", "Clinical decision support", "Administrative automation", "Bedside sensor monitors"], correct: 0, rationale: "Virtual Health Assistants use AI chatbots to offer health advice, appointment scheduling, and medication reminders." },
+            { id: 20, question: "Voice assistance systems can help nurses retrieve patient information and schedule reminders through verbal commands.", options: ["True", "False"], correct: 0, rationale: "AI-powered voice assistance systems can help nurses retrieve information using voice commands and verbally remind them of schedules." },
+            { id: 21, question: "Proactively intervening to prevent medical complications is enabled by what specific technology trend?", options:["Predictive patient analytics", "Retrospective data analysis", "Manual paper charting", "Standardized care plans"], correct: 0, rationale: "Predictive analytics allows nurses to identify patterns in patient data and intervene proactively to prevent complications." },
+            { id: 22, question: "Maintaining collaboration between artificial intelligence systems and human nurses is considered vital and irreplaceable.", options: ["True", "False"], correct: 0, rationale: "Maintaining collaboration between AI systems and nurses is vital, as the human touch and critical thinking skills are irreplaceable." },
+            { id: 23, question: "Utilizing electronic health record data to help professionals make quick choices defines which application?", options:["Clinical decision support", "Remote patient tracking", "Robotic rehabilitation therapy", "Voice assisted documentation"], correct: 0, rationale: "Clinical decision support uses data within an electronic health record system to help healthcare professionals make decisions quickly." },
+            { id: 24, question: "Streamlining documentation and inventory management falls under which category of artificial intelligence application?", options:["Administrative automation", "Predictive clinical analytics", "Telehealth remote patient care", "Robotic nursing assistance"], correct: 0, rationale: "Administrative Automation uses AI to streamline tasks like documentation, staffing, and inventory management." },
+            { id: 25, question: "Artificial intelligence based decision support systems are completely incapable of flagging potential clinical risks.", options: ["True", "False"], correct: 1, rationale: "AI-powered decision support systems provide evidence-based recommendations and explicitly flag potential risks." },
+            { id: 26, question: "What happens when patients interact heavily with artificial intelligence driven systems instead of human nurses?", options:["They may feel emotional detachment", "They always recover much faster", "They refuse medical treatments entirely", "They experience lowered physical pain"], correct: 0, rationale: "Patients may feel a sense of detachment when interacting with AI-driven systems due to the lack of human touch." },
+            { id: 27, question: "Providing real time insights and alerting nurses to potential medication errors are functions of what specific system?", options:["Clinical decision support", "Administrative data automation", "Telehealth remote monitoring", "Wearable fitness tracking"], correct: 0, rationale: "Clinical Decision Support Systems (CDSS) provide real-time insights and alert nurses to potential medication errors." },
+            { id: 28, question: "How does artificial intelligence specifically benefit medical education and training?", options:["Providing realistic simulated patients", "Eliminating theoretical examinations", "Replacing human instructors completely", "Grading multiple choice tests"], correct: 0, rationale: "Medical training benefits from realistic simulations where AI-powered 'patients' present symptoms." },
+            { id: 29, question: "Supporting patient rehabilitation exercises is an application of which specific technological tool?", options:["Robotic exoskeletons", "Virtual health chatbots", "Voice assistance programs", "Electronic health records"], correct: 0, rationale: "Robotics in Nursing Care includes robotic exoskeletons supporting rehabilitation exercises." },
+            { id: 30, question: "What risk necessitates nurses to double check system generated information?", options:["System technical glitches", "Unauthorized data access", "Slow wireless networks", "Hardware power failures"], correct: 0, rationale: "There is always a risk of technical glitches or data inaccuracies, so nurses must double-check AI-generated information." },
+            { id: 31, question: "Predicting adverse events such as deteriorating conditions is achieved primarily by leveraging which technology?", options: ["Machine learning", "Virtual telehealth", "Robotic movement", "Voice recognition"], correct: 0, rationale: "By leveraging machine learning, AI algorithms can identify patterns and predict adverse events." },
+            { id: 32, question: "The use of artificial intelligence in critical decision making eliminates all questions regarding professional accountability.", options: ["True", "False"], correct: 1, rationale: "When AI systems make critical decisions, there may be significant questions regarding accountability and responsibility." },
+            { id: 33, question: "Detecting anomalies and issuing immediate alerts is a feature of which clinical technology?", options:["Intelligent patient monitoring", "Administrative staff scheduling", "Virtual medical chatbots", "Electronic billing systems"], correct: 0, rationale: "Intelligent Patient Monitoring systems analyze vital signs, detect anomalies, and issue alerts." },
+            { id: 34, question: "Automating nurses workload directly contributes to which positive professional outcome?", options:["Reduced clinical burnout", "Increased administrative tasks", "Longer patient wait times", "Decreased diagnostic accuracy"], correct: 0, rationale: "Automation reduces nurses' workload, optimizing workload balance and reducing burnout." },
+            { id: 35, question: "Striking the right balance between technology and human involvement ensures what specific type of care?", options:["Patient centred care", "Technology driven care", "Cost optimized care", "Administratively focused care"], correct: 0, rationale: "Striking the right balance and addressing ethical considerations ensures that patient-centred care remains at the forefront." },
+            { id: 36, question: "Inpatient bedside sensors are primarily utilized for which specific medical purpose?", options:["Continuous data collection", "Scheduling nurse shifts", "Ordering hospital supplies", "Processing insurance claims"], correct: 0, rationale: "Inpatient bedside sensors collect data in real time to warn medical teams and monitor symptoms continuously." },
+            { id: 37, question: "Clinical decision support systems can generate plans to prevent catheter associated urinary tract infections.", options: ["True", "False"], correct: 0, rationale: "AI-based clinical decision support includes automatically generated care plans to prevent catheter-associated urinary tract infections." },
+            { id: 38, question: "Forecasting the likelihood of patients developing complications like sepsis involves which approach?", options:["Predictive early detection", "Retrospective chart review", "Voice recognition software", "Automated staff scheduling"], correct: 0, rationale: "Early detection in the form of predictive analytics forecasts the likelihood of patients developing complications like sepsis." },
+            { id: 39, question: "Wearable devices monitoring heart rate and oxygen levels are examples of which artificial intelligence application?", options:["Patient predictive analytics", "Administrative data entry", "Virtual health assistants", "Robotic nursing care"], correct: 0, rationale: "Patient Monitoring and Predictive Analytics utilizes AI tools like wearable devices to track vital signs such as heart rate and oxygen levels." },
+            { id: 40, question: "Using voice recognition programs during clinical shifts allows nurses to achieve what primary goal?", options:["Taking effective clinical notes", "Performing physical examinations", "Administering intravenous fluids", "Transporting immobile patients"], correct: 0, rationale: "Voice-recognition and short form writing programs help nurses take notes more effectively while giving patients full attention." }
+        ];
+
+        // --- 2. SHUFFLE & RENDER LOGIC (DO NOT EDIT) ---
+        const quizData = rawQuizData.map(q => {
+            const opts = q.options.map((text, i) => ({ text, isCorrect: i === q.correct }));
+            for (let i = opts.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [opts[i], opts[j]] = [opts[j], opts[i]];
+            }
+            return { ...q, options: opts.map(o => o.text), correct: opts.findIndex(o => o.isCorrect) };
+        });
+
+        // Shuffle the questions themselves
+        for (let i = quizData.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [quizData[i], quizData[j]] = [quizData[j], quizData[i]];
+        }
+
+        const container = document.getElementById('quiz-container');
+        let score = 0; let answeredCount = 0;
+
+        function renderQuiz() {
+            document.getElementById('total-display').innerText = `/ ${quizData.length}`;
+            container.innerHTML = quizData.map((q, index) => {
+                return `
+                <div class="card bg-white rounded-xl p-6 mb-6 border border-gray-100">
+                    <div class="flex justify-between items-center mb-4 border-b border-gray-50 pb-3">
+                        <span class="bg-blue-100 text-blue-800 text-xs font-bold px-3 py-1 rounded-full">Question ${index + 1}</span>
+                         ${q.options.length === 2 ? '<span class="bg-purple-100 text-purple-800 text-xs font-bold px-2 py-1 rounded-md">True/False</span>' : ''}
+                    </div>
+                    <h3 class="text-gray-800 font-bold mb-6 text-lg leading-relaxed font-cairo" style="direction: ltr; text-align: left;">${q.question}</h3>
+                    <div class="grid gap-3 ${q.options.length === 2 ? 'grid-cols-2' : ''}">
+                        ${q.options.map((opt, i) => `<button onclick="checkAnswer(${index}, ${i})" class="option-btn option-btn-${index} w-full text-left px-5 py-4 rounded-xl border border-gray-200 hover:bg-blue-50 hover:border-blue-300 focus:outline-none flex items-center justify-between group bg-white"><span class="font-medium text-gray-700 group-hover:text-blue-700 font-sans">${opt}</span></button>`).join('')}
+                    </div>
+                    <div id="feedback-${index}" class="hidden-content mt-6 bg-blue-50 rounded-xl p-5 border border-blue-100 animate-fade-in text-left">
+                        <p class="text-blue-800 text-sm leading-relaxed"><strong>Rationale:</strong> ${q.rationale}</p>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        window.checkAnswer = function(qIndex, optIndex) {
+            const q = quizData[qIndex];
+            const feedback = document.getElementById(`feedback-${qIndex}`);
+            const btns = document.querySelectorAll(`.option-btn-${qIndex}`);
+            if (!feedback.classList.contains('hidden-content')) return;
+            feedback.classList.remove('hidden-content');
+            btns.forEach((btn, i) => {
+                btn.disabled = true;
+                if (i === q.correct) { btn.classList.add('correct-answer'); btn.innerHTML += '<i class="fas fa-check float-right"></i>'; }
+                else if (i === optIndex) { btn.classList.add('wrong-answer'); btn.innerHTML += '<i class="fas fa-times float-right"></i>'; }
+                else { btn.classList.add('opacity-50'); }
+            });
+            if (optIndex === q.correct) score++;
+            answeredCount++;
+            if (answeredCount === quizData.length) {
+                document.getElementById('result-summary').classList.remove('hidden-content');
+                document.getElementById('score-display').innerText = score;
+                document.getElementById('score-message').innerText = (score/quizData.length*100) >= 50 ? "Good Job!" : "Keep Studying";
+                setTimeout(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }), 500);
+            }
+        };
+        renderQuiz();
+    </script>
+</body>
+</html>
