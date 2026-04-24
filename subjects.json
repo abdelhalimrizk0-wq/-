@@ -732,6 +732,21 @@
     "name": "Data Security and Ethics",
     "file": "quizzes/Data Security and Ethics.html",
     "questions": 0
+  },
+        {
+    "name": "Due Care",
+    "file": "quizzes/Due Care.html",
+    "questions": 0
+  },
+  {
+    "name": "Artificial Intelligence in Nursing and Healthcare",
+    "file": "quizzes/Artificial Intelligence in Nursing and Healthcare.html",
+    "questions": 0
+  },
+  {
+    "name": "Tele-Health, Tele-Medicine & Tele-Nursing",
+    "file": "quizzes/Tele-Health, Tele-Medicine & Tele-Nursing.html",
+    "questions": 0
   }
     ]
   },
