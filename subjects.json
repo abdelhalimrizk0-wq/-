@@ -85,7 +85,11 @@
     "color": "#0ea5e9",
     "department": "adult",
     "lectures": [
-      { "name": "كويز 1", "file": "#", "questions": 20 }
+       {
+    "name": "Orthopedic Quizzes",
+    "file": "quizzes/Orthopedic Quizzes.html",
+    "questions": 0
+  }
     ]
   },
   {
