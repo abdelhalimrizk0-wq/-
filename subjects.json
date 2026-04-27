@@ -89,6 +89,11 @@
     "name": "Orthopedic Quizzes",
     "file": "quizzes/Orthopedic Quizzes.html",
     "questions": 0
+  },
+        {
+    "name": "Urology Quizzes",
+    "file": "quizzes/Urology Exams.html",
+    "questions": 0
   }
     ]
   },
